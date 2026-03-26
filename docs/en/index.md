@@ -8,6 +8,7 @@
 
 | Document | Description |
 |----------|-------------|
+| [Introduction](introduction.md) | Why QuantumRAG exists and what makes it different |
 | [Getting Started](getting-started.md) | Installation, setup, and first query |
 | [Architecture](architecture.md) | Ingest pipeline, query pipeline, Triple Index, 4-Level Indexing |
 | [Configuration](configuration.md) | Full config reference — models, retrieval, generation, storage |

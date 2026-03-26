@@ -8,6 +8,7 @@
 
 | 문서 | 설명 |
 |------|------|
+| [소개](introduction.md) | 왜 QuantumRAG를 만들었는가, 무엇이 다른가 |
 | [시작하기](getting-started.md) | 설치, 설정, 첫 번째 질문 |
 | [아키텍처](architecture.md) | 인제스트 파이프라인, 쿼리 파이프라인, Triple Index, 4-Level Indexing |
 | [설정 가이드](configuration.md) | 전체 설정 레퍼런스 — 모델, 검색, 생성, 스토리지 |

@@ -10,7 +10,9 @@
 
 **Index-Heavy, Query-Light RAG Engine** — Put in docs, ask questions, it just works.
 
-QuantumRAG is an open-source Retrieval-Augmented Generation engine that pushes expensive computation to indexing time for fast, accurate queries. It features **Triple Index Fusion** (Original Embedding + HyPE + Contextual BM25) combined with **4-Level Indexing** (Multi-Resolution Summaries, Structured Fact Extraction, Derived Index Enrichment, Entity-Centric Reverse Index) to achieve 98.9% accuracy across 87 real-world scenario tests.
+QuantumRAG is an open-source RAG engine that deeply understands your documents at indexing time — extracting entities, building fact indexes, generating searchable synonyms, and pre-computing chunk relationships — so that every query is fast, precise, and grounded in evidence. By combining **Triple Index Fusion** (Original Embedding + HyPE + Contextual BM25) with **4-Level Indexing** (Multi-Resolution Summaries, Structured Fact Extraction, Derived Index Enrichment, Entity-Centric Reverse Index), QuantumRAG achieves 98.9% accuracy across 87 real-world scenario tests — including multi-hop reasoning, entity-specific filtering, and cross-document verification that conventional embedding-only RAG systems cannot handle.
+
+> **[Why QuantumRAG?](docs/en/introduction.md)** — The problems with current RAG systems, and how QuantumRAG solves them.
 
 ---
 

@@ -10,7 +10,9 @@
 
 **Index-Heavy, Query-Light RAG 엔진** — 문서를 넣고, 질문하세요. 그냥 됩니다.
 
-QuantumRAG는 인덱싱 시점에 무거운 연산을 수행하여 쿼리 시점의 속도와 정확도를 극대화하는 오픈소스 RAG 엔진입니다. **Triple Index Fusion** (Original Embedding + HyPE + Contextual BM25)과 **4-Level Indexing** (Multi-Resolution 요약, Structured Fact 추출, Derived Index 보강, Entity-Centric 역인덱스)을 결합하여 87개 실전 시나리오 테스트에서 98.9% 정확도를 달성합니다.
+QuantumRAG는 인덱싱 시점에 문서를 깊이 이해하는 오픈소스 RAG 엔진입니다 — 엔티티 추출, 팩트 인덱스 구축, 검색 가능한 동의어 생성, 청크 간 관계 사전 계산을 수행하여, 모든 쿼리가 빠르고 정밀하며 근거에 기반합니다. **Triple Index Fusion** (Original Embedding + HyPE + Contextual BM25)과 **4-Level Indexing** (Multi-Resolution 요약, Structured Fact 추출, Derived Index 보강, Entity-Centric 역인덱스)을 결합하여, 멀티홉 추론, 엔티티 필터링, 교차 문서 검증 등 기존 임베딩 기반 RAG가 처리하지 못하는 87개 실전 시나리오 테스트에서 98.9% 정확도를 달성합니다.
+
+> **[왜 QuantumRAG인가?](docs/ko/introduction.md)** — 현재 RAG 시스템의 문제점과 QuantumRAG의 해결 방식.
 
 ---
 
