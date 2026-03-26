@@ -55,7 +55,7 @@ print(result.errors)          # 에러 메시지 목록
 인덱싱된 문서에 질의합니다.
 
 ```python
-result = engine.query("매출이 얼마인가요?")
+result = engine.query("적응형 쿼리 라우팅은 어떻게 동작하나요?")
 print(result.answer)      # 인라인 인용이 포함된 답변
 print(result.confidence)  # 신뢰도 열거형
 print(result.sources)     # List[Source] 발췌문 포함
@@ -75,7 +75,7 @@ print(result.metadata)    # tokens_used, cost, latency_ms 등
 답변 토큰을 스트리밍합니다.
 
 ```python
-async for token in engine.query_stream("매출이 얼마인가요?"):
+async for token in engine.query_stream("지원되는 리랭킹 프로바이더는 무엇인가요?"):
     print(token, end="", flush=True)
 ```
 
@@ -239,9 +239,9 @@ curl -X POST http://localhost:8000/v1/ingest/upload \
 
 ```json
 {
-  "text": "분기 매출이 500억에 도달했습니다...",
-  "title": "Q3 보고서",
-  "metadata": {"type": "report"}
+  "text": "QuantumRAG는 auto, structural, semantic, fixed 네 가지 청킹 전략을 지원합니다...",
+  "title": "청킹 가이드",
+  "metadata": {"type": "documentation"}
 }
 ```
 
@@ -253,7 +253,7 @@ curl -X POST http://localhost:8000/v1/ingest/upload \
 
 ```json
 {
-  "query": "분기별 매출이 얼마인가요?",
+  "query": "지원되는 리랭킹 프로바이더는 무엇인가요?",
   "filters": null,
   "top_k": 7,
   "rerank": true,
@@ -265,14 +265,14 @@ curl -X POST http://localhost:8000/v1/ingest/upload \
 
 ```json
 {
-  "answer": "분기 매출은 500억원입니다 [1].",
+  "answer": "QuantumRAG는 FlashRank(기본, CPU 기반)와 Cohere 리랭킹 프로바이더를 지원합니다 [1].",
   "sources": [
     {
       "chunk_id": "abc123",
-      "document_title": "Q3 보고서",
-      "page": 3,
-      "section": "재무 요약",
-      "excerpt": "Q3 매출이 500억에 도달...",
+      "document_title": "설정 가이드",
+      "page": null,
+      "section": "리랭킹",
+      "excerpt": "FlashRank는 무료 CPU 기반 리랭킹을 제공합니다...",
       "relevance_score": 0.92
     }
   ],
@@ -389,8 +389,8 @@ data: [DONE]
 
 ```json
 {
-  "query": "매출이 얼마인가요?",
-  "answer": "매출은 500억원입니다 [1].",
+  "query": "지원되는 리랭킹 프로바이더는 무엇인가요?",
+  "answer": "QuantumRAG는 FlashRank와 Cohere 리랭킹을 지원합니다 [1].",
   "rating": 5,
   "comment": "정확하고 인용이 잘 되어 있습니다"
 }
@@ -437,7 +437,7 @@ quantumrag ingest <PATH> [OPTIONS]
 **`query`** — 질문하기
 
 ```bash
-quantumrag query "매출이 얼마인가요?" [OPTIONS]
+quantumrag query "지원되는 리랭킹 프로바이더는 무엇인가요?" [OPTIONS]
 ```
 
 | 옵션 | 설명 | 기본값 |

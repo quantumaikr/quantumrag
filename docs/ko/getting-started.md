@@ -110,13 +110,13 @@ print(f"{result.documents}개 문서, {result.chunks}개 청크 인덱싱 완료
 **CLI:**
 
 ```bash
-quantumrag query "분기별 매출이 얼마인가요?"
+quantumrag query "지원되는 청킹 전략은 무엇인가요?"
 ```
 
 **Python:**
 
 ```python
-result = engine.query("분기별 매출이 얼마인가요?")
+result = engine.query("지원되는 리랭킹 프로바이더는 무엇인가요?")
 print(result.answer)       # [1], [2] 인라인 인용이 포함된 답변
 print(result.confidence)   # STRONGLY_SUPPORTED / PARTIALLY_SUPPORTED / INSUFFICIENT_EVIDENCE
 print(result.sources)      # 출처 참조 목록
@@ -133,7 +133,7 @@ HTTP로 질의:
 ```bash
 curl -X POST http://localhost:8000/v1/query \
   -H "Content-Type: application/json" \
-  -d '{"query": "분기별 매출이 얼마인가요?"}'
+  -d '{"query": "지원되는 리랭킹 프로바이더는 무엇인가요?"}'
 ```
 
 ---

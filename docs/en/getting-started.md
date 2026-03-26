@@ -110,13 +110,13 @@ print(f"Indexed {result.documents} documents, {result.chunks} chunks")
 **CLI:**
 
 ```bash
-quantumrag query "What is the quarterly revenue?"
+quantumrag query "What chunking strategies are available?"
 ```
 
 **Python:**
 
 ```python
-result = engine.query("What is the quarterly revenue?")
+result = engine.query("What reranking providers are supported?")
 print(result.answer)       # Answer with inline citations [1], [2]
 print(result.confidence)   # STRONGLY_SUPPORTED / PARTIALLY_SUPPORTED / INSUFFICIENT_EVIDENCE
 print(result.sources)      # List of source references
@@ -133,7 +133,7 @@ Then query via HTTP:
 ```bash
 curl -X POST http://localhost:8000/v1/query \
   -H "Content-Type: application/json" \
-  -d '{"query": "What is the quarterly revenue?"}'
+  -d '{"query": "What reranking providers are supported?"}'
 ```
 
 ---

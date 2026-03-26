@@ -55,7 +55,7 @@ Parameters:
 Query the indexed documents.
 
 ```python
-result = engine.query("What is the revenue?")
+result = engine.query("How does adaptive query routing work?")
 print(result.answer)      # Answer with inline citations
 print(result.confidence)  # Confidence enum
 print(result.sources)     # List[Source] with excerpts
@@ -75,7 +75,7 @@ Parameters:
 Stream answer tokens.
 
 ```python
-async for token in engine.query_stream("What is the revenue?"):
+async for token in engine.query_stream("What reranking providers are supported?"):
     print(token, end="", flush=True)
 ```
 
@@ -239,9 +239,9 @@ Ingest raw text directly.
 
 ```json
 {
-  "text": "Quarterly revenue reached $50M...",
-  "title": "Q3 Report",
-  "metadata": {"type": "report"}
+  "text": "QuantumRAG supports four chunking strategies: auto, structural, semantic, and fixed...",
+  "title": "Chunking Guide",
+  "metadata": {"type": "documentation"}
 }
 ```
 
@@ -253,7 +253,7 @@ Synchronous query.
 
 ```json
 {
-  "query": "What is the quarterly revenue?",
+  "query": "What reranking providers are supported?",
   "filters": null,
   "top_k": 7,
   "rerank": true,
@@ -265,14 +265,14 @@ Synchronous query.
 
 ```json
 {
-  "answer": "The quarterly revenue was $50M [1].",
+  "answer": "QuantumRAG supports FlashRank (default, CPU-based) and Cohere reranking providers [1].",
   "sources": [
     {
       "chunk_id": "abc123",
-      "document_title": "Q3 Report",
-      "page": 3,
-      "section": "Financial Summary",
-      "excerpt": "Revenue reached $50M in Q3...",
+      "document_title": "Configuration Guide",
+      "page": null,
+      "section": "Reranking",
+      "excerpt": "FlashRank provides CPU-based reranking at no cost...",
       "relevance_score": 0.92
     }
   ],
@@ -390,8 +390,8 @@ Submit user feedback on a query result.
 
 ```json
 {
-  "query": "What is the revenue?",
-  "answer": "The revenue was $50M [1].",
+  "query": "What reranking providers are supported?",
+  "answer": "QuantumRAG supports FlashRank and Cohere reranking [1].",
   "rating": 5,
   "comment": "Accurate and well-cited"
 }
@@ -438,7 +438,7 @@ quantumrag ingest <PATH> [OPTIONS]
 **`query`** — Ask a question
 
 ```bash
-quantumrag query "What is the revenue?" [OPTIONS]
+quantumrag query "What reranking providers are supported?" [OPTIONS]
 ```
 
 | Option | Description | Default |

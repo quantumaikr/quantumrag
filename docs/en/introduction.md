@@ -158,7 +158,7 @@ from quantumrag import Engine
 
 engine = Engine()
 engine.ingest("./docs")
-result = engine.query("What is the main topic?")
+result = engine.query("How does the Triple Index Fusion work?")
 print(result.answer)
 ```
 

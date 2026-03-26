@@ -152,7 +152,7 @@ Output (JSON mode):
 Every query produces a trace of pipeline steps:
 
 ```python
-result = engine.query("What is the revenue?")
+result = engine.query("How does adaptive query routing work?")
 for step in result.trace:
     print(f"{step.step}: {step.latency_ms:.0f}ms - {step.result}")
 ```
@@ -253,9 +253,9 @@ from quantumrag.core.batch import BatchProcessor
 processor = BatchProcessor(engine, max_concurrency=5)
 
 queries = [
-    "What is the revenue?",
-    "Who is the CEO?",
-    "List all products",
+    "How does the Triple Index Fusion work?",
+    "What chunking strategies are available?",
+    "List all supported data connectors",
 ]
 
 results = await processor.process(queries)

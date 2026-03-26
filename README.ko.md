@@ -96,9 +96,9 @@ from quantumrag import Engine
 
 engine = Engine()
 engine.ingest("./docs")
-result = engine.query("매출이 얼마인가요?")
+result = engine.query("Triple Index Fusion은 어떻게 동작하나요?")
 print(result.answer)
-# 출처: [1] 보고서.pdf (p.3), [2] 요약.docx (p.1)
+# 출처: [1] architecture.md (§Triple Index), [2] configuration.md (§검색 설정)
 ```
 
 ### CLI
@@ -111,7 +111,7 @@ quantumrag init
 quantumrag ingest ./docs --recursive
 
 # 질문하기
-quantumrag query "매출이 얼마인가요?"
+quantumrag query "지원되는 청킹 전략은 무엇인가요?"
 
 # 파일 변경 감시 모드
 quantumrag ingest ./docs --watch

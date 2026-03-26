@@ -74,8 +74,8 @@ Provide your own QA benchmark as JSON:
 ```json
 [
   {
-    "question": "What was the Q3 revenue?",
-    "expected_answer": "$50M",
+    "question": "What chunking strategies does QuantumRAG support?",
+    "expected_answer": "auto, structural, semantic, fixed",
     "reference_chunks": ["chunk_id_1", "chunk_id_2"]
   },
   {

@@ -96,9 +96,9 @@ from quantumrag import Engine
 
 engine = Engine()
 engine.ingest("./docs")
-result = engine.query("What is the main topic?")
+result = engine.query("How does the Triple Index Fusion work?")
 print(result.answer)
-# Sources: [1] report.pdf (p.3), [2] summary.docx (p.1)
+# Sources: [1] architecture.md (§Triple Index), [2] configuration.md (§Retrieval)
 ```
 
 ### CLI
@@ -111,7 +111,7 @@ quantumrag init
 quantumrag ingest ./docs --recursive
 
 # Ask a question
-quantumrag query "What is the revenue?"
+quantumrag query "What chunking strategies are available?"
 
 # Watch mode — auto-ingest on file changes
 quantumrag ingest ./docs --watch
@@ -330,7 +330,7 @@ quantumrag/
 ## Development
 
 ```bash
-git clone https://github.com/quantumrag/quantumrag.git
+git clone https://github.com/quantumaikr/rag.git
 cd quantumrag
 pip install -e ".[dev,all]"
 

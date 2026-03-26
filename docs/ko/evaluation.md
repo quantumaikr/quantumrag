@@ -74,8 +74,8 @@ JSON으로 자체 QA 벤치마크 제공:
 ```json
 [
   {
-    "question": "Q3 매출이 얼마인가요?",
-    "expected_answer": "500억원",
+    "question": "QuantumRAG가 지원하는 청킹 전략은 무엇인가요?",
+    "expected_answer": "auto, structural, semantic, fixed",
     "reference_chunks": ["chunk_id_1", "chunk_id_2"]
   },
   {

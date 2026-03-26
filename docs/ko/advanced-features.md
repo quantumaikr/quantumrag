@@ -152,7 +152,7 @@ logger.info("query_complete", latency_ms=1450, confidence="STRONGLY_SUPPORTED")
 모든 쿼리는 파이프라인 단계별 추적을 생성합니다:
 
 ```python
-result = engine.query("매출이 얼마인가요?")
+result = engine.query("적응형 쿼리 라우팅은 어떻게 동작하나요?")
 for step in result.trace:
     print(f"{step.step}: {step.latency_ms:.0f}ms - {step.result}")
 ```
@@ -249,9 +249,9 @@ from quantumrag.core.batch import BatchProcessor
 processor = BatchProcessor(engine, max_concurrency=5)
 
 queries = [
-    "매출이 얼마인가요?",
-    "CEO가 누구인가요?",
-    "모든 제품을 나열해주세요",
+    "Triple Index Fusion은 어떻게 동작하나요?",
+    "지원되는 청킹 전략은 무엇인가요?",
+    "모든 데이터 커넥터를 나열해주세요",
 ]
 
 results = await processor.process(queries)
