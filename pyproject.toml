@@ -73,11 +73,11 @@ all = [
 quantumrag = "quantumrag.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/quantumrag/quantumrag"
+Homepage = "https://github.com/quantumaikr/quantumrag"
 Documentation = "https://quantumrag.dev"
-Repository = "https://github.com/quantumrag/quantumrag"
-Changelog = "https://github.com/quantumrag/quantumrag/blob/main/CHANGELOG.md"
-Issues = "https://github.com/quantumrag/quantumrag/issues"
+Repository = "https://github.com/quantumaikr/quantumrag"
+Changelog = "https://github.com/quantumaikr/quantumrag/blob/main/CHANGELOG.md"
+Issues = "https://github.com/quantumaikr/quantumrag/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["quantumrag"]

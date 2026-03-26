@@ -6,7 +6,7 @@ Thank you for your interest in contributing to QuantumRAG! This guide will help 
 
 ```bash
 # Clone the repository
-git clone https://github.com/quantumrag/quantumrag.git
+git clone https://github.com/quantumaikr/quantumrag.git
 cd quantumrag
 
 # Create a virtual environment

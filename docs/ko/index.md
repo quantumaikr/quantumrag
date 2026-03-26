@@ -23,7 +23,7 @@
 
 ## 빠른 링크
 
-- **소스 코드**: [github.com/quantumrag/quantumrag](https://github.com/quantumrag/quantumrag)
+- **소스 코드**: [github.com/quantumaikr/quantumrag](https://github.com/quantumaikr/quantumrag)
 - **PyPI**: `pip install quantumrag`
 - **라이선스**: Apache 2.0
 - **Python**: 3.10, 3.11, 3.12

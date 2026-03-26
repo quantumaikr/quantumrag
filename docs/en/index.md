@@ -23,7 +23,7 @@
 
 ## Quick Links
 
-- **Source Code**: [github.com/quantumrag/quantumrag](https://github.com/quantumrag/quantumrag)
+- **Source Code**: [github.com/quantumaikr/quantumrag](https://github.com/quantumaikr/quantumrag)
 - **PyPI**: `pip install quantumrag`
 - **License**: Apache 2.0
 - **Python**: 3.10, 3.11, 3.12

@@ -39,7 +39,7 @@ pip install quantumrag[rerank]
 ### Development
 
 ```bash
-git clone https://github.com/quantumrag/quantumrag.git
+git clone https://github.com/quantumaikr/quantumrag.git
 cd quantumrag
 pip install -e ".[dev,all]"
 ```

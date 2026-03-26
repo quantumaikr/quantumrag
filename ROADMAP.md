@@ -32,4 +32,4 @@
 ---
 
 > This roadmap is subject to change based on community feedback.
-> Have a feature request? [Open an issue](https://github.com/quantumrag/quantumrag/issues/new?template=feature_request.md).
+> Have a feature request? [Open an issue](https://github.com/quantumaikr/quantumrag/issues/new?template=feature_request.md).
