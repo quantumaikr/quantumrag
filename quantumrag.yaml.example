@@ -1,0 +1,116 @@
+# QuantumRAG 설정 파일
+# 이 파일을 복사하여 사용하세요:
+#   cp quantumrag.yaml.example quantumrag.yaml
+#
+# API 키 설정 우선순위:
+#   1. 이 파일의 api_key 필드
+#   2. QUANTUMRAG_MODELS__*__API_KEY 환경 변수
+#   3. OPENAI_API_KEY / ANTHROPIC_API_KEY 환경 변수
+
+# --- 기본 설정 ---
+project_name: "my-knowledge-base"
+language: "ko"                          # ko, en, auto
+domain: "general"                       # general, legal, medical, financial, technical, support
+
+# --- 모델 설정 ---
+models:
+  embedding:
+    provider: "openai"
+    model: "text-embedding-3-small"
+    dimensions: 1536
+    # api_key: "sk-proj-..."           # 생략 시 OPENAI_API_KEY 환경 변수 사용
+    # base_url: null                    # Azure OpenAI 등 커스텀 엔드포인트
+
+  generation:
+    simple:                             # 단순 질문 (트래픽의 ~70%)
+      provider: "openai"
+      model: "gpt-5.4-nano"
+      # api_key: "sk-proj-..."
+      # base_url: null
+    medium:                             # 일반 질문 (~20%)
+      provider: "openai"
+      model: "gpt-5.4-mini"
+      # api_key: "sk-proj-..."
+      # base_url: null
+    complex:                            # 복잡한 분석 (~10%)
+      provider: "anthropic"
+      model: "claude-sonnet-4-20250514"
+      # api_key: "sk-ant-..."          # 생략 시 ANTHROPIC_API_KEY 환경 변수 사용
+      # base_url: null
+    # Gemini 사용 시:
+    # complex:
+    #   provider: "gemini"
+    #   model: "gemini-3.1-flash-lite-preview"      # gemini-3.1-flash-lite-preview, gemini-2.5-pro, gemini-2.0-flash
+    #   api_key: "AIza..."             # 생략 시 GOOGLE_API_KEY 환경 변수 사용
+
+  reranker:
+    provider: "flashrank"               # flashrank (무료/로컬), cohere, jina
+
+  hype:                                 # HyPE: 인덱싱 시 가상 질문 생성
+    provider: "openai"
+    model: "gpt-5.4-nano"
+    questions_per_chunk: 3
+    # api_key: "sk-proj-..."
+    # base_url: null
+
+# --- 인제스트 설정 ---
+ingest:
+  chunking:
+    strategy: "auto"                    # auto, semantic, fixed, custom
+    chunk_size: 512                     # 토큰 수
+    overlap: 50                         # 오버랩 토큰 수
+  quality_check: true                   # 파싱 품질 검증
+
+# --- 검색 설정 ---
+retrieval:
+  top_k: 5
+  fusion_candidate_multiplier: 3        # 후보 수 = top_k * multiplier
+  fusion_weights:                       # Triple Index 가중치
+    original: 0.4
+    hype: 0.35
+    bm25: 0.25
+  rerank: true                          # 리랭킹 활성화
+  compression: true                     # 컨텍스트 압축
+
+# --- 생성 설정 ---
+generation:
+  streaming: true
+  max_tokens: 2048
+  temperature: 0.1
+  citation_style: "inline"             # inline, footnote
+  confidence_signal: true
+  high_confidence_threshold: 0.8
+  low_confidence_threshold: 0.5
+  no_answer_penalty: 0.3
+  max_context_chars: 8000
+
+# --- 평가 설정 ---
+evaluation:
+  auto_synthetic: true
+  metrics:
+    - "retrieval_recall"
+    - "faithfulness"
+    - "answer_relevancy"
+    - "completeness"
+    - "latency"
+    - "cost"
+
+# --- 스토리지 설정 ---
+storage:
+  backend: "local"                      # local, server, cluster
+  vector_db: "lancedb"                  # lancedb, qdrant, pgvector
+  document_store: "sqlite"              # sqlite, postgresql
+  data_dir: "./quantumrag_data"
+
+# --- 비용 관리 ---
+cost:
+  budget_daily: null                    # 일일 예산 (null = 무제한)
+  budget_monthly: null                  # 월간 예산 (null = 무제한)
+  semantic_cache: false
+  prompt_caching: true                  # Anthropic 프롬프트 캐싱
+
+# --- 한국어 설정 ---
+korean:
+  morphology: "kiwi"                    # kiwi, mecab
+  hwp_parser: "auto"                    # auto, pyhwp, libreoffice
+  mixed_script: true                    # 한영 혼합 처리

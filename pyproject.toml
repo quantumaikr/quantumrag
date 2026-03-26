@@ -1,0 +1,142 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "quantumrag"
+version = "0.1.0"
+description = "Index-Heavy, Query-Light RAG Engine — Put in docs, ask questions, it just works."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "QuantumAI Inc.", email = "hi@quantumai.kr" },
+]
+keywords = ["rag", "retrieval-augmented-generation", "llm", "search", "korean"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "pydantic>=2.0,<3.0",
+    "pydantic-settings>=2.0,<3.0",
+    "pyyaml>=6.0",
+    "structlog>=24.0",
+    "typer>=0.12",
+    "rich>=13.0",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pre-commit>=3.8",
+]
+api = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.7",
+]
+korean = [
+    "kiwipiepy>=0.18",
+]
+gemini = [
+    "google-genai>=1.0",
+]
+rerank = [
+    "sentence-transformers>=3.0",
+]
+all = [
+    "openai>=1.40",
+    "anthropic>=0.34",
+    "google-genai>=1.0",
+    "lancedb>=0.12",
+    "tantivy>=0.22",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "kiwipiepy>=0.18",
+    "sentence-transformers>=3.0",
+]
+
+[project.scripts]
+quantumrag = "quantumrag.cli.main:app"
+
+[project.urls]
+Homepage = "https://github.com/quantumrag/quantumrag"
+Documentation = "https://quantumrag.dev"
+Repository = "https://github.com/quantumrag/quantumrag"
+Changelog = "https://github.com/quantumrag/quantumrag/blob/main/CHANGELOG.md"
+Issues = "https://github.com/quantumrag/quantumrag/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["quantumrag"]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "test_docs/",
+    "test_scenario_data/",
+    "tests/",
+    "docs/",
+    "examples/",
+    ".github/",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+]
+ignore = [
+    "E501",    # line too long
+    "B008",    # typer uses function calls in defaults by design
+    "B904",    # raise-from in lazy import patterns is verbose
+    "B905",    # zip strict= not needed for internal known-length lists
+    "RUF001",  # ambiguous unicode chars (Korean fullwidth punctuation)
+    "RUF003",  # ambiguous unicode in comments (Korean)
+    "RUF015",  # next(iter()) vs [0] is a style preference
+    "SIM108",  # ternary vs if/else is a readability preference
+    "SIM110",  # all() comprehension vs for loop is a readability preference
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["quantumrag"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["lancedb.*", "tantivy.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "integration: marks tests requiring external services",
+    "benchmark: marks performance benchmark tests",
+]

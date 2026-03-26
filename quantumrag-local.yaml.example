@@ -1,0 +1,59 @@
+# QuantumRAG 로컬 전용 설정 (Ollama)
+# API 키 없이 완전히 로컬에서 실행합니다.
+#
+# 사전 준비:
+#   1. brew install ollama (또는 https://ollama.ai)
+#   2. ollama serve
+#   3. ollama pull llama3.2 && ollama pull nomic-embed-text
+#
+# 사용법:
+#   cp quantumrag-local.yaml.example quantumrag-local.yaml
+#   quantumrag ingest ./docs --config quantumrag-local.yaml
+#   quantumrag query "요약해줘" --config quantumrag-local.yaml
+
+project_name: "local-knowledge-base"
+language: "ko"
+domain: "general"
+
+models:
+  embedding:
+    provider: "ollama"
+    model: "nomic-embed-text"
+    dimensions: 768
+    # base_url: "http://localhost:11434"    # 기본값, 원격 서버 시 변경
+
+  generation:
+    simple:
+      provider: "ollama"
+      model: "llama3.2"                     # 3B — 빠르고 가벼움
+      # base_url: "http://localhost:11434"
+    medium:
+      provider: "ollama"
+      model: "llama3.2"
+      # base_url: "http://localhost:11434"
+    complex:
+      provider: "ollama"
+      model: "llama3.1"                     # 8B — 더 정확한 분석
+      # base_url: "http://localhost:11434"
+
+  hype:
+    provider: "ollama"
+    model: "llama3.2"
+    questions_per_chunk: 3
+    # base_url: "http://localhost:11434"
+
+  reranker:
+    provider: "flashrank"                   # 무료 로컬 리랭커
+
+retrieval:
+  top_k: 5
+  rerank: true
+  compression: true
+
+generation:
+  streaming: true
+  max_tokens: 2048
+  temperature: 0.1
+
+storage:
+  data_dir: "./quantumrag_data"
