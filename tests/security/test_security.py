@@ -5,10 +5,9 @@ Validates that security controls are properly enforced across the API.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from unittest.mock import AsyncMock
-
-import os
 
 import pytest
 from fastapi.testclient import TestClient
