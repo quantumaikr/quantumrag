@@ -196,7 +196,7 @@ def main() -> None:
     passed = sum(s.passed for s in all_scenarios)
 
     print(f"\n{DIVIDER}")
-    print(f"  FOCUSED RESULTS: {passed}/{total} hard/extreme passed ({passed/total*100:.1f}%)")
+    print(f"  FOCUSED RESULTS: {passed}/{total} hard/extreme passed ({passed / total * 100:.1f}%)")
     print(f"  (Skipped {skipped_scenarios} scenarios with no hard/extreme cases)")
     print(DIVIDER)
 

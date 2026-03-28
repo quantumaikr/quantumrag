@@ -1761,7 +1761,7 @@ def generate_report(
     for d in ["easy", "medium", "hard", "extreme"]:
         if d in diff_stats:
             p, t = diff_stats[d]
-            lines.append(f"| {d} | {p}/{t} | {p/t*100:.0f}% |")
+            lines.append(f"| {d} | {p}/{t} | {p / t * 100:.0f}% |")
     lines.append("")
 
     # Scenario summary
@@ -1770,7 +1770,7 @@ def generate_report(
     lines.append("| 시나리오 | 결과 | 통과율 | 평균 응답시간 |")
     lines.append("|----------|------|--------|-------------|")
     for s in scenarios:
-        rate = f"{s.passed/s.total*100:.0f}%" if s.total > 0 else "N/A"
+        rate = f"{s.passed / s.total * 100:.0f}%" if s.total > 0 else "N/A"
         status = "PASS" if s.failed == 0 else f"FAIL({s.failed})"
         lines.append(
             f"| {s.name} | {s.passed}/{s.total} ({status}) | {rate} | {s.avg_latency:.2f}s |"
@@ -1869,7 +1869,7 @@ def generate_report(
     for s in advanced_scenarios:
         prefix = s.name.split(":")[0].strip()
         desc = v3_categories.get(prefix, "")
-        rate = f"{s.passed/s.total*100:.0f}%" if s.total > 0 else "N/A"
+        rate = f"{s.passed / s.total * 100:.0f}%" if s.total > 0 else "N/A"
         lines.append(f"- **{s.name}**: {s.passed}/{s.total} ({rate})")
         if desc:
             lines.append(f"  - {desc}")
@@ -1944,9 +1944,9 @@ def generate_report(
     n = len(all_latencies) or 1
     lines.append("| 구간 | 건수 | 비율 |")
     lines.append("|------|------|------|")
-    lines.append(f"| < 2초 | {fast}건 | {fast/n*100:.0f}% |")
-    lines.append(f"| 2~4초 | {med}건 | {med/n*100:.0f}% |")
-    lines.append(f"| > 4초 | {slow}건 | {slow/n*100:.0f}% |")
+    lines.append(f"| < 2초 | {fast}건 | {fast / n * 100:.0f}% |")
+    lines.append(f"| 2~4초 | {med}건 | {med / n * 100:.0f}% |")
+    lines.append(f"| > 4초 | {slow}건 | {slow / n * 100:.0f}% |")
     lines.append("")
 
     # Confidence
@@ -2180,7 +2180,7 @@ def main() -> None:
     passed = sum(s.passed for s in all_scenarios)
 
     print(f"\n{DIVIDER}")
-    print(f"  FINAL RESULTS (v3): {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+    print(f"  FINAL RESULTS (v3): {passed}/{total} tests passed ({passed / total * 100:.1f}%)")
     print(DIVIDER)
     for s in all_scenarios:
         status = PASS if s.failed == 0 else FAIL

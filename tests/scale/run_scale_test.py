@@ -62,9 +62,9 @@ def run_scale_test(multiplier: int = 10, seed: int = 42) -> dict:
     corpus_dir = _PROJECT_ROOT / f".scale_test_x{multiplier}"
     data_dir = corpus_dir / ".rag_data"
 
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  QuantumRAG Scale Test — x{multiplier} multiplier")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # ------------------------------------------------------------------
     # Step 1: Generate corpus from real QA datasets
@@ -83,9 +83,7 @@ def run_scale_test(multiplier: int = 10, seed: int = 42) -> dict:
         f"{corpus_meta['total_docs']} docs in {gen_time:.1f}s"
     )
     print(f"  → Datasets: {corpus_meta['datasets_used']}")
-    print(
-        f"  → Queries: {corpus_meta['total_queries']} " f"({corpus_meta['queries_by_difficulty']})"
-    )
+    print(f"  → Queries: {corpus_meta['total_queries']} ({corpus_meta['queries_by_difficulty']})")
 
     # ------------------------------------------------------------------
     # Step 2: Ingest (minimal mode)
@@ -306,16 +304,16 @@ def run_scale_test(multiplier: int = 10, seed: int = 42) -> dict:
         shutil.rmtree(corpus_dir)
 
     # Print summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  RESULTS — x{multiplier} ({actual_docs} docs, {actual_chunks} chunks)")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"  Pass rate:  {pass_rate:.1%} ({total_pass}/{total})")
     for diff, s in sorted(diff_summary.items()):
         print(f"    {diff:10s}: {s['pass_rate']:.0%} ({s['passed']}/{s['total']})")
     print(f"  Latency p95: {p95:.0f}ms")
     print(f"  Cost:        ${total_cost:.4f} ({int(total_cost * 1350)}원)")
     print(f"  Report:      {report_file}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     if failed_details:
         print(f"\n  Failed queries ({len(failed_details)}):")

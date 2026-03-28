@@ -762,7 +762,7 @@ class TestPipelineContextWithProfiles:
         # 1. Ingest: profile document
         profiler = DocumentProfiler()
         doc = _make_doc(
-            "매출 150억원, 영업이익 30억원, 투자금 100억원. " "전년대비 매출 25% 성장. CAGR 35%."
+            "매출 150억원, 영업이익 30억원, 투자금 100억원. 전년대비 매출 25% 성장. CAGR 35%."
         )
         profile = profiler.profile(doc)
         assert profile.domain == DomainType.FINANCIAL
