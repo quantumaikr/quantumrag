@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - URL/web page
 - AWS S3
 
-## [Unreleased]
+## [0.2.0] - 2026-03-29
 
 ### Added
 - Post-generation correction pipeline (retrieval retry → self-correct → fact verify → completeness)

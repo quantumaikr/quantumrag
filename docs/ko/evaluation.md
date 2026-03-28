@@ -167,6 +167,60 @@ uv run python tests/run_scenario_tests.py
 
 ---
 
+## QA 데이터세트 프레임워크
+
+실제 웹 콘텐츠를 사용한 체계적 RAG 검증 방법론.
+
+### 개별 QA (데이터셋별)
+
+각 데이터셋은 특정 RAG 능력을 격리 환경에서 테스트합니다:
+
+```bash
+.venv/bin/python datasets/run_qa.py ds-001    # 특정 데이터셋
+.venv/bin/python datasets/run_qa.py            # 최신 자동 선택
+```
+
+주요 기능:
+- **인제스트 캐시**: 소스 미변경 시 재인덱싱 생략 (SHA256 해시)
+- **쿼리별 타임아웃**: 120초 제한
+- **병렬 실행**: 동시 3개 쿼리
+- **자동 졸업**: pass_rate >= threshold × min_runs 충족 시 자동 status 변경
+
+| 데이터셋 | 검증 초점 | 소스 | 질문 | 졸업 기준 |
+|----------|----------|:----:|:----:|:--------:|
+| ds-001 | 다국어 + 수치 정확성 | 4 | 20 | 85% |
+| ds-002 | 타입시스템 + 교차 주제 혼동 | 6 | 25 | 80% |
+| ds-003 | 밀집 기술문서 + 교차 문서 | 7 | 30 | 75% |
+| ds-004 | 테이블 추출 + 모순 검출 | 6 | 30 | 75% |
+
+### Combined QA (retrieval 정밀도)
+
+전체 데이터셋을 하나의 corpus로 합산하여 노이즈 환경에서의 retrieval을 테스트합니다. 개별 테스트로는 감지할 수 없는 문제를 발견합니다.
+
+```bash
+.venv/bin/python datasets/run_qa_combined.py
+```
+
+핵심 지표:
+- **Retrieval Recall**: 정답 소스의 청크가 검색 결과에 포함되었는가?
+- **Noise Ratio**: 검색된 청크 중 무관한 소스의 비율
+- **Degradation**: 개별 대비 합산 시 pass rate 하락폭
+
+기준선 결과 (23 소스, ~300 청크, 105 질문):
+- 개별: 평균 83% → 합산: 29% (54% 하락)
+- Retrieval Recall: 9% — 대규모 corpus에서 retrieval이 핵심 병목
+- 75건 실패 중 68건이 retrieval 원인 (generation 아님)
+
+### QA 라이프사이클
+
+```
+/qa-create → /qa-run → /qa-analyze → /qa-improve → /qa-run (검증) → graduated
+```
+
+전체 현황: `datasets/STATUS.md`
+
+---
+
 ## 설정
 
 ```yaml

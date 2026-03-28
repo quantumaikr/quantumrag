@@ -1,5 +1,8 @@
 # QA Datasets Status
-Updated: 2026-03-29 00:04
+
+Updated: 2026-03-29
+
+## Individual Dataset Results
 
 | Dataset | Name | Status | Runs | Best | Latest | Threshold | Questions |
 |---------|------|--------|------|------|--------|-----------|-----------|
@@ -8,30 +11,58 @@ Updated: 2026-03-29 00:04
 | ds-003 | 트랜스포머 아키텍처 + MLOps 생태계 + 디자인패턴 | graduated | 3/3 | 87% | 83% | 75% | 30 |
 | ds-004 | LLM 벤치마크 + K-반도체 슈퍼사이클 + AI 규제 | graduated | 3/3 | 90% | 77% | 75% | 30 |
 
-## Recent Failures
+## Combined QA Results (Retrieval Precision Test)
+
+All 4 datasets merged into single corpus: 23 sources, ~300 chunks, 105 questions.
+Individual QA tests retrieval in isolation (top_k covers 15% of corpus).
+Combined QA tests retrieval under noise (top_k covers 3% — closer to production).
+
+| Dataset | Individual | Combined | Degradation | Retrieval Recall |
+|---------|-----------|----------|-------------|-----------------|
+| ds-001 | 85% | 70% | -15% | 10% |
+| ds-002 | 88% | 40% | -48% | 12% |
+| ds-003 | 83% | 13% | -70% | 7% |
+| ds-004 | 77% | 7% | -70% | 7% |
+| **Total** | **83%** | **29%** | **-54%** | **9%** |
+
+**Key Finding**: 68 of 75 failures are retrieval-caused (recall < 50%).
+Generation quality is not the bottleneck — retrieval precision is.
+
+### Failure Diagnosis
+
+| Category | Count | Implication |
+|----------|-------|-------------|
+| Retrieval failures (recall < 50%) | 68 | Embedding/BM25 fusion cannot distinguish relevant docs in noisy corpus |
+| Generation failures (recall >= 50%) | 0 | Generation works fine when retrieval succeeds |
+| Timeout (> 60s) | 7 | Map-reduce + post-correction on complex queries |
+
+### Next Actions
+
+1. Improve retrieval precision: domain-aware embedding, query-source matching
+2. Tune fusion weights for larger corpora
+3. Consider document-level pre-filtering before chunk-level retrieval
+
+## Recent Individual Failures
 
 **ds-001** (latest: 85%)
-- q004 [easy] deque의 maxlen 속성은 무엇을 의미하나요?... → keyword mismatch
-- q006 [hard] asyncio.gather()와 asyncio.TaskGroup의 차이점은 무엇인가요?... → keyword mismatch
-- q014 [extreme] 두 뉴스 기사에서 삼성전자의 HBM 점유율 수치가 다르게 보도되었는데, 각각 얼마인가요?... → keyword mismatch
+- q004 [easy] deque의 maxlen 속성은 무엇을 의미하나요? → keyword mismatch
+- q006 [hard] asyncio.gather()와 asyncio.TaskGroup의 차이점은? → keyword mismatch
+- q014 [extreme] HBM 점유율 수치 교차 비교 → keyword mismatch
 
 **ds-002** (latest: 88%)
-- q006 [hard] TypeVar의 covariant와 contravariant의 차이점을 설명하세요.... → keyword mismatch
-- q007 [hard] typing.Protocol과 dataclasses.dataclass의 용도 차이는?... → keyword mismatch
-- q011 [hard] 2025년 벤처 투자에서 가장 높은 성장률을 보인 업종은?... → keyword mismatch
+- q006 [hard] TypeVar covariant/contravariant → keyword mismatch
+- q007 [hard] Protocol vs dataclass → keyword mismatch
+- q011 [hard] 벤처 투자 성장률 → keyword mismatch
 
 **ds-003** (latest: 83%)
-- q009 [hard] Decorator 패턴과 Adapter 패턴의 차이점은?... → keyword mismatch
-- q011 [hard] Semantic Chunking과 LLM-Based Chunking의 복잡도 차이는?... → keyword mismatch
-- q013 [hard] Naive RAG의 한계점들을 설명해주세요.... → keyword mismatch
-- q022 [extreme] Memento 패턴과 Command 패턴 모두 undo 기능에 사용될 수 있나요? 차이점은... → keyword mismatch
-- q029 [extreme] RAG에서 CRAG와 Self-RAG의 공통점과 차이점은?... → keyword mismatch
+- q009 [hard] Decorator vs Adapter 패턴 → keyword mismatch
+- q011 [hard] Semantic vs LLM-Based Chunking → keyword mismatch
+- q013 [hard] Naive RAG 한계점 → keyword mismatch
+- q022 [extreme] Memento vs Command 패턴 → keyword mismatch
+- q029 [extreme] CRAG vs Self-RAG → keyword mismatch
 
 **ds-004** (latest: 77%)
-- q007 [hard] 가장 비용효율이 높은 LLM 모델은 무엇이며 효율 점수는?... → keyword mismatch
-- q011 [hard] 한국 AI 기본법에서 고영향 AI로 분류되는 분야 수와 EU AI Act의 고위험 분야 수... → keyword mismatch
-- q012 [hard] 대한민국 AI 50에서 투자유치액이 가장 높은 기업은 어디이며 얼마인가요?... → keyword mismatch
-- q013 [hard] 대한민국 AI 50 중 AI 반도체(NPU) 분야 기업들을 모두 나열하세요.... → Timeout after 120s
-- q014 [hard] 미국이 인텔에 지원한 반도체 보조금은 얼마이며, 한국의 삼성·SK 직접 지원과 비교하면?... → Timeout after 120s
-- q015 [hard] Claude Opus 4.6의 벤치마크 종합 점수, 가격, 속도를 알려주세요.... → Timeout after 120s
-- q025 [extreme] 오픈소스 LLM의 평균 벤치마크 점수와 상용 LLM의 평균 벤치마크 점수 차이는 약 몇 점... → keyword mismatch
+- q007 [hard] 비용효율 1위 LLM → keyword mismatch
+- q012 [hard] AI 50 투자유치 1위 → keyword mismatch
+- q013-015 [hard] 테이블 파싱 → timeout (120s)
+- q025 [extreme] 오픈소스 vs 상용 LLM 점수 차이 → keyword mismatch

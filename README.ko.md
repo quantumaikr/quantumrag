@@ -3,7 +3,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
-[![Scenario Tests](https://img.shields.io/badge/scenario_tests-86%2F87_passed-brightgreen.svg)]()
+[![Scenario Tests](https://img.shields.io/badge/scenario_tests-176_cases-brightgreen.svg)]()
+[![QA Datasets](https://img.shields.io/badge/QA_datasets-105_questions-blue.svg)]()
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 [English](README.md) | [한국어](README.ko.md)
@@ -33,7 +34,7 @@ QuantumRAG는 다른 접근을 합니다: **인덱싱 시점에 문서를 깊이
 
 모든 문서를 여러 관점에서 이해합니다 — 의미적 유사성, 이 문서로 답할 수 있는 가상 질문, 키워드와 동의어, 구조화된 사실, 엔티티 관계 — 그리고 이 관점들을 쿼리 시점에 융합하여 어떻게 질문하든 정확한 답을 찾습니다.
 
-> **결과:** 멀티홉 추론, 교차 문서 검증, 엔티티 필터링 등 기존 RAG가 처리하지 못하는 [87개 실전 시나리오 테스트](docs/reports/scenario-test-report.md)에서 98.9% 정확도 달성.
+> **결과:** 176개 시나리오 테스트 + 4개 QA 데이터셋(105 질문) — 멀티홉 추론, 교차 문서 검증, 수치 계산, 환각 방지, 엔티티 필터링 등 기존 RAG가 처리하지 못하는 영역을 체계적으로 검증.
 
 ## 세 가지 사용 방식
 
@@ -235,7 +236,7 @@ export QUANTUMRAG_LANGUAGE=ko
 
 ## 평가 시스템
 
-6개 메트릭과 16개 카테고리 87개 시나리오 테스트를 포함하는 내장 평가 시스템:
+6개 메트릭, 176개 시나리오 테스트, 4개 QA 데이터셋(105 질문) 내장:
 
 ```python
 engine = Engine()
@@ -243,22 +244,31 @@ result = engine.evaluate()
 print(result.summary)
 # retrieval_recall: 0.92, faithfulness: 0.95
 # answer_relevancy: 0.88, completeness: 0.85
-# latency: 1.2s avg, cost: $0.003/query avg
 ```
 
-| 카테고리 | 테스트 수 | 카테고리 | 테스트 수 |
-|----------|:--------:|----------|:--------:|
-| 사실 확인 | 7 | 정밀 검색 | 6 |
-| 멀티홉 추론 | 6 | 암묵적 추론 | 5 |
-| 수치 계산 | 6 | 경쟁 분석 | 3 |
-| 시간/버전 추론 | 6 | 조건부 추론 | 5 |
-| 부정/제외 | 5 | 다중 조건 필터링 | 5 |
-| 교차 문서 종합 | 5 | 파생 정량 | 5 |
-| 패러프레이즈 견고성 | 6 | 교차 검증 | 4 |
-| 멀티턴 대화 | 5 | 엣지 케이스 | 7 |
+### QA 데이터세트
+
+실제 웹 콘텐츠를 사용한 RAG 성능 검증:
+
+| 데이터셋 | 검증 초점 | 질문 | Pass Rate |
+|----------|----------|:----:|:---------:|
+| ds-001 | 다국어 + 수치 정확성 | 20 | 85-100% |
+| ds-002 | 타입시스템 + 교차 주제 혼동 | 25 | 88% |
+| ds-003 | 밀집 기술문서 + 교차 문서 | 30 | 83-87% |
+| ds-004 | 테이블 추출 + 모순 검출 | 30 | 77-90% |
+| **Combined** | **전체 소스 합산 (retrieval 스트레스 테스트)** | **105** | **29%** |
+
+Combined QA 결과: retrieval 정밀도가 핵심 병목 (75건 실패 중 68건이 retrieval 원인).
 
 ```bash
-uv run python tests/run_scenario_tests.py
+# 개별 데이터셋
+.venv/bin/python datasets/run_qa.py ds-001
+
+# 합산 (retrieval 정밀도 테스트)
+.venv/bin/python datasets/run_qa_combined.py
+
+# 시나리오 테스트
+make scenario-test
 ```
 
 ## 경쟁 비교
@@ -296,11 +306,14 @@ quantumrag/
 │   ├── generate/
 │   │   ├── generator.py       # 출처 기반 답변 생성
 │   │   ├── router.py          # 쿼리 복잡도 라우팅
-│   │   └── decomposer.py      # 쿼리 분해
+│   │   ├── fact_verifier.py   # 환각 감지 (LLM 비용 없음)
+│   │   ├── completeness.py    # 다중 항목 답변 검증
+│   │   └── map_reduce.py      # 집계 쿼리 처리
+│   ├── pipeline/
+│   │   └── postprocess.py     # 교정 체인 (재시도 → 검증 → 완전성)
 │   ├── storage/               # SQLite + LanceDB + Tantivy
 │   ├── llm/                   # 프로바이더 추상화 (OpenAI, Anthropic, Gemini, Ollama)
-│   ├── evaluate/              # 평가 메트릭 & 합성 QA
-│   └── pipeline/              # 프로파일링, 시그널, 오케스트레이션
+│   └── evaluate/              # 평가 메트릭 & 합성 QA
 ├── api/                       # FastAPI HTTP 서버 + 웹 플레이그라운드
 ├── cli/                       # Typer CLI
 ├── connectors/                # File, GDrive, Notion, S3, URL
@@ -313,16 +326,23 @@ quantumrag/
 ```bash
 git clone https://github.com/quantumaikr/quantumrag.git
 cd quantumrag
-pip install -e ".[dev,all]"
+uv sync --dev
 
-# 테스트 실행
-pytest tests/ -q
+# 단계별 테스트
+make quick           # 린트만 (0.1초)
+make smoke           # 린트 + 핵심 테스트 (2초)
+make check           # 린트 + 전체 유닛 테스트 (7초)
+make scenario-test   # 시나리오 테스트 (API 키 필요)
 
-# 시나리오 테스트 실행
-uv run python tests/run_scenario_tests.py
+# 영역별 테스트
+make test-gen        # 생성 테스트
+make test-ret        # 검색 테스트
+make test-ingest     # 인제스트 테스트
+make test-api        # API/CLI 테스트
 
-# 린트
-ruff check quantumrag/ tests/
+# 유틸리티
+make fix             # 린트 자동 수정
+make help            # 전체 명령어
 ```
 
 ## 시스템 요구사항

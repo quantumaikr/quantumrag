@@ -40,6 +40,12 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 - QA runner 최적화: ingest 캐시, 쿼리당 120초 타임아웃, 동시 3개 병렬 실행
 - **Combined QA**: `.venv/bin/python datasets/run_qa_combined.py` — 전체 소스 합산 후 retrieval 정밀도 검증
 
+### 현재 성능 현황
+- **개별 QA** (4 datasets, 105 questions): 77~90% pass rate → 전체 graduated
+- **Combined QA** (23 sources 합산): 29% pass rate, retrieval recall 9%
+- **핵심 병목**: retrieval 정밀도 — 노이즈 corpus에서 정답 소스를 찾지 못함 (68/75 실패가 retrieval 원인)
+- **다음 개선 방향**: 대규모 corpus에서의 retrieval 정밀도 향상
+
 ## 주요 파일 위치
 - 엔진 진입점: `quantumrag/core/engine.py`
 - RAG 설정: `quantumrag/core/config.py`
@@ -48,3 +54,5 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 - Fact 검증: `quantumrag/core/generate/fact_verifier.py`
 - 쿼리 분류: `quantumrag/core/retrieve/query_classifier.py`
 - 시나리오 테스트: `tests/scenarios/v4/test_cases.py` (176건)
+- QA 데이터셋: `datasets/` (4 datasets, 105 questions)
+- QA 러너: `datasets/run_qa.py` (개별), `datasets/run_qa_combined.py` (합산)

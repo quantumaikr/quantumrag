@@ -3,7 +3,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
-[![Scenario Tests](https://img.shields.io/badge/scenario_tests-98%2F107_passed-brightgreen.svg)]()
+[![Scenario Tests](https://img.shields.io/badge/scenario_tests-176_cases-brightgreen.svg)]()
+[![QA Datasets](https://img.shields.io/badge/QA_datasets-105_questions-blue.svg)]()
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
 [English](README.md) | [한국어](README.ko.md)
@@ -33,7 +34,7 @@ QuantumRAG takes a different approach: **understand documents deeply at indexing
 
 Every document is understood through multiple lenses — semantic meaning, hypothetical questions it could answer, keywords and synonyms, structured facts, entity relationships — and these perspectives are fused at query time to find the right answer regardless of how you phrase the question.
 
-> **The result:** 91.6% accuracy across [107 real-world scenario tests](docs/reports/scenario-test-report.md) — including multi-hop reasoning, cross-document verification, numerical calculation, and entity-specific filtering that conventional RAG cannot handle.
+> **The result:** 176 scenario tests + 105 QA questions across 4 datasets — covering multi-hop reasoning, cross-document verification, numerical calculation, hallucination prevention, and entity-specific filtering that conventional RAG cannot handle.
 
 ## Three Ways to Use It
 
@@ -249,7 +250,9 @@ export QUANTUMRAG_LANGUAGE=ko
 
 ## Evaluation
 
-Built-in evaluation with 6 metrics and 87 scenario tests across 16 categories:
+### Built-in Evaluation
+
+6 metrics, 176 scenario tests, and 4 QA datasets (105 questions):
 
 ```python
 engine = Engine()
@@ -257,22 +260,31 @@ result = engine.evaluate()
 print(result.summary)
 # retrieval_recall: 0.92, faithfulness: 0.95
 # answer_relevancy: 0.88, completeness: 0.85
-# latency: 1.2s avg, cost: $0.003/query avg
 ```
 
-| Category | Tests | Category | Tests |
-|----------|:-----:|----------|:-----:|
-| Factual Confirmation | 7 | Precision Search | 6 |
-| Multi-Hop Reasoning | 6 | Implicit Inference | 5 |
-| Numerical Calculations | 6 | Competitive Analysis | 3 |
-| Temporal Reasoning | 6 | Conditional Reasoning | 5 |
-| Negation/Exclusion | 5 | Multi-Constraint Filtering | 5 |
-| Cross-Document Synthesis | 5 | Derived Quantitative | 5 |
-| Paraphrase Robustness | 6 | Cross-Verification | 4 |
-| Multi-Turn Conversation | 5 | Edge Cases | 7 |
+### QA Datasets
+
+Real-world web content used for systematic RAG validation:
+
+| Dataset | Focus | Questions | Pass Rate |
+|---------|-------|:---------:|:---------:|
+| ds-001 | Multilingual + numerical precision | 20 | 85-100% |
+| ds-002 | Type system + cross-topic confusion | 25 | 88% |
+| ds-003 | Dense technical + cross-document | 30 | 83-87% |
+| ds-004 | Table extraction + contradiction detection | 30 | 77-90% |
+| **Combined** | **All sources merged (retrieval stress test)** | **105** | **29%** |
+
+The Combined QA test reveals that retrieval precision is the key bottleneck at scale: 68 of 75 failures are retrieval-caused. This is the primary area for improvement.
 
 ```bash
-uv run python tests/run_scenario_tests.py
+# Individual dataset
+.venv/bin/python datasets/run_qa.py ds-001
+
+# Combined (retrieval precision test)
+.venv/bin/python datasets/run_qa_combined.py
+
+# Scenario tests
+make scenario-test
 ```
 
 ## Comparison
@@ -310,11 +322,14 @@ quantumrag/
 │   ├── generate/
 │   │   ├── generator.py       # Source-grounded generation
 │   │   ├── router.py          # Query complexity routing
-│   │   └── decomposer.py      # Query decomposition
+│   │   ├── fact_verifier.py   # Hallucination detection (zero LLM cost)
+│   │   ├── completeness.py    # Multi-part answer verification
+│   │   └── map_reduce.py      # Aggregation query processing
+│   ├── pipeline/
+│   │   └── postprocess.py     # Correction chain (retry → verify → complete)
 │   ├── storage/               # SQLite + LanceDB + Tantivy
 │   ├── llm/                   # Provider abstraction (OpenAI, Anthropic, Gemini, Ollama)
-│   ├── evaluate/              # Evaluation metrics & synthetic QA
-│   └── pipeline/              # Profiling, signals, orchestration
+│   └── evaluate/              # Evaluation metrics & synthetic QA
 ├── api/                       # FastAPI HTTP server + web playground
 ├── cli/                       # Typer CLI
 ├── connectors/                # File, GDrive, Notion, S3, URL
@@ -327,16 +342,23 @@ quantumrag/
 ```bash
 git clone https://github.com/quantumaikr/quantumrag.git
 cd quantumrag
-pip install -e ".[dev,all]"
+uv sync --dev
 
-# Run tests
-pytest tests/ -q
+# Tiered testing
+make quick           # Lint only (0.1s)
+make smoke           # Lint + core tests (2s)
+make check           # Lint + all unit tests (7s)
+make scenario-test   # Scenario tests (requires API keys)
 
-# Run scenario tests
-uv run python tests/run_scenario_tests.py
+# Target-specific tests
+make test-gen        # Generation tests
+make test-ret        # Retrieval tests
+make test-ingest     # Ingest tests
+make test-api        # API/CLI tests
 
-# Lint
-ruff check quantumrag/ tests/
+# Utilities
+make fix             # Auto-fix lint issues
+make help            # All available commands
 ```
 
 ## System Requirements

@@ -167,6 +167,60 @@ Output includes per-scenario pass/fail with latency and confidence details.
 
 ---
 
+## QA Dataset Framework
+
+A structured approach to RAG validation using real-world web content.
+
+### Individual QA (per-dataset)
+
+Each dataset tests specific RAG capabilities in isolation:
+
+```bash
+.venv/bin/python datasets/run_qa.py ds-001    # Run specific dataset
+.venv/bin/python datasets/run_qa.py            # Auto-select latest
+```
+
+Features:
+- **Ingest caching**: Skip re-ingest if sources unchanged (SHA256 hash check)
+- **Per-query timeout**: 120s limit prevents slow queries from blocking
+- **Parallel execution**: 3 concurrent queries
+- **Auto-graduation**: When pass_rate >= threshold for min_runs, status updates automatically
+
+| Dataset | Focus | Sources | Questions | Threshold |
+|---------|-------|:-------:|:---------:|:---------:|
+| ds-001 | Multilingual + numerical precision | 4 | 20 | 85% |
+| ds-002 | Type system + cross-topic confusion | 6 | 25 | 80% |
+| ds-003 | Dense technical + cross-document | 7 | 30 | 75% |
+| ds-004 | Table extraction + contradiction detection | 6 | 30 | 75% |
+
+### Combined QA (retrieval precision)
+
+Merges all datasets into a single corpus to test retrieval under noise — what individual tests cannot catch.
+
+```bash
+.venv/bin/python datasets/run_qa_combined.py
+```
+
+Key metrics:
+- **Retrieval Recall**: Did the engine find chunks from the correct source documents?
+- **Noise Ratio**: What fraction of retrieved chunks are from irrelevant sources?
+- **Degradation**: How much does pass rate drop vs individual tests?
+
+Baseline results (23 sources, ~300 chunks, 105 questions):
+- Individual: 83% avg → Combined: 29% (-54% degradation)
+- Retrieval Recall: 9% — confirms retrieval is the key bottleneck at scale
+- 68/75 failures are retrieval-caused, not generation-caused
+
+### QA Lifecycle
+
+```
+/qa-create → /qa-run → /qa-analyze → /qa-improve → /qa-run (verify) → graduated
+```
+
+Full status: `datasets/STATUS.md`
+
+---
+
 ## Configuration
 
 ```yaml
