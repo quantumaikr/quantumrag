@@ -5,6 +5,7 @@ Merge order: defaults <- yaml file <- environment variables <- code arguments
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
@@ -232,7 +233,7 @@ class QuantumRAGConfig(BaseSettings):
 
 
 def _detect_provider(
-    env: dict[str, str],
+    env: Mapping[str, str],
 ) -> tuple[str, tuple[str, str, str], str, int]:
     """Detect the best available LLM provider from environment variables.
 

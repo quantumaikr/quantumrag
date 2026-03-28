@@ -1419,14 +1419,28 @@ class _EngineRetrieverAdapter:
     def __init__(self, engine: Engine) -> None:
         self._engine = engine
 
-    async def retrieve(self, query, classification, top_k, filters, rerank, pipeline_ctx):
+    async def retrieve(
+        self,
+        query: Any,
+        classification: Any,
+        top_k: Any,
+        filters: Any,
+        rerank: Any,
+        pipeline_ctx: Any,
+    ) -> Any:
         return await self._engine._do_retrieval(
             query, classification, top_k, filters, rerank, pipeline_ctx
         )
 
     async def retrieve_bm25_dominant(
-        self, query, classification, top_k, filters, rerank, pipeline_ctx
-    ):
+        self,
+        query: Any,
+        classification: Any,
+        top_k: Any,
+        filters: Any,
+        rerank: Any,
+        pipeline_ctx: Any,
+    ) -> Any:
         return await self._engine._do_retrieval_retry(
             query, classification, top_k, filters, rerank, pipeline_ctx
         )

@@ -358,7 +358,7 @@ def _detect_mime_type(path: Path) -> str | None:
 
             mime = magic.from_file(str(path), mime=True)
             if mime:
-                return mime.lower()
+                return str(mime).lower()
         except ImportError:
             pass
         except Exception:

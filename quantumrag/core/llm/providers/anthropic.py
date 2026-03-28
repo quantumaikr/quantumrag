@@ -50,7 +50,7 @@ _CACHE_SUPPORTED_MODELS = {
 }
 
 
-def _get_anthropic():
+def _get_anthropic() -> Any:
     """Lazy-import the anthropic SDK."""
     try:
         import anthropic
@@ -155,7 +155,7 @@ class AnthropicLLMProvider:
             return result  # type: ignore[return-value]
         except GenerationError as exc:
             orig = exc.__cause__
-            if orig is not None:
+            if orig is not None and isinstance(orig, Exception):
                 converted = _convert_anthropic_error(orig)
                 if converted is not orig:
                     raise converted from orig
@@ -182,11 +182,11 @@ class AnthropicLLMProvider:
         self,
         prompt: str,
         *,
-        schema: dict | None = None,
+        schema: dict[str, Any] | None = None,
         system: str | None = None,
         temperature: float = 0.0,
         max_tokens: int = 2048,
-    ) -> dict:
+    ) -> dict[str, Any]:
         # Anthropic doesn't have a native JSON mode; we instruct in the system prompt.
         json_instruction = (
             "You must respond with ONLY valid JSON. No markdown, no explanation, "
@@ -199,7 +199,7 @@ class AnthropicLLMProvider:
 
         elapsed = measure_latency()
 
-        async def _call() -> dict:
+        async def _call() -> dict[str, Any]:
             kwargs = self._build_kwargs(prompt, combined_system, temperature, max_tokens)
             resp = await self._client.messages.create(**kwargs)
             text = _extract_text(resp).strip()
@@ -210,7 +210,7 @@ class AnthropicLLMProvider:
                 text = text.rsplit("```", 1)[0]
             text = text.strip()
             try:
-                return json.loads(text)  # type: ignore[return-value]
+                return json.loads(text)  # type: ignore[no-any-return]
             except json.JSONDecodeError as exc:
                 raise GenerationError(
                     f"[anthropic/{self._model}] Returned invalid JSON: {text[:200]}",
@@ -227,7 +227,7 @@ class AnthropicLLMProvider:
             return result  # type: ignore[return-value]
         except GenerationError as exc:
             orig = exc.__cause__
-            if orig is not None:
+            if orig is not None and isinstance(orig, Exception):
                 converted = _convert_anthropic_error(orig)
                 if converted is not orig:
                     raise converted from orig

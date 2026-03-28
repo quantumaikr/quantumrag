@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-import pytest
-
 from quantumrag.core.generate.fact_verifier import (
     VerificationResult,
     _extract_companies_from_answer,

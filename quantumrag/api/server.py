@@ -167,7 +167,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
     )
 
     @app.middleware("http")
-    async def _body_size_limit_middleware(request: Request, call_next):
+    async def _body_size_limit_middleware(request: Request, call_next: Any) -> Any:
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > max_body_bytes:
             return JSONResponse(
@@ -308,12 +308,12 @@ def create_app(config_path: str | None = None) -> FastAPI:
                         title = (
                             getattr(d.metadata, "title", "") or "" if hasattr(d, "metadata") else ""
                         )
-                        source_type = (
-                            getattr(d.metadata, "source_type", "file").value
+                        st = (
+                            getattr(d.metadata, "source_type", "file")
                             if hasattr(d, "metadata")
-                            and hasattr(getattr(d.metadata, "source_type", None), "value")
                             else "file"
                         )
+                        source_type = st.value if hasattr(st, "value") else str(st)
                     else:
                         doc_id = d.get("id", "")
                         title = d.get("title", "")

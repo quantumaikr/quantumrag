@@ -51,7 +51,7 @@ _EMBEDDING_PRICING: dict[str, float] = {
 _EMBEDDING_BATCH_SIZE = 2048
 
 
-def _get_openai():
+def _get_openai() -> Any:
     """Lazy-import the openai SDK."""
     try:
         import openai
@@ -246,7 +246,7 @@ class OpenAILLMProvider:
             return result  # type: ignore[return-value]
         except GenerationError as exc:
             orig = exc.__cause__
-            if orig is not None:
+            if orig is not None and isinstance(orig, Exception):
                 converted = _convert_openai_error(orig)
                 if converted is not orig:
                     raise converted from orig

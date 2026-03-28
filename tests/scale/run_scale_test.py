@@ -197,7 +197,7 @@ def run_scale_test(multiplier: int = 10, seed: int = 42) -> dict:
     # ------------------------------------------------------------------
     # Step 4: Performance summary
     # ------------------------------------------------------------------
-    print(f"\n[4/5] Performance profiling...")
+    print("\n[4/5] Performance profiling...")
 
     lat_sorted = sorted(all_latencies)
     n = len(lat_sorted)
@@ -219,7 +219,7 @@ def run_scale_test(multiplier: int = 10, seed: int = 42) -> dict:
     # ------------------------------------------------------------------
     # Step 5: Cost estimation
     # ------------------------------------------------------------------
-    print(f"\n[5/5] Cost estimation...")
+    print("\n[5/5] Cost estimation...")
 
     embed_tokens = actual_chunks * 680 + len(queries) * 50
     embed_cost = embed_tokens * 0.02 / 1_000_000

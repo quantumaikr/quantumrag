@@ -1,5 +1,7 @@
 # QuantumRAG
 
+![QuantumRAG Hero](assets/hero_en.png)
+
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 [![Version](https://img.shields.io/pypi/v/quantumrag.svg)](https://pypi.org/project/quantumrag/)

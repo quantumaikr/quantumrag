@@ -260,7 +260,9 @@ class AutoTuner:
             if p.param_type == "float":
                 values[p.name] = trial.suggest_float(p.name, p.low, p.high, log=p.log)
             elif p.param_type == "int":
-                values[p.name] = trial.suggest_int(p.name, int(p.low), int(p.high), log=p.log)
+                values[p.name] = trial.suggest_int(
+                    p.name, int(p.low or 0), int(p.high or 100), log=p.log
+                )
             elif p.param_type == "categorical":
                 values[p.name] = trial.suggest_categorical(p.name, p.choices)
         return values
@@ -286,7 +288,7 @@ class AutoTuner:
         Returns a dict of metric_key -> measured_value.
         """
         if self._scorer:
-            return self._scorer(self._engine, params)
+            return dict(self._scorer(self._engine, params))
 
         # Default: apply params to engine config and run built-in evaluation
         self._apply_params(params)
@@ -357,7 +359,7 @@ class AutoTuner:
                 d = d.setdefault(part, {})
             d[parts[-1]] = value
 
-        import yaml
+        import yaml  # type: ignore[import-untyped]
 
         Path(path).write_text(
             yaml.dump(patch, default_flow_style=False, allow_unicode=True),

@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import pytest
-
 from quantumrag.core.generate.completeness import (
-    CompletenessResult,
     ExpectedParts,
     _count_distinct_items,
     _extract_conjunction_items,
