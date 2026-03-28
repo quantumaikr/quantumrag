@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
+[![Version](https://img.shields.io/pypi/v/quantumrag.svg)](https://pypi.org/project/quantumrag/)
 [![Scenario Tests](https://img.shields.io/badge/scenario_tests-176_cases-brightgreen.svg)]()
 [![QA Datasets](https://img.shields.io/badge/QA_datasets-105_questions-blue.svg)]()
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
@@ -131,13 +131,14 @@ pip install kiwipiepy  # 한국어 형태소 분석 필수
 
 ```
 사용자 쿼리
-  ├─ 쿼리 리라이트 / 분해
+  ├─ 쿼리 리라이트 / 확장
   ├─ 엔티티 감지 & 속성 필터링
   ├─ 적응형 라우팅 (simple → nano, medium → mini, complex → full)
   ├─ Triple Index Fusion 검색 (RRF: 0.4 / 0.35 / 0.25)
   ├─ 리랭킹 (FlashRank / BGE / Cohere / Jina)
   ├─ 컨텍스트 압축
-  └─ 출처 기반 답변 생성 → 답변 [1][2] + 신뢰도
+  ├─ 출처 기반 답변 생성 → 답변 [1][2] + 신뢰도
+  └─ 후처리 교정 (Retrieval Retry → Self-Correct → Fact Verify → Completeness)
 ```
 
 ### Triple Index Fusion
@@ -292,33 +293,49 @@ LangChain과 LlamaIndex는 부품을 줍니다. OpenAI는 블랙박스를 줍니
 ```
 quantumrag/
 ├── core/
-│   ├── engine.py              # 단일 진입점
-│   ├── config.py              # 설정 (Pydantic + YAML)
-│   ├── models.py              # 데이터 모델 (Chunk, QueryResult, ...)
+│   ├── engine.py              # 모든 기능의 단일 진입점
+│   ├── config.py              # 설정 (Pydantic + YAML + 환경변수)
+│   ├── models.py              # 데이터 모델 (Chunk, Source, QueryResult, ...)
 │   ├── ingest/
-│   │   ├── parser/            # 다중 문서 형식 파싱
-│   │   ├── chunker/           # 청킹 전략 (auto/semantic/fixed/structural)
-│   │   └── indexer/           # Triple Index + 4-Level Indexing
+│   │   ├── parser/            # PDF, DOCX, PPTX, XLSX, HWP, HTML, MD, CSV, TXT
+│   │   ├── chunker/           # 전략: auto, semantic, fixed, structural
+│   │   ├── indexer/           # Triple Index + 4-Level Indexing + fact 추출
+│   │   └── denoiser.py        # 입력 품질 필터링
 │   ├── retrieve/
-│   │   ├── fusion.py          # RRF 트리플 인덱스 퓨전
-│   │   ├── reranker.py        # 멀티 프로바이더 리랭킹
-│   │   └── entity_detector.py # 엔티티 쿼리 감지
+│   │   ├── fusion.py          # RRF 트리플 인덱스 퓨전 검색
+│   │   ├── reranker.py        # FlashRank, BGE, Cohere, Jina
+│   │   ├── query_classifier.py # 적응형 복잡도 라우팅
+│   │   ├── entity_detector.py # 엔티티 쿼리 감지 + 속성 필터링
+│   │   └── fact_index.py      # 구조화된 fact 조회
 │   ├── generate/
-│   │   ├── generator.py       # 출처 기반 답변 생성
-│   │   ├── router.py          # 쿼리 복잡도 라우팅
-│   │   ├── fact_verifier.py   # 환각 감지 (LLM 비용 없음)
+│   │   ├── generator.py       # 출처 기반 답변 생성 (인용 포함)
+│   │   ├── router.py          # Simple/Medium/Complex 쿼리 라우팅
+│   │   ├── fact_verifier.py   # 환각 감지 (LLM 비용 제로)
 │   │   ├── completeness.py    # 다중 항목 답변 검증
-│   │   └── map_reduce.py      # 집계 쿼리 처리
+│   │   ├── map_reduce.py      # 집계 쿼리 처리
+│   │   └── query_expander.py  # 구어체 → 정형 쿼리 확장
 │   ├── pipeline/
-│   │   └── postprocess.py     # 교정 체인 (재시도 → 검증 → 완전성)
-│   ├── storage/               # SQLite + LanceDB + Tantivy
-│   ├── llm/                   # 프로바이더 추상화 (OpenAI, Anthropic, Gemini, Ollama)
-│   └── evaluate/              # 평가 메트릭 & 합성 QA
+│   │   ├── postprocess.py     # 교정 체인 (재시도 → 검증 → 완전성)
+│   │   └── context.py         # 파이프라인 컨텍스트 및 문서 프로파일링
+│   ├── storage/               # SQLite, LanceDB, Tantivy, Chroma, FAISS
+│   ├── llm/                   # OpenAI, Anthropic, Gemini, Ollama
+│   ├── autotune/              # 파라미터 자동 최적화 프레임워크
+│   ├── cache/                 # TTL 기반 시맨틱 캐시
+│   └── evaluate/              # 메트릭, 합성 QA 생성
 ├── api/                       # FastAPI HTTP 서버 + 웹 플레이그라운드
-├── cli/                       # Typer CLI
-├── connectors/                # File, GDrive, Notion, S3, URL
-├── korean/                    # Kiwi 형태소 분석, 인코딩
-└── plugins/                   # 플러그인 레지스트리 & 훅
+├── cli/                       # Typer CLI (init, ingest, query, serve, status)
+├── connectors/                # File, S3, URL, Google Drive, Notion
+├── korean/                    # Kiwi 형태소 분석, EUC-KR 인코딩
+├── plugins/                   # 플러그인 레지스트리 & 훅 시스템
+datasets/                      # QA 데이터셋 (4개, 105 질문)
+├── run_qa.py                  # 개별 데이터셋 러너
+├── run_qa_combined.py         # 합산 retrieval 스트레스 테스트
+└── STATUS.md                  # 자동 생성 대시보드
+tests/
+├── unit/                      # 782 유닛 테스트
+├── scenarios/                 # 176 시나리오 테스트 (v1-v4)
+├── security/                  # SSRF, 경로 탐색, 인젝션 테스트
+└── scale/                     # 스케일 테스트 프레임워크
 ```
 
 ## 개발
@@ -352,6 +369,17 @@ make help            # 전체 명령어
 - **GPU**: 불필요 (CPU만으로 동작)
 - **저장소**: SQLite + LanceDB + Tantivy (모두 로컬, 외부 서비스 불필요)
 - **OS**: Linux, macOS, Windows (WSL2)
+
+## 문서
+
+전체 문서는 [English](docs/en/index.md)와 [한국어](docs/ko/index.md)로 제공됩니다:
+
+- [시작하기](docs/ko/getting-started.md) — 설치, 설정, 첫 질문
+- [아키텍처](docs/ko/architecture.md) — 인제스트/쿼리 파이프라인, Triple Index
+- [설정 가이드](docs/ko/configuration.md) — 전체 설정 레퍼런스
+- [API 레퍼런스](docs/ko/api-reference.md) — Python SDK, HTTP API, CLI
+- [평가 시스템](docs/ko/evaluation.md) — 메트릭, QA 데이터셋, 시나리오 테스트
+- [트러블슈팅](docs/ko/troubleshooting.md) — 자주 발생하는 문제, 성능 튜닝
 
 ## 라이선스
 

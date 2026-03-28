@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
-[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)]()
+[![Version](https://img.shields.io/pypi/v/quantumrag.svg)](https://pypi.org/project/quantumrag/)
 [![Scenario Tests](https://img.shields.io/badge/scenario_tests-176_cases-brightgreen.svg)]()
 [![QA Datasets](https://img.shields.io/badge/QA_datasets-105_questions-blue.svg)]()
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
@@ -145,13 +145,14 @@ Documents (PDF, DOCX, HWP, PPTX, XLSX, HTML, MD, CSV, TXT)
 
 ```
 User Query
-  ├─ Query Rewrite / Decomposition
+  ├─ Query Rewrite / Expansion
   ├─ Entity Detection & Attribute Filtering
   ├─ Adaptive Routing (simple → nano, medium → mini, complex → full)
   ├─ Triple Index Fusion Search (RRF: 0.4 / 0.35 / 0.25)
   ├─ Reranking (FlashRank / BGE / Cohere / Jina)
   ├─ Context Compression
-  └─ Source-Grounded Generation → Answer [1][2] + Confidence
+  ├─ Source-Grounded Generation → Answer [1][2] + Confidence
+  └─ Post-Correction (Retrieval Retry → Self-Correct → Fact Verify → Completeness)
 ```
 
 ### Triple Index Fusion
@@ -308,33 +309,49 @@ LangChain and LlamaIndex give you building blocks. OpenAI gives you a black box.
 ```
 quantumrag/
 ├── core/
-│   ├── engine.py              # Single entry point
-│   ├── config.py              # Configuration (Pydantic + YAML)
-│   ├── models.py              # Data models (Chunk, QueryResult, ...)
+│   ├── engine.py              # Single entry point for all operations
+│   ├── config.py              # Configuration (Pydantic + YAML + env vars)
+│   ├── models.py              # Data models (Chunk, Source, QueryResult, ...)
 │   ├── ingest/
-│   │   ├── parser/            # Multi-format document parsing
-│   │   ├── chunker/           # Chunking strategies (auto/semantic/fixed/structural)
-│   │   └── indexer/           # Triple Index + 4-Level Indexing
+│   │   ├── parser/            # PDF, DOCX, PPTX, XLSX, HWP, HTML, MD, CSV, TXT
+│   │   ├── chunker/           # Strategies: auto, semantic, fixed, structural
+│   │   ├── indexer/           # Triple Index + 4-Level Indexing + fact extraction
+│   │   └── denoiser.py        # Input quality filtering
 │   ├── retrieve/
-│   │   ├── fusion.py          # RRF triple index fusion
-│   │   ├── reranker.py        # Multi-provider reranking
-│   │   └── entity_detector.py # Entity query detection
+│   │   ├── fusion.py          # RRF triple index fusion search
+│   │   ├── reranker.py        # FlashRank, BGE, Cohere, Jina
+│   │   ├── query_classifier.py # Adaptive complexity routing
+│   │   ├── entity_detector.py # Entity query detection + attribute filtering
+│   │   └── fact_index.py      # Structured fact lookup
 │   ├── generate/
-│   │   ├── generator.py       # Source-grounded generation
-│   │   ├── router.py          # Query complexity routing
+│   │   ├── generator.py       # Source-grounded generation with citations
+│   │   ├── router.py          # Simple/Medium/Complex query routing
 │   │   ├── fact_verifier.py   # Hallucination detection (zero LLM cost)
 │   │   ├── completeness.py    # Multi-part answer verification
-│   │   └── map_reduce.py      # Aggregation query processing
+│   │   ├── map_reduce.py      # Aggregation query processing
+│   │   └── query_expander.py  # Colloquial → formal query expansion
 │   ├── pipeline/
-│   │   └── postprocess.py     # Correction chain (retry → verify → complete)
-│   ├── storage/               # SQLite + LanceDB + Tantivy
-│   ├── llm/                   # Provider abstraction (OpenAI, Anthropic, Gemini, Ollama)
-│   └── evaluate/              # Evaluation metrics & synthetic QA
+│   │   ├── postprocess.py     # Correction chain (retry → verify → complete)
+│   │   └── context.py         # Pipeline context and document profiling
+│   ├── storage/               # SQLite, LanceDB, Tantivy, Chroma, FAISS
+│   ├── llm/                   # OpenAI, Anthropic, Gemini, Ollama
+│   ├── autotune/              # Parameter optimization framework
+│   ├── cache/                 # Semantic cache with TTL
+│   └── evaluate/              # Metrics, synthetic QA generation
 ├── api/                       # FastAPI HTTP server + web playground
-├── cli/                       # Typer CLI
-├── connectors/                # File, GDrive, Notion, S3, URL
-├── korean/                    # Kiwi morphology, encoding
-└── plugins/                   # Plugin registry & hooks
+├── cli/                       # Typer CLI (init, ingest, query, serve, status)
+├── connectors/                # File, S3, URL, Google Drive, Notion
+├── korean/                    # Kiwi morphology, EUC-KR encoding
+├── plugins/                   # Plugin registry & hook system
+datasets/                      # QA datasets (4 datasets, 105 questions)
+├── run_qa.py                  # Individual dataset runner
+├── run_qa_combined.py         # Combined retrieval stress test
+└── STATUS.md                  # Auto-generated dashboard
+tests/
+├── unit/                      # 782 unit tests
+├── scenarios/                 # 176 scenario test cases (v1-v4)
+├── security/                  # SSRF, path traversal, injection tests
+└── scale/                     # Scale testing framework
 ```
 
 ## Development
@@ -368,6 +385,17 @@ make help            # All available commands
 - **GPU**: Not required (CPU-only by default)
 - **Storage**: SQLite + LanceDB + Tantivy (all local, no external services)
 - **OS**: Linux, macOS, Windows (WSL2)
+
+## Documentation
+
+Full documentation in [English](docs/en/index.md) and [Korean](docs/ko/index.md):
+
+- [Getting Started](docs/en/getting-started.md) / [시작하기](docs/ko/getting-started.md)
+- [Architecture](docs/en/architecture.md) / [아키텍처](docs/ko/architecture.md)
+- [Configuration](docs/en/configuration.md) / [설정 가이드](docs/ko/configuration.md)
+- [API Reference](docs/en/api-reference.md) / [API 레퍼런스](docs/ko/api-reference.md)
+- [Evaluation](docs/en/evaluation.md) / [평가 시스템](docs/ko/evaluation.md)
+- [Troubleshooting](docs/en/troubleshooting.md) / [트러블슈팅](docs/ko/troubleshooting.md)
 
 ## License
 
