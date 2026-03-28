@@ -35,8 +35,9 @@ from quantumrag.core.config import QuantumRAGConfig
 from quantumrag.core.engine import Engine
 
 # --- Config ---
-QUERY_TIMEOUT = 120
-CONCURRENCY = 3
+QUERY_TIMEOUT = 60  # Shorter: combined test focuses on retrieval, not generation quality
+CONCURRENCY = 5  # Higher parallelism for faster wall time
+INGEST_MODE = "fast"  # Skip HyPE/preambles — retrieval precision doesn't need them
 
 # --- Collect all datasets ---
 ds_root = Path(__file__).resolve().parent
@@ -117,9 +118,9 @@ if current_hash == cached_hash and data_dir.exists():
 else:
     if data_dir.exists():
         shutil.rmtree(data_dir)
-    print(f"\n  Ingesting {len(source_map)} combined sources...")
+    print(f"\n  Ingesting {len(source_map)} combined sources (mode={INGEST_MODE})...")
     t_ingest = time.perf_counter()
-    ingest_result = engine.ingest(str(sources_dir))
+    ingest_result = engine.ingest(str(sources_dir), mode=INGEST_MODE)
     ingest_elapsed = time.perf_counter() - t_ingest
     ingest_docs = ingest_result.documents
     ingest_chunks = ingest_result.chunks
