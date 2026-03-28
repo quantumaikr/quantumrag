@@ -17,7 +17,8 @@
 | [Evaluation](evaluation.md) | Metrics, scenario tests, synthetic QA, A/B comparison |
 | [Plugins](plugins.md) | Custom parsers, chunkers, retrievers, generators |
 | [Data Connectors](connectors.md) | File, S3, Google Drive, Notion, URL |
-| [Advanced Features](advanced-features.md) | Multi-tenancy, caching, observability, security, batch |
+| [Advanced Features](advanced-features.md) | Caching, observability, security, batch processing |
+| [Troubleshooting](troubleshooting.md) | Common issues, performance tuning, debug mode |
 
 ---
 

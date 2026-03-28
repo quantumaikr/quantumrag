@@ -17,7 +17,8 @@
 | [평가 시스템](evaluation.md) | 메트릭, 시나리오 테스트, 합성 QA, A/B 비교 |
 | [플러그인](plugins.md) | 커스텀 파서, 청커, 리트리버, 제너레이터 |
 | [데이터 커넥터](connectors.md) | File, S3, Google Drive, Notion, URL |
-| [고급 기능](advanced-features.md) | 멀티 테넌시, 캐싱, 관측성, 보안, 배치 처리 |
+| [고급 기능](advanced-features.md) | 캐싱, 관측성, 보안, 배치 처리 |
+| [트러블슈팅](troubleshooting.md) | 자주 발생하는 문제, 성능 튜닝, 디버그 모드 |
 
 ---
 

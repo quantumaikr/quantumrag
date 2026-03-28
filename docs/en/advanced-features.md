@@ -1,68 +1,50 @@
 # Advanced Features
 
-> Multi-tenancy, semantic caching, observability, security, and batch processing.
+> Post-generation correction, hallucination prevention, semantic caching, observability, security, and batch processing.
 
 ---
 
-## Multi-Tenancy
+## Post-Generation Correction Pipeline
 
-Isolated per-tenant storage with custom configurations and quotas.
+After generating an answer, a modular correction chain runs automatically:
 
-### Setup
-
-```python
-from quantumrag.core.multitenancy.tenant import TenantManager
-
-manager = TenantManager(base_dir="/data/quantumrag")
-
-# Create tenants
-manager.create_tenant(
-    "acme-corp",
-    display_name="Acme Corporation",
-    max_documents=10000,
-    max_queries_per_day=50000,
-)
-
-manager.create_tenant(
-    "beta-inc",
-    display_name="Beta Inc",
-    embedding_model="text-embedding-3-large",
-    max_documents=5000,
-)
+```
+Generate → Retrieval Retry → Self-Correct → Fact Verify → Completeness
 ```
 
-### Usage
+Each step checks preconditions and skips if not needed (zero overhead on happy path).
+
+| Step | Trigger | Action |
+|------|---------|--------|
+| **Retrieval Retry** | confidence = insufficient_evidence | Re-retrieve with BM25-dominant strategy |
+| **Self-Correct** | Low confidence patterns detected | Re-generate with correction hints |
+| **Fact Verify** | Customer/financial facts in answer | Cross-check against extracted facts |
+| **Completeness** | Multi-part query detected | Check all expected items are covered |
+
+### Fact Verifier (Hallucination Prevention)
+
+Zero-LLM-cost, rule-based verification:
 
 ```python
-# Get tenant-specific engine
-engine = manager.get_engine("acme-corp")
-engine.ingest("./acme_docs")
-result = engine.query("What is Acme's policy?")
+# At ingest time: facts are extracted and stored in chunk metadata
+# At query time: answer entities are verified against those facts
+
+result = engine.query("주요 고객사를 알려주세요")
+# If answer mentions "SK텔레콤" but fact index only has "삼성전자", "LG전자"
+# → fact_verifier flags it as potential hallucination
+# → engine re-generates with correction hint
 ```
 
-### Tenant Isolation
+Design: precision over recall — only flags clear contradictions, not ambiguity. Single unknown entity is tolerated (conservative threshold).
 
-Each tenant gets:
-- **Isolated data directory**: `/base/tenants/{tenant_id}/data`
-- **Separate databases**: SQLite, LanceDB, Tantivy per tenant
-- **Custom models**: Per-tenant embedding/generation models
-- **Quota enforcement**: Document count, daily query limits
-- **Config persistence**: `tenant.json` per tenant directory
+### Completeness Checker
 
-### Tenant Configuration
+Detects multi-part queries and verifies coverage:
 
 ```python
-@dataclass
-class TenantConfig:
-    tenant_id: str                     # [a-zA-Z0-9][a-zA-Z0-9_-]{0,62}
-    display_name: str
-    data_dir: str
-    embedding_model: str | None        # Override default
-    generation_model: str | None       # Override default
-    max_documents: int | None          # Quota
-    max_queries_per_day: int | None    # Quota
-    allowed_file_types: list[str]      # Restrict formats
-    metadata: dict[str, Any]           # Custom fields
+# "3건의 계약을 알려주세요" → expects 3 items
+# "매출과 비용 및 이익을 비교해줘" → expects 3 items: 매출, 비용, 이익
+# If answer only covers 2/3, triggers targeted re-retrieval for missing items
 ```
 
 ---

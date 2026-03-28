@@ -1,68 +1,47 @@
 # 고급 기능
 
-> 멀티 테넌시, 시맨틱 캐시, 관측성, 보안, 배치 처리.
+> 생성 후 교정 파이프라인, 환각 방지, 시맨틱 캐시, 관측성, 보안, 배치 처리.
 
 ---
 
-## 멀티 테넌시
+## 생성 후 교정 파이프라인 (Post-Generation Correction)
 
-테넌트별 격리된 스토리지와 커스텀 설정, 쿼터 관리.
+답변 생성 후 자동으로 모듈형 교정 체인이 실행됩니다:
 
-### 설정
-
-```python
-from quantumrag.core.multitenancy.tenant import TenantManager
-
-manager = TenantManager(base_dir="/data/quantumrag")
-
-# 테넌트 생성
-manager.create_tenant(
-    "acme-corp",
-    display_name="Acme Corporation",
-    max_documents=10000,
-    max_queries_per_day=50000,
-)
-
-manager.create_tenant(
-    "beta-inc",
-    display_name="Beta Inc",
-    embedding_model="text-embedding-3-large",
-    max_documents=5000,
-)
+```
+Generate → Retrieval Retry → Self-Correct → Fact Verify → Completeness
 ```
 
-### 사용법
+각 단계는 선행 조건을 체크하고, 불필요하면 건너뜁니다 (정상 경로에서 오버헤드 없음).
+
+| 단계 | 트리거 | 동작 |
+|------|--------|------|
+| **Retrieval Retry** | confidence = insufficient_evidence | BM25 위주로 재검색 |
+| **Self-Correct** | 낮은 신뢰도 패턴 감지 | 교정 힌트와 함께 재생성 |
+| **Fact Verify** | 고객/재무 사실이 답변에 포함 | 추출된 fact과 교차 검증 |
+| **Completeness** | 다중 항목 쿼리 감지 | 모든 기대 항목이 포함되었는지 확인 |
+
+### Fact Verifier (환각 방지)
+
+LLM 비용 없이 규칙 기반으로 검증:
 
 ```python
-# 테넌트별 엔진 가져오기
-engine = manager.get_engine("acme-corp")
-engine.ingest("./acme_docs")
-result = engine.query("Acme의 정책은 무엇인가요?")
+result = engine.query("주요 고객사를 알려주세요")
+# 답변에 "SK텔레콤"이 있지만 fact index에는 "삼성전자", "LG전자"만 있으면
+# → fact_verifier가 잠재적 환각으로 플래그
+# → 교정 힌트와 함께 재생성
 ```
 
-### 테넌트 격리
+설계 원칙: 정밀도 우선 — 명확한 모순만 플래그, 모호한 경우 허용.
 
-각 테넌트는 다음을 보유합니다:
-- **격리된 데이터 디렉토리**: `/base/tenants/{tenant_id}/data`
-- **개별 데이터베이스**: 테넌트별 SQLite, LanceDB, Tantivy
-- **커스텀 모델**: 테넌트별 임베딩/생성 모델
-- **쿼터 적용**: 문서 수, 일일 쿼리 제한
-- **설정 영속성**: 테넌트 디렉토리별 `tenant.json`
+### 완전성 검사 (Completeness Checker)
 
-### 테넌트 설정
+다중 항목 쿼리를 감지하고 커버리지를 확인:
 
 ```python
-@dataclass
-class TenantConfig:
-    tenant_id: str                     # [a-zA-Z0-9][a-zA-Z0-9_-]{0,62}
-    display_name: str
-    data_dir: str
-    embedding_model: str | None        # 기본값 오버라이드
-    generation_model: str | None       # 기본값 오버라이드
-    max_documents: int | None          # 쿼터
-    max_queries_per_day: int | None    # 쿼터
-    allowed_file_types: list[str]      # 형식 제한
-    metadata: dict[str, Any]           # 커스텀 필드
+# "3건의 계약을 알려주세요" → 3개 항목 기대
+# "매출과 비용 및 이익을 비교해줘" → 3개 항목: 매출, 비용, 이익
+# 답변이 2/3만 커버하면 → 누락 항목에 대해 타겟 재검색
 ```
 
 ---
