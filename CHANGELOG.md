@@ -82,19 +82,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Advanced Features**
 - Plugin system with hook-based extensibility
-- Multi-tenant support with isolated storage
 - Semantic cache with TTL and similarity matching
 - Batch query processing with concurrency control
 - Query tracing and cost tracking (observability)
-- Access control (ACL) at document level
 
 **Connectors**
 - Local file system
 - URL/web page
-- Google Drive (OAuth2)
-- Notion (API)
 - AWS S3
 
-**Cloud Connectors**
-- Query decomposition for complex multi-hop queries
-- Speculative RAG for parallel sub-query processing
+## [Unreleased]
+
+### Added
+- Post-generation correction pipeline (retrieval retry → self-correct → fact verify → completeness)
+- Fact verifier: rule-based hallucination detection via fact cross-checking (zero LLM cost)
+- Completeness checker: multi-part answer verification with targeted re-retrieval
+- Query classifier for adaptive routing
+- Autotune framework for parameter optimization
+- Chunk coherence scoring and input denoising
+- Chroma and FAISS vector store backends
+- Map-Reduce RAG for aggregation queries
+- QA dataset framework with 4 datasets (105 questions), auto-graduation
+- Combined QA runner for retrieval precision testing at scale
+- Scenario test suite (v1-v4, 176 test cases)
+- Scale test framework
+- Makefile with tiered test strategy (quick/smoke/check/scenario)
+- GitHub Actions CI: mypy type checking, security tests, coverage threshold
+
+### Removed
+- Multi-tenant support (isolated storage) — removed, not needed for current use cases
+- Query decomposition module (decomposer.py) — replaced by query expander
+- Speculative RAG (speculative.py) — replaced by post-generation correction pipeline
+- Evidence extractor — functionality merged into fact extractor

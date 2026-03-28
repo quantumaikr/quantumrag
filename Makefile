@@ -30,7 +30,7 @@ test:
 ## ---------------------------------------------------------------------------
 
 test-gen:  ## generate/ 관련 테스트만
-	@$(VENV)/python -m pytest tests/unit/test_evaluation.py tests/unit/test_postprocess.py tests/unit/test_rewriter.py -q --tb=short -x
+	@$(VENV)/python -m pytest tests/unit/test_evaluation.py tests/unit/test_postprocess.py tests/unit/test_rewriter.py tests/unit/test_fact_verifier.py tests/unit/test_completeness.py -q --tb=short -x
 
 test-ret:  ## retrieve/ 관련 테스트만
 	@$(VENV)/python -m pytest tests/unit/test_retrieval.py tests/unit/test_rerankers_and_budget.py tests/unit/test_slow_retrieval.py tests/unit/test_storage.py -q --tb=short -x
