@@ -64,6 +64,16 @@ chroma = [
 faiss = [
     "faiss-cpu>=1.8",
 ]
+ci = [
+    "openai>=1.40",
+    "anthropic>=0.34",
+    "lancedb>=0.12",
+    "tantivy>=0.22",
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-multipart>=0.0.7",
+    "flashrank>=0.2",
+]
 all = [
     "openai>=1.40",
     "anthropic>=0.34",
