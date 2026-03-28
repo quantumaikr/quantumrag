@@ -1,0 +1,228 @@
+questions:
+  # ── Easy (5) ─────────────────────────────────────────────────────
+  - id: q001
+    query: "Python dataclasses에서 frozen=True로 설정하면 어떤 효과가 있나요?"
+    expected_keywords: ["immutable", "불변", "FrozenInstanceError"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["002"]
+
+  - id: q002
+    query: "2025년 국내 전기차 신규 등록 대수는?"
+    expected_keywords: ["220,177", "22만"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["004", "005"]
+
+  - id: q003
+    query: "Python typing의 NewType은 런타임에서 어떻게 동작하나요?"
+    expected_keywords: ["argument", "unchanged", "반환", "int"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["001"]
+
+  - id: q004
+    query: "2025년 한국 유니콘 기업은 몇 개인가요?"
+    expected_keywords: ["27"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["006"]
+
+  - id: q005
+    query: "dataclasses.field()의 default_factory 파라미터는 무엇을 위한 것인가요?"
+    expected_keywords: ["mutable", "callable", "default", "list"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["002"]
+
+  # ── Hard (10) ────────────────────────────────────────────────────
+  - id: q006
+    query: "TypeVar의 covariant와 contravariant의 차이점을 설명하세요."
+    expected_keywords: ["covariant", "contravariant", "output", "input"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["001"]
+
+  - id: q007
+    query: "typing.Protocol과 dataclasses.dataclass의 용도 차이는?"
+    expected_keywords: ["Protocol", "structural", "dataclass"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["001", "002"]
+
+  - id: q008
+    query: "2025년 전기차 시장에서 기아, 테슬라, 현대의 판매량과 점유율을 비교하세요."
+    expected_keywords: ["기아", "테슬라", "현대", "27.5%", "27.2%", "25.2%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004", "005"]
+
+  - id: q009
+    query: "테슬라 모델Y의 2025년 판매량과 전년 대비 증가율은?"
+    expected_keywords: ["50,397", "5만", "169.2%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004", "005"]
+
+  - id: q010
+    query: "TypeGuard와 TypeIs의 차이점을 설명하세요."
+    expected_keywords: ["TypeGuard", "TypeIs", "subtype", "narrowing"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["001"]
+
+  - id: q011
+    query: "2025년 벤처 투자에서 가장 높은 성장률을 보인 업종은?"
+    expected_keywords: ["게이밍", "69.4%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["006"]
+
+  - id: q012
+    query: "dataclasses의 InitVar과 ClassVar의 차이점은?"
+    expected_keywords: ["InitVar", "ClassVar"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["002"]
+
+  - id: q013
+    query: "수입 전기차 점유율이 2022년부터 2025년까지 어떻게 변화했나요?"
+    expected_keywords: ["25%", "29.2%", "36%", "42.8%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004", "005"]
+
+  - id: q014
+    query: "유니콘 브릿지 프로젝트에서 1년차와 2년차 지원 내용의 차이는?"
+    expected_keywords: ["6억", "10억", "50개", "20개"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["006"]
+
+  - id: q015
+    query: "typing.Annotated와 dataclasses.field()의 metadata 파라미터는 어떤 관계가 있나요?"
+    expected_keywords: ["metadata", "Annotated", "third-party", "확장"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: reasoning
+    source_ids: ["001", "002"]
+
+  # ── Extreme (10) ─────────────────────────────────────────────────
+  - id: q016
+    query: "경상북도의 전기차 침투율이 서울보다 높은 이유는?"
+    expected_keywords: ["16.2%", "12.8%", "보조금", "1,100만"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["004"]
+
+  - id: q017
+    query: "두 기사(한국경제, 비즈니스포스트) 모두에서 공통적으로 확인되는 2025년 전기차 시장 핵심 수치 3가지는?"
+    expected_keywords: ["220,177", "22만", "13.1%", "50.1%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["004", "005"]
+
+  - id: q018
+    query: "typing 모듈의 ClassVar는 dataclasses에서 어떻게 처리되나요?"
+    expected_keywords: ["ClassVar", "ignored", "무시", "__init__"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["001", "002"]
+
+  - id: q019
+    query: "BYD의 2025년 한국 시장 판매량은 정확히 얼마인가요?"
+    expected_keywords: ["INSUFFICIENT", "없", "확인할 수 없", "구체적"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q020
+    query: "전기차 시장 데이터를 보면, 국산 점유율이 2022년 75%에서 2025년 57.2%로 하락했는데, 이 추세가 계속되면 2027년 국산 점유율은 어느 수준일까요?"
+    expected_keywords: ["INSUFFICIENT", "없", "예측", "추정", "확인"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q021
+    query: "asyncio.TaskGroup과 typing.Generic은 어떤 관계가 있나요?"
+    expected_keywords: ["INSUFFICIENT", "없", "관계 없", "관련 없", "직접적"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q022
+    query: "2025년 기준 전기차 산업과 스타트업 산업의 투자 규모를 비교하세요."
+    expected_keywords: ["13.6조", "전기차", "벤처"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["004", "005", "006"]
+
+  - id: q023
+    query: "dataclasses에서 상속 시 부모 클래스의 필드가 자식에서 override되면 __init__ 파라미터 순서가 어떻게 되나요?"
+    expected_keywords: ["x: int = 15", "y: int = 0", "z: int = 10", "MRO"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["002"]
+
+  - id: q024
+    query: "2025년 전체 창업은 감소했는데 기술 기반 창업은 증가한 이유를 설명해주세요."
+    expected_keywords: ["4.0%", "감소", "2.9%", "증가", "AI", "기술"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["006"]
+
+  - id: q025
+    query: "제주도의 전기차 개인 구매 침투율은 전국 평균의 몇 배인가요?"
+    expected_keywords: ["33.1%", "13.1%", "2.5", "약 2.5배"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: numerical
+    source_ids: ["004"]

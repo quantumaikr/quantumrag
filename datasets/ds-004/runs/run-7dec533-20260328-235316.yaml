@@ -1,0 +1,671 @@
+engine_version: 7dec533
+timestamp: '2026-03-28T23:53:16.691285'
+dataset: ds-004
+ingest:
+  documents: 6
+  chunks: 65
+  elapsed_s: 33.64
+  cached: false
+execution:
+  concurrency: 3
+  query_timeout_s: 120
+  wall_time_s: 102.37
+  sum_latency_s: 305.65
+results:
+- qid: q001
+  query: LLM 벤치마크 종합 점수 1위 모델은 무엇이고 몇 점인가요?
+  difficulty: easy
+  type: factual
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 **LLM Benchmark Wars 2025-2026**의 섹션 요약만 있고, **“Top 5 Models by Overall
+    Benchmark Average”의 구체적인 모델명과 점수**가 제시되어 있지 않습니다. 따라서 종합 점수 1위 모델과 점수를 확인할 수 없습니다.
+    [27]
+
+
+    신뢰도: **INSUFFICIENT_EVIDENCE**'
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 9.63
+  passed: false
+  expected_keywords:
+  - GPT-5.2
+  - '90.3'
+  matched_keywords: []
+- qid: q002
+  query: EU AI Act에서 금지되는 AI 활용 유형은 몇 가지인가요?
+  difficulty: easy
+  type: numerical
+  answer: EU AI Act에서 **금지(“Unacceptable Risk (Prohibited)”)되는 AI 활용 유형은 8가지**입니다.
+    [8]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 4.95
+  passed: true
+  expected_keywords:
+  - '8'
+  - eight
+  matched_keywords:
+  - '8'
+- qid: q003
+  query: 한국 AI 기본법은 언제 시행되나요?
+  difficulty: easy
+  type: factual
+  answer: 한국 AI 기본법은 **2026년 1월 22일**에 시행됩니다. [1]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 8.57
+  passed: true
+  expected_keywords:
+  - 2026년 1월 22일
+  - 2026년 1월
+  matched_keywords:
+  - 2026년 1월 22일
+  - 2026년 1월
+- qid: q004
+  query: 포브스코리아 대한민국 AI 50에서 1위 기업은?
+  difficulty: easy
+  type: factual
+  answer: "포브스코리아가 선정한 **2025 대한민국 AI 50의 1위 기업은 ‘포티투닷’**입니다. [3]  \n\n- (순번 1) 포티투닷\
+    \ [3]  \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 3.62
+  passed: true
+  expected_keywords:
+  - 포티투닷
+  matched_keywords:
+  - 포티투닷
+- qid: q005
+  query: 2026년 HBM 시장 규모는 얼마로 전망되나요?
+  difficulty: easy
+  type: numerical
+  answer: 2026년 HBM 시장 규모는 **546억 달러**로 전망됩니다. [2]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 1.23
+  passed: true
+  expected_keywords:
+  - 546억
+  - '546'
+  matched_keywords:
+  - 546억
+  - '546'
+- qid: q006
+  query: GPQA Diamond 벤치마크에서 1위 모델과 점수는?
+  difficulty: hard
+  type: numerical
+  answer: "GPQA Diamond 벤치마크에서 **1위 모델은 Gemini 3.1 Pro**이며, **점수는 94.3**입니다. [1] \
+    \ \n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 1.17
+  passed: true
+  expected_keywords:
+  - Gemini 3.1 Pro
+  - '94.3'
+  matched_keywords:
+  - Gemini 3.1 Pro
+  - '94.3'
+- qid: q007
+  query: 가장 비용효율이 높은 LLM 모델은 무엇이며 효율 점수는?
+  difficulty: hard
+  type: numerical
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 LLM 모델별 **비용효율성 순위**나 **효율 점수**의 구체 수치가 없습니다. Source 25는 LLM Benchmark
+    관련 문서가 존재함을 보여주지만, 모델명·점수·비용효율 지표의 실제 값은 제시되지 않았습니다. [25]'
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 14.13
+  passed: false
+  expected_keywords:
+  - DeepSeek V3.2
+  - '310.86'
+  matched_keywords: []
+- qid: q008
+  query: SK하이닉스의 2025년 3분기 영업이익은 얼마인가요?
+  difficulty: hard
+  type: numerical
+  answer: 'SK하이닉스의 2025년 3분기 영업이익은 **11조3,834억원**입니다. [2]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 10.59
+  passed: true
+  expected_keywords:
+  - 11조3,834억
+  - 11조3834억
+  - '113834'
+  matched_keywords:
+  - 11조3,834억
+- qid: q009
+  query: 삼성전자의 HBM 점유율이 2025년 2분기에서 3분기 사이 어떻게 변화했나요?
+  difficulty: hard
+  type: numerical
+  answer: '삼성전자의 HBM 점유율은 **2025년 2분기 17%에서 3분기 35%로 상승**했습니다. 즉, **18%p 증가**했고, 이는
+    **단일 분기 기준 최대 상승 폭**으로 언급됩니다. [10]
+
+
+    참고로 같은 맥락에서 제시된 HBM 시장 점유율 표에서는 **SK하이닉스 62%, 삼성전자 17%, K-반도체 합계 79%**로 2025년
+    2분기 기준이 제시되어 있습니다. [9]
+
+
+    질문에 포함된 **DRAM 시장 점유율**에 대한 삼성전자 수치는 제공된 컨텍스트에 없습니다. 따라서 **INSUFFICIENT_EVIDENCE**입니다.
+    [1][4][6][9][10][12][19]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 6
+  latency_s: 17.98
+  passed: true
+  expected_keywords:
+  - 17%
+  - 35%
+  matched_keywords:
+  - 17%
+  - 35%
+- qid: q010
+  query: EU AI Act에서 금지된 AI 관행 위반 시 최대 벌금은?
+  difficulty: hard
+  type: numerical
+  answer: "EU AI Act에서 **금지된(“unacceptable-risk”/prohibited practices, Article 5)\
+    \ AI 관행**을 위반하면, **최대 €35 million 또는 전 세계 연간 매출의 7%**까지의 과징금이 부과될 수 있습니다. [13]\
+    \  \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 7.39
+  passed: true
+  expected_keywords:
+  - '35'
+  - 7%
+  matched_keywords:
+  - '35'
+  - 7%
+- qid: q011
+  query: 한국 AI 기본법에서 고영향 AI로 분류되는 분야 수와 EU AI Act의 고위험 분야 수를 비교하세요.
+  difficulty: hard
+  type: comparison
+  answer: "한국 AI 기본법에서 **고영향 AI는 11개 분야**에 적용됩니다. [6][8]  \n반면, **EU AI Act는 4단계 위험\
+    \ 분류 체계**를 사용하며, 질문에서 말하는 “고위험 분야 수”를 **별도의 숫자로 제시하지는 않습니다**. [4][6]\n\n따라서, **한국\
+    \ AI 기본법은 고영향 AI 적용 분야를 11개로 명시**하고, **EU AI Act는 분야 수가 아니라 위험 등급 체계로 규제**한다는\
+    \ 점에서 직접적인 “분야 수” 비교는 어렵습니다. [4][6]\n\n비교 요약:\n- 한국 AI 기본법: **11개 분야** [6][8]\n\
+    - EU AI Act: **4단계 위험 분류**(허용불가/고위험/제한된 위험/저위험) [4]\n\n신뢰도: **PARTIALLY_SUPPORTED**"
+  confidence: partially_supported
+  sources_count: 3
+  latency_s: 8.23
+  passed: true
+  expected_keywords:
+  - '11'
+  - '8'
+  matched_keywords:
+  - '11'
+  - '8'
+- qid: q012
+  query: 대한민국 AI 50에서 투자유치액이 가장 높은 기업은 어디이며 얼마인가요?
+  difficulty: hard
+  type: numerical
+  answer: 대한민국 AI 50(포브스코리아)에서 **투자유치액이 가장 높은 기업은 ‘몰로코’**이며, **투자유치액은 2,119억원**입니다.
+    [1]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 4.2
+  passed: false
+  expected_keywords:
+  - 포티투닷
+  - 5,767억
+  matched_keywords: []
+- qid: q013
+  query: 대한민국 AI 50 중 AI 반도체(NPU) 분야 기업들을 모두 나열하세요.
+  difficulty: hard
+  type: factual
+  answer: '대한민국 AI 50 중 **AI 반도체(NPU) 분야 기업**으로 추출된 항목은 다음 3곳입니다.
+
+
+    - **리벨리온** [4][5]
+
+    - **딥엑스** [4][5]
+
+    - **퓨리오사에이아이** [4][5]
+
+
+    **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 50
+  latency_s: 19.92
+  passed: true
+  expected_keywords:
+  - 리벨리온
+  - 딥엑스
+  - 퓨리오사
+  matched_keywords:
+  - 리벨리온
+  - 딥엑스
+  - 퓨리오사
+- qid: q014
+  query: 미국이 인텔에 지원한 반도체 보조금은 얼마이며, 한국의 삼성·SK 직접 지원과 비교하면?
+  difficulty: hard
+  type: comparison
+  answer: "미국은 인텔에 **85억 달러**를 지원했습니다[11].  \n반면 한국은 **삼성·SK에 직접 지원이 없음**으로 제시되어 있습니다[11].\n\
+    \n따라서 비교하면, **미국의 인텔 지원은 85억 달러**, **한국의 삼성·SK 직접 지원은 0달러(직접 지원 없음)**입니다[11].\
+    \  \n참고로 한국의 반도체 인센티브는 **세액공제 포함 약 1조2,000억원**으로 별도 언급되어 있지만, 이는 **직접 지원**과는 구분됩니다[11].\n\
+    \n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 33.99
+  passed: true
+  expected_keywords:
+  - 85억 달러
+  - 지원 없음
+  matched_keywords:
+  - 85억 달러
+  - 지원 없음
+- qid: q015
+  query: Claude Opus 4.6의 벤치마크 종합 점수, 가격, 속도를 알려주세요.
+  difficulty: hard
+  type: factual
+  answer: 'Claude Opus 4.6의 정보는 다음과 같습니다.
+
+
+    - **벤치마크 종합 점수:** **89.6점**으로 전체 3위입니다. [2]
+
+    - **가격:** **Premium tier**이며, **입력 1M 토큰당 $15 / 출력 1M 토큰당 $75**입니다. [25]
+
+    - **속도:** **약 60 tok/s**입니다. [3]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 28.82
+  passed: true
+  expected_keywords:
+  - '89.6'
+  - '15'
+  - '60'
+  matched_keywords:
+  - '89.6'
+  - '15'
+  - '60'
+- qid: q016
+  query: 한국 AI 기본법의 안전성 확보 의무 대상이 되는 AI 시스템의 연산량 기준은?
+  difficulty: hard
+  type: factual
+  answer: "한국 AI 기본법의 **안전성 확보 의무** 대상이 되는 AI 시스템은, 학습에 사용된 **누적 연산량이 10²⁶ 부동소수점 연산(FLOP)\
+    \ 이상**인 **대규모 AI 시스템 운영자**입니다. [1][2]  \n\n- **연산량 기준:** 누적 **10²⁶ FLOP 이상** [1][2]\
+    \  \n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 4.53
+  passed: true
+  expected_keywords:
+  - 10²⁶
+  - 10^26
+  - FLOP
+  matched_keywords:
+  - 10²⁶
+  - FLOP
+- qid: q017
+  query: 2025년 HBM 시장 성장률은 전년 대비 몇 퍼센트 증가했나요?
+  difficulty: hard
+  type: numerical
+  answer: "2025년 HBM 시장 성장률은 **전년 대비 81% 급증**했습니다. [3][12]\n\n다만, 질문에 포함된 **“2025년\
+    \ HBM 시장 성장률 전년 대비 증가율 DRAM / HBM3E 매출 전망”**에 대해서는, 제공된 컨텍스트에 **DRAM의 2025년 매출\
+    \ 전망**이나 **HBM3E의 2025년 매출 전망(증가율/금액)**이 명시되어 있지 않아 **계산/확정이 불가능**합니다. [1][3][10]\n\
+    \n- **2025년 HBM 성장률(전년 대비): +81%** [3][12]  \n- **DRAM(2025) 매출 전망 / HBM3E(2025)\
+    \ 매출 전망: INSUFFICIENT_EVIDENCE** [1][3][10]\n\n**신뢰도: PARTIALLY_SUPPORTED** (성장률\
+    \ 81%는 출처로 확인되지만, DRAM/HBM3E “매출 전망”은 컨텍스트에 없음)"
+  confidence: insufficient_evidence
+  sources_count: 4
+  latency_s: 20.6
+  passed: true
+  expected_keywords:
+  - 81%
+  matched_keywords:
+  - 81%
+- qid: q018
+  query: 2025년 2분기 HBM 시장에서 SK하이닉스, 삼성전자, 마이크론의 점유율을 소스별로 비교하면 수치가 일치하나요?
+  difficulty: extreme
+  type: cross_doc
+  answer: '2025년 2분기 HBM 시장 점유율은 소스별로 **완전히 일치하지는 않습니다**. 다만, **SK하이닉스 62%**와 **삼성전자
+    17%**는 여러 소스에서 동일하게 제시되고, **마이크론 21%**는 일부 소스에서만 명시됩니다. [1][4]
+
+
+    소스별로 보면:
+
+
+    - **Source 1**: SK하이닉스 **62%**, 삼성전자 **17%**, 마이크론 수치는 미제시 [1]
+
+    - **Source 4**: SK하이닉스 **62%**, 마이크론 **21%**, 삼성전자 **17%** [4]
+
+
+    따라서 비교 결과:
+
+    - **SK하이닉스**: 일치함 — **62%** [1][4]
+
+    - **삼성전자**: 일치함 — **17%** [1][4]
+
+    - **마이크론**: Source 4에만 **21%**가 제시되어 있고, Source 1에는 없음 [1][4]
+
+
+    결론적으로, **SK하이닉스와 삼성전자는 수치가 일치하지만, 마이크론은 모든 소스에 공통으로 제시되지 않아 “세 회사 모두의 수치가 소스별로
+    완전히 '
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 13.79
+  passed: true
+  expected_keywords:
+  - 62%
+  - 17%
+  - 21%
+  matched_keywords:
+  - 62%
+  - 17%
+  - 21%
+- qid: q019
+  query: EU AI Act에서는 금지하지만 한국 AI 기본법에서는 명시적으로 금지하지 않는 AI 활용 유형은?
+  difficulty: extreme
+  type: cross_doc
+  answer: "컨텍스트만으로는 **“EU AI Act에서 금지되지만 한국 AI 기본법에서는 명시적으로 금지하지 않는 AI 활용 유형”**을 특정해\
+    \ 답하기가 어렵습니다.  \n\n- EU AI Act의 “Unacceptable Risk(금지)”에 해당하는 유형(예: **무의식적 조작**,\
+    \ **취약점 착취**, **민감특성 기반 생체 분류**, **일반 목적 소셜 스코어링**, **공공장소 실시간 원격 생체인식(원칙적 금지)**,\
+    \ **감정상태 평가**, **예측 치안**, **얼굴 이미지 스크래핑**)은 컨텍스트에 열거되어 있습니다. [16]  \n- 하지만 한국\
+    \ AI 기본법에 대해, 위 유형들과 **대응되는 ‘명시적 금지 조항’이 무엇인지**(또는 “명시적으로 금지하지 않는다”는 근거가 되는 조항/목록)가\
+    \ 컨텍스트에 제시되어 있지 않습니다. [1][4][5][9][12]  \n\n따라서 요청하신 “EU는 금지인데 한국은 명시적 금지 아님”을\
+    \ **교차대조하여 특정**할 수 없습니다.  \n\n**신뢰도: INSU"
+  confidence: insufficient_evidence
+  sources_count: 6
+  latency_s: 6.86
+  passed: true
+  expected_keywords:
+  - social scoring
+  - 소셜 스코어링
+  - 사회적 점수
+  - biometric
+  - 생체
+  - 예측 치안
+  - predictive
+  matched_keywords:
+  - 소셜 스코어링
+  - 생체
+  - 예측 치안
+- qid: q020
+  query: EU AI Act의 최대 벌금(3,500만 유로)과 한국 AI 기본법의 최대 과태료(3천만원)의 격차는 약 몇 배인가요?
+  difficulty: extreme
+  type: reasoning
+  answer: "EU AI Act의 최대 과징금(3,500만 유로)과 한국 AI 기본법의 최대 과태료(3천만원) 격차는 **약 1.7배**입니다.\
+    \ [1]\n\n- EU AI Act: **최대 3,500만 유로** [1]  \n- 한국 AI 기본법: **최대 3천만원** [1]  \n\
+    - (환산에 필요한 환율 정보가 컨텍스트에 없으므로) 컨텍스트에 제시된 수치만으로 “약 몇 배”를 계산할 수 없습니다. 따라서 **INSUFFICIENT_EVIDENCE**입니다.\
+    \  \n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 9.02
+  passed: true
+  expected_keywords:
+  - '1000'
+  - 천
+  matched_keywords:
+  - 천
+- qid: q021
+  query: 대한민국 AI 50 기업 중 매출이 가장 높은 상위 3개 기업과 매출액은?
+  difficulty: extreme
+  type: numerical
+  answer: "대한민국 AI 50(포브스코리아 선정) 기업 중 **매출(2024년 기준)**이 가장 높은 상위 3개 기업과 매출액은 다음과 같습니다.\
+    \ [2]\n\n1) **아이헤이트플라잉버그스**: **376억원** [2]  \n2) **인피닉**: **250억원** [2]  \n3)\
+    \ **핀다**: **298억원** [2]  \n\n※ 위 표의 매출 값은 Source 2의 “2025 대한민국 AI 50 기업” 표에 기재된\
+    \ **매출(2024년 기준)**을 그대로 사용했습니다. [2]\n\n**신뢰도 평가: INSUFFICIENT_EVIDENCE**  \n-\
+    \ Source 2에 매출 상위 3개를 “정렬”한 정보가 없고, 제가 표 전체를 기준으로 상위 3개를 확정하려면 추가적인 검증(예: 표 내\
+    \ 모든 매출값 재확인)이 필요합니다. [2]"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 3.74
+  passed: true
+  expected_keywords:
+  - 몰로코
+  - 478억
+  - 아이헤이트플라잉버그스
+  - 376억
+  matched_keywords:
+  - 아이헤이트플라잉버그스
+  - 376억
+- qid: q022
+  query: 대한민국 AI 50 기업 중 특허는 100건 이상이지만 매출이 100억원 미만인 기업이 있나요?
+  difficulty: extreme
+  type: reasoning
+  answer: "네, 있습니다. (2025 대한민국 AI 50 기업 표 기준) [1]\n\n- **아이헤이트플라잉버그스**: 특허 **3건**\
+    \ / 매출 **376억원** → 해당 없음 [1]  \n- **리벨리온**: 특허 **149건** / 매출 **122억원** → **매출\
+    \ 100억원 이상**이므로 해당 없음 [1]  \n- **몰로코**: 특허 **1건** / 매출 **478억원** → 해당 없음 [1] \
+    \ \n- **노타**: 특허 **102건** / 매출 **84억원** → **특허 100건 이상 + 매출 100억원 미만** 해당 [1]\
+    \  \n- **뉴로핏**: 특허 **84건** / 매출 **22억원** → 특허 100건 미만 [1]  \n- **스탠다임**: 특허 **31건**\
+    \ / 매출 **-** → 특허 100건 미만 [1]  \n- **포티투닷**: 특허 **211건** / 매출 **173억원** → 매출 100억원\
+    \ 이상 [1]  \n- **스트라드비젼**: 특허 **160건** / 매출 **115억"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 16.2
+  passed: true
+  expected_keywords:
+  - 에이젠글로벌
+  - 노타
+  - 47억
+  - 84억
+  matched_keywords:
+  - 에이젠글로벌
+  - 노타
+  - 47억
+  - 84억
+- qid: q023
+  query: LLM 벤치마크에서 코딩 분야 1위 모델이 종합 순위에서는 몇 위인가요?
+  difficulty: extreme
+  type: reasoning
+  answer: '코딩 분야 1위 모델은 **GPT-5.3 Codex**이며, 종합 순위에서는 **5위**입니다. [17]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 15
+  latency_s: 9.63
+  passed: true
+  expected_keywords:
+  - GPT-5.3 Codex
+  - 5위
+  matched_keywords:
+  - GPT-5.3 Codex
+  - 5위
+- qid: q024
+  query: SK하이닉스의 분기별 영업이익 추이(2025년 1~4분기)를 보면 분기당 평균 증가액은 대략 얼마인가요?
+  difficulty: extreme
+  type: reasoning
+  answer: "SK하이닉스의 분기별 영업이익은 2025년 1분기 7조4,405억원, 2분기 9조2,129억원, 3분기 11조3,834억원, 4분기\
+    \ 전망 14조4,170억원입니다. [8]\n\n분기별 증가액을 계산하면:\n- 1분기 → 2분기: 1조7,724억원\n- 2분기 → 3분기:\
+    \ 2조1,705억원\n- 3분기 → 4분기 전망: 3조336억원 [8]\n\n이 3개 증가액의 평균은  \n(1조7,724억원 + 2조1,705억원\
+    \ + 3조336억원) ÷ 3 = 약 2조1,922억원입니다. [8]\n\n따라서 분기당 평균 증가액은 **대략 2조2천억원** 수준입니다.\
+    \ [8]\n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 8.94
+  passed: true
+  expected_keywords:
+  - 2조
+  - 약 2조
+  - 23000억
+  - 2.3조
+  matched_keywords:
+  - 2조
+  - 약 2조
+- qid: q025
+  query: 오픈소스 LLM의 평균 벤치마크 점수와 상용 LLM의 평균 벤치마크 점수 차이는 약 몇 점인가요?
+  difficulty: extreme
+  type: numerical
+  answer: 오픈소스 LLM의 평균 벤치마크 점수는 68.3점, 상용(프로프라이어터리) LLM의 평균 벤치마크 점수는 84.2점입니다. 따라서
+    차이는 약 15.9점입니다. 계산식은 84.2 - 68.3 = 15.9입니다. [23]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 12.07
+  passed: true
+  expected_keywords:
+  - '15'
+  - '16'
+  - '15.9'
+  matched_keywords:
+  - '15'
+  - '15.9'
+- qid: q026
+  query: 한국 AI 기본법에서 해외 AI 사업자의 국내 대리인 지정 의무를 지는 3가지 조건을 모두 알려주세요.
+  difficulty: extreme
+  type: factual
+  answer: "한국 AI 기본법에서 해외 AI 사업자의 국내 대리인 지정 의무가 생기는 3가지 조건은 다음과 같습니다.\n\n1. **전년도\
+    \ 매출액이 1조원 이상인 경우** [1]  \n2. **서비스 부문 매출액이 100억원 이상인 경우** [1]  \n3. **일평균 국내\
+    \ 이용자 수가 100만명 이상인 경우** [1]\n\n즉, 해외 AI 사업자 중 위 3가지 기준에 해당하는 경우 국내 대리인을 지정해야 합니다.\
+    \ [1][2][9]\n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 20
+  latency_s: 7.46
+  passed: true
+  expected_keywords:
+  - 1조
+  - 100억
+  - 100만
+  matched_keywords:
+  - 1조
+  - 100억
+  - 100만
+- qid: q027
+  query: GPT-5.2가 모든 벤치마크에서 1위를 차지했나요?
+  difficulty: extreme
+  type: reasoning
+  answer: "아니요. 제공된 자료 기준으로 **GPT-5.2가 “모든 벤치마크에서 1위”를 차지했다고 볼 수 없습니다.** [1]\n\n-\
+    \ **전체 평균(Top 5 Models by Overall Benchmark Average)**에서는 GPT-5.2가 **1위(90.3점)**\
+    \ 입니다. [1]\n- 하지만 **카테고리별 리더보드( Benchmark Leaders by Category )**에서는 GPT-5.2가\
+    \ **MMLU에서만 1위(93.0점)** 로 제시됩니다. [1]\n- 같은 표에서 다른 벤치마크의 리더는 다음과 같이 GPT-5.2가 아닙니다.\
+    \ [1]  \n  - HumanEval: **GPT-5.3 Codex (97.5)** [1]  \n  - GPQA Diamond: **Gemini\
+    \ 3.1 Pro (94.3)** [1]  \n  - SWE-bench: **GPT-5.3 Codex (83.0)** [1]  \n  - HellaSwag:\
+    \ **GPT-4o (98.4)** [1]  \n  - AIME 20"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 6.31
+  passed: true
+  expected_keywords:
+  - 아니
+  - GPQA
+  - Gemini
+  - HumanEval
+  - Codex
+  - HellaSwag
+  - GPT-4o
+  matched_keywords:
+  - 아니
+  - GPQA
+  - Gemini
+  - HumanEval
+  - Codex
+  - HellaSwag
+  - GPT-4o
+- qid: q028
+  query: EU AI Act에서 자율주행차의 AI 시스템은 어떤 위험 등급으로 분류되나요?
+  difficulty: extreme
+  type: reasoning
+  answer: "컨텍스트에 따르면 EU AI Act에서 **자율주행차(모빌리티) 자체의 AI 시스템이 “어떤 위험 등급(허용불가/고위험/제한된\
+    \ 위험/저위험)”으로 분류되는지에 대한 직접적인 언급은 없습니다.**  \n\n다만 EU AI Act의 **고위험(High-Risk) AI\
+    \ 시스템** 범주에 포함되는 항목으로, **“도로 교통(road traffic)”을 포함한 핵심 인프라 관리(critical infrastructure\
+    \ management)**가 제시되어 있습니다. [17]  \n또한 고위험 시스템은 **안전 구성요소(safety components) 또는\
+    \ 독립형 시스템**으로서 **중대한 위해를 잠재적으로 야기**할 수 있는 경우로 설명됩니다. [17]\n\n따라서, **자율주행차의 AI가\
+    \ 고위험으로 분류될 가능성은 있으나**, 컨텍스트만으로는 **“자율주행차 AI = 고위험”이라고 단정할 근거가 부족**합니다. [17]\n\
+    \n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 4.53
+  passed: true
+  expected_keywords:
+  - high-risk
+  - 고위험
+  - high risk
+  matched_keywords:
+  - high-risk
+  - 고위험
+- qid: q029
+  query: 중국의 AI 규제법이 한국 AI 기본법보다 먼저 시행되었다는 것이 맞나요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "컨텍스트만으로는 **“중국의 AI 규제법이 한국 AI 기본법보다 먼저 시행되었다”**는 주장을 확인할 수 없습니다.  \n\n\
+    - 한국 AI 기본법의 시행 시점은 컨텍스트에 **2026년 1월 22일(공포 후 1년 경과)**로 제시되어 있습니다. [1]  \n- 하지만\
+    \ 컨텍스트에는 **중국의 AI 규제법 시행일(또는 관련 법의 시행 시점)**에 대한 정보가 없습니다. 따라서 “중국이 더 먼저 시행했다/아니다”를\
+    \ 판단할 근거가 부족합니다.\n\n**결론: INSUFFICIENT_EVIDENCE**  \n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 3.53
+  passed: true
+  expected_keywords:
+  - insufficient
+  - 정보가 부족
+  matched_keywords:
+  - insufficient
+- qid: q030
+  query: Anthropic이 임베딩 모델을 자체 개발하여 Claude Opus 4.6에 탑재했다는 것이 사실인가요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "제공된 컨텍스트만으로는 **Anthropic이 임베딩 모델을 자체 개발해 Claude Opus 4.6에 탑재했다는 주장**이 **사실인지\
+    \ 여부를 확인할 수 없습니다.**  \n\n- 컨텍스트에는 Claude Opus 4.6의 **벤치마크 순위/점수**와 일부 **카테고리 리더**\
+    \ 정보가 있을 뿐, Claude Opus 4.6에 포함된 **임베딩 모델의 출처(자체 개발 여부)**나 **구성 요소(임베딩 탑재 근거)**에\
+    \ 대한 내용은 없습니다. [1]  \n- 또한 컨텍스트의 다른 자료들(한국 AI 기본법, EU AI Act, 속도/컨텍스트/효율, 산업 분포\
+    \ 등)에도 **Anthropic의 임베딩 모델 개발/탑재 사실**을 뒷받침하는 정보가 없습니다. [2], [4], [8], [12], [14]\n\
+    \n따라서 결론은 **INSUFFICIENT_EVIDENCE** 입니다.\n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 6
+  latency_s: 4.02
+  passed: true
+  expected_keywords:
+  - insufficient
+  - 정보가 부족
+  matched_keywords:
+  - insufficient
+summary:
+  total: 30
+  passed: 27
+  failed: 3
+  timeout: 0
+  pass_rate: 0.9
+  avg_latency_s: 10.19
+  wall_time_s: 102.37
+  by_difficulty:
+    easy:
+      total: 5
+      passed: 4
+      pass_rate: 0.8
+    hard:
+      total: 12
+      passed: 10
+      pass_rate: 0.8333
+    extreme:
+      total: 13
+      passed: 13
+      pass_rate: 1.0
+  by_type:
+    comparison:
+      total: 2
+      passed: 2
+      pass_rate: 1.0
+    cross_doc:
+      total: 2
+      passed: 2
+      pass_rate: 1.0
+    factual:
+      total: 7
+      passed: 6
+      pass_rate: 0.8571
+    hallucination_test:
+      total: 2
+      passed: 2
+      pass_rate: 1.0
+    numerical:
+      total: 11
+      passed: 9
+      pass_rate: 0.8182
+    reasoning:
+      total: 6
+      passed: 6
+      pass_rate: 1.0

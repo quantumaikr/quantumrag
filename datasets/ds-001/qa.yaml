@@ -1,0 +1,183 @@
+questions:
+  # ── Easy: 단일 문서 사실 확인 ────────────────────────────────────
+  - id: q001
+    query: "Python asyncio에서 코루틴을 실행하는 세 가지 방법은?"
+    expected_keywords: ["asyncio.run", "await", "create_task"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["001"]
+
+  - id: q002
+    query: "Python collections.Counter에서 가장 많이 등장한 요소를 찾는 메서드는?"
+    expected_keywords: ["most_common"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["002"]
+
+  - id: q003
+    query: "SK하이닉스의 2025년 3분기 영업이익은 얼마인가요?"
+    expected_keywords: ["11조3834억"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["003"]
+
+  - id: q004
+    query: "deque의 maxlen 속성은 무엇을 의미하나요?"
+    expected_keywords: ["최대", "크기", "maximum", "size", "unbounded"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["002"]
+
+  - id: q005
+    query: "asyncio.TaskGroup은 Python 몇 버전부터 사용 가능한가요?"
+    expected_keywords: ["3.11"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["001"]
+
+  # ── Hard: 멀티 청크 / 비교 / 수치 추론 ──────────────────────────
+  - id: q006
+    query: "asyncio.gather()와 asyncio.TaskGroup의 차이점은 무엇인가요?"
+    expected_keywords: ["gather", "TaskGroup", "ExceptionGroup"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["001"]
+
+  - id: q007
+    query: "삼성전자와 SK하이닉스의 2025년 HBM 시장 점유율은 각각 몇 %인가요?"
+    expected_keywords: ["삼성", "SK하이닉스"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["003", "004"]
+
+  - id: q008
+    query: "Counter 객체 간 수학 연산 중 intersection과 union의 동작 차이를 설명하세요."
+    expected_keywords: ["min", "max"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["002"]
+
+  - id: q009
+    query: "2025년에서 2028년까지 글로벌 HBM 시장의 연평균 성장률(CAGR)은?"
+    expected_keywords: ["40%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004"]
+
+  - id: q010
+    query: "asyncio에서 태스크 취소를 방지하는 방법은 무엇이며, 어떻게 작동하나요?"
+    expected_keywords: ["shield"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q011
+    query: "defaultdict와 ChainMap의 용도 차이를 설명하세요."
+    expected_keywords: ["defaultdict", "ChainMap"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["002"]
+
+  - id: q012
+    query: "SK하이닉스의 2025년 영업이익은 전년 대비 얼마나 증가했나요?"
+    expected_keywords: ["101.2%", "23조7390억"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004"]
+
+  - id: q013
+    query: "2026년 HBM 시장에서 HBM4와 HBM3E의 예상 비중은?"
+    expected_keywords: ["55%", "45%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004"]
+
+  # ── Extreme: 교차 문서 / 추론 / 환각 트랩 ───────────────────────
+  - id: q014
+    query: "두 뉴스 기사에서 삼성전자의 HBM 점유율 수치가 다르게 보도되었는데, 각각 얼마인가요?"
+    expected_keywords: ["17%", "40%"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["003", "004"]
+
+  - id: q015
+    query: "삼성전자와 SK하이닉스의 2025년 합산 영업이익에서 각 회사가 차지하는 비중은?"
+    expected_keywords: ["삼성", "SK하이닉스", "43조", "47조"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: numerical
+    source_ids: ["004"]
+
+  - id: q016
+    query: "Python asyncio의 eager_task_factory가 HBM4 반도체 설계에 사용되나요?"
+    expected_keywords: ["INSUFFICIENT", "없", "관련 없", "확인할 수 없"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q017
+    query: "asyncio.wait()의 return_when 파라미터에 FIRST_COMPLETED를 사용하면 나머지 태스크는 어떻게 되나요?"
+    expected_keywords: ["pending", "done"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q018
+    query: "마이크론의 HBM 시장 점유율은 삼성전자보다 높은가요?"
+    expected_keywords: ["마이크론", "삼성", "낮"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["003", "004"]
+
+  - id: q019
+    query: "OrderedDict의 move_to_end 메서드를 활용한 LRU 캐시 구현에서 maxsize를 초과하면 어떤 항목이 제거되나요?"
+    expected_keywords: ["popitem", "last=False", "오래된", "oldest", "FIFO"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["002"]
+
+  - id: q020
+    query: "인텔의 HBM 시장 진출 현황은 어떤가요?"
+    expected_keywords: ["INSUFFICIENT", "없", "언급되지 않", "확인할 수 없"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []

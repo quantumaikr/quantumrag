@@ -1,0 +1,33 @@
+id: ds-001
+name: Python 표준라이브러리 + K-반도체 산업
+created: 2026-03-27
+status: graduated
+description: '영문 기술 문서(Python asyncio, collections)와 한국어 뉴스(AI 반도체 산업)를 혼합한 데이터세트.
+  RAG 엔진의 다국어 처리, 수치 정확성, 교차 문서 종합 능력을 검증.
+
+  '
+graduation_threshold:
+  pass_rate: 0.85
+  min_runs: 3
+sources:
+- file: 001.md
+  url: https://docs.python.org/3/library/asyncio-task.html
+  title: Python asyncio - Coroutines and Tasks
+  lang: en
+  domain: tech_docs
+- file: 002.md
+  url: https://docs.python.org/3/library/collections.html
+  title: Python collections Module
+  lang: en
+  domain: tech_docs
+- file: 003.md
+  url: https://m.ceoscoredaily.com/page/view/2025120814104920681
+  title: 2026 전망 - 삼성·SK, AI 반도체 슈퍼사이클
+  lang: ko
+  domain: news
+- file: 004.md
+  url: https://news.nate.com/view/20251219n14022
+  title: 삼성전자·SK하이닉스, HBM4 시장 90% 점유 전망
+  lang: ko
+  domain: news
+graduated_date: '2026-03-28'

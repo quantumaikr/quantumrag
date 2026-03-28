@@ -1,0 +1,44 @@
+id: ds-002
+name: Python 타입시스템 + 한국 전기차/스타트업 산업
+created: 2026-03-27
+status: graduated
+description: '유사 Python 문서 3개(typing, dataclasses, asyncio)로 혼동 유발 + 한국어 뉴스 3개 (전기차
+  2개 교차검증 + 스타트업 투자). ds-001 대비 문서 수 1.5배, 총 분량 2배, cross-topic confusion/수치 교차검증/테이블
+  추출 난이도 대폭 강화.
+
+  '
+graduation_threshold:
+  pass_rate: 0.8
+  min_runs: 3
+sources:
+- file: 001.md
+  url: https://docs.python.org/3/library/typing.html
+  title: Python typing Module
+  lang: en
+  domain: tech_docs
+- file: 002.md
+  url: https://docs.python.org/3/library/dataclasses.html
+  title: Python dataclasses Module
+  lang: en
+  domain: tech_docs
+- file: 003.md
+  url: https://docs.python.org/3/library/asyncio-task.html
+  title: Python asyncio (condensed)
+  lang: en
+  domain: tech_docs
+- file: 004.md
+  url: https://www.hankyung.com/article/202601201164P
+  title: 2025년 국내 전기차 시장 결산 - 한국경제
+  lang: ko
+  domain: news
+- file: 005.md
+  url: https://www.businesspost.co.kr/BP?command=article_view&num=427456
+  title: 2025 전기차 판매비중 기아 1위 테슬라 2위
+  lang: ko
+  domain: news
+- file: 006.md
+  url: https://econmingle.com/economy/korea-startup-decline-ai-boom-unicorn-strat/
+  title: 한국 창업시장 현황 2025
+  lang: ko
+  domain: news
+graduated_date: '2026-03-28'

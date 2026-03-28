@@ -1,0 +1,50 @@
+id: ds-003
+name: 트랜스포머 아키텍처 + MLOps 생태계 + 디자인패턴 + RAG 전략
+created: '2026-03-27'
+status: graduated
+description: 'ds-002 약점을 집중 공략하는 고난도 데이터세트. (1) 동일 문서 내 유사 섹션 구분 — 트랜스포머 8개 섹션, 디자인패턴
+  23개, 청킹 전략 9개 (2) 크로스-소스 구분 — MLOps 3개 소스(삼성SDS/VESSL/마키나락스) 중복 주제 (3) 한영 혼합 기술
+  용어 매칭 — 한국어 본문 속 영어 전문 용어 (4) 희소 정보 검색 — 통계 수치, 수식, 한 줄 설명 패턴 매칭 7개 소스 (한국어 4, 영어
+  3), 30 질문.
+
+  '
+graduation_threshold:
+  pass_rate: 0.75
+  min_runs: 3
+sources:
+- file: 001.md
+  url: https://namu.wiki/w/트랜스포머(인공신경망)
+  title: 트랜스포머(인공신경망) — 나무위키
+  lang: ko
+  domain: tech_encyclopedia
+- file: 002.md
+  url: https://www.samsungsds.com/kr/techreport/kubernetes-mlops.html
+  title: Kubernetes 기반 오픈소스 MLOps 플랫폼 — 삼성SDS
+  lang: ko
+  domain: tech_report
+- file: 003.md
+  url: https://vessl.ai/ko/blog/what-is-mlops
+  title: MLOps란? AI 프로젝트에 필요한 이유 — VESSL AI
+  lang: ko
+  domain: tech_blog
+- file: 004.md
+  url: https://springframework.guru/gang-of-four-design-patterns/
+  title: Gang of Four Design Patterns — Spring Framework Guru
+  lang: en
+  domain: tech_docs
+- file: 005.md
+  url: https://weaviate.io/blog/chunking-strategies-for-rag
+  title: Chunking Strategies for RAG — Weaviate
+  lang: en
+  domain: tech_blog
+- file: 006.md
+  url: https://www.promptingguide.ai/research/rag
+  title: Retrieval Augmented Generation (RAG) — Prompting Guide
+  lang: en
+  domain: tech_docs
+- file: 007.md
+  url: https://www.makinarocks.ai/blog/mlops-the-foundation-for-scalable-and-reliable-ai/
+  title: 'MLOps: 확장 가능한 AI 운영의 첫걸음 — 마키나락스'
+  lang: ko
+  domain: tech_blog
+graduated_date: '2026-03-28'

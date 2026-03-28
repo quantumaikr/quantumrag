@@ -1,0 +1,252 @@
+scale_test_report:
+  timestamp: '2026-03-28T18:28:24.736661'
+  engine_version: 7dec533
+  multiplier: 10
+  seed: 42
+  corpus:
+    datasets_used:
+    - ds-001
+    - ds-002
+    - ds-003
+    - ds-004
+    original_sources: 23
+    confuser_variants: 230
+    total_docs: 253
+    total_chunks: 2583
+  ingest:
+    mode: minimal
+    time_s: 3.7
+    chunks_per_sec: 707.3
+  recall:
+    total: 105
+    passed: 78
+    failed: 27
+    pass_rate: 0.7429
+    by_difficulty:
+      easy:
+        total: 20
+        passed: 13
+        pass_rate: 0.65
+      hard:
+        total: 42
+        passed: 34
+        pass_rate: 0.8095
+      extreme:
+        total: 43
+        passed: 31
+        pass_rate: 0.7209
+  failed_queries:
+  - dataset: ds-001
+    qid: q003
+    difficulty: easy
+    query: SK하이닉스의 2025년 3분기 영업이익은 얼마인가요?
+    expected:
+    - 11조3834억
+  - dataset: ds-001
+    qid: q014
+    difficulty: extreme
+    query: 두 뉴스 기사에서 삼성전자의 HBM 점유율 수치가 다르게 보도되었는데, 각각 얼마인가요?
+    expected:
+    - 17%
+    - 40%
+  - dataset: ds-002
+    qid: q007
+    difficulty: hard
+    query: typing.Protocol과 dataclasses.dataclass의 용도 차이는?
+    expected:
+    - Protocol
+    - structural
+    - dataclass
+  - dataset: ds-002
+    qid: q016
+    difficulty: extreme
+    query: 경상북도의 전기차 침투율이 서울보다 높은 이유는?
+    expected:
+    - 16.2%
+    - 12.8%
+    - 보조금
+  - dataset: ds-002
+    qid: q020
+    difficulty: extreme
+    query: 전기차 시장 데이터를 보면, 국산 점유율이 2022년 75%에서 2025년 57.2%로 하락했는데, 이 추세
+    expected:
+    - INSUFFICIENT
+    - 없
+    - 예측
+  - dataset: ds-002
+    qid: q023
+    difficulty: extreme
+    query: dataclasses에서 상속 시 부모 클래스의 필드가 자식에서 override되면 __init__ 파라미터
+    expected:
+    - 'x: int = 15'
+    - 'y: int = 0'
+    - 'z: int = 10'
+  - dataset: ds-003
+    qid: q001
+    difficulty: easy
+    query: 트랜스포머 논문의 제목은 무엇인가요?
+    expected:
+    - Attention Is All You Need
+  - dataset: ds-003
+    qid: q003
+    difficulty: easy
+    query: RAG 시스템의 4가지 주요 워크플로우 단계는?
+    expected:
+    - Indexing
+    - Retrieval
+    - Generation
+  - dataset: ds-003
+    qid: q009
+    difficulty: hard
+    query: Decorator 패턴과 Adapter 패턴의 차이점은?
+    expected:
+    - behavior
+    - 동작
+    - 책임
+  - dataset: ds-003
+    qid: q011
+    difficulty: hard
+    query: Semantic Chunking과 LLM-Based Chunking의 복잡도 차이는?
+    expected:
+    - Medium-High
+    - High
+  - dataset: ds-003
+    qid: q022
+    difficulty: extreme
+    query: Memento 패턴과 Command 패턴 모두 undo 기능에 사용될 수 있나요? 차이점은?
+    expected:
+    - state
+    - 상태
+    - encapsulate
+  - dataset: ds-003
+    qid: q025
+    difficulty: extreme
+    query: Kubernetes 없이 MLOps를 구축할 수 있나요?
+    expected:
+    - insufficient
+    - 정보가 부족
+  - dataset: ds-003
+    qid: q028
+    difficulty: extreme
+    query: VESSL과 삼성SDS의 MLOps에서 Katib의 역할은 무엇인가요?
+    expected:
+    - 하이퍼파라미터
+    - hyperparameter
+    - 최적화
+  - dataset: ds-003
+    qid: q029
+    difficulty: extreme
+    query: RAG에서 CRAG와 Self-RAG의 공통점과 차이점은?
+    expected:
+    - self-correction
+    - self-reflection
+    - retriever
+  - dataset: ds-004
+    qid: q001
+    difficulty: easy
+    query: LLM 벤치마크 종합 점수 1위 모델은 무엇이고 몇 점인가요?
+    expected:
+    - GPT-5.2
+    - '90.3'
+  - dataset: ds-004
+    qid: q002
+    difficulty: easy
+    query: EU AI Act에서 금지되는 AI 활용 유형은 몇 가지인가요?
+    expected:
+    - '8'
+    - eight
+  - dataset: ds-004
+    qid: q003
+    difficulty: easy
+    query: 한국 AI 기본법은 언제 시행되나요?
+    expected:
+    - 2026년 1월 22일
+    - 2026년 1월
+  - dataset: ds-004
+    qid: q005
+    difficulty: easy
+    query: 2026년 HBM 시장 규모는 얼마로 전망되나요?
+    expected:
+    - 546억
+    - '546'
+  - dataset: ds-004
+    qid: q007
+    difficulty: hard
+    query: 가장 비용효율이 높은 LLM 모델은 무엇이며 효율 점수는?
+    expected:
+    - DeepSeek V3.2
+    - '310.86'
+  - dataset: ds-004
+    qid: q010
+    difficulty: hard
+    query: EU AI Act에서 금지된 AI 관행 위반 시 최대 벌금은?
+    expected:
+    - '35'
+    - 7%
+  - dataset: ds-004
+    qid: q011
+    difficulty: hard
+    query: 한국 AI 기본법에서 고영향 AI로 분류되는 분야 수와 EU AI Act의 고위험 분야 수를 비교하세요.
+    expected:
+    - '11'
+    - '8'
+  - dataset: ds-004
+    qid: q012
+    difficulty: hard
+    query: 대한민국 AI 50에서 투자유치액이 가장 높은 기업은 어디이며 얼마인가요?
+    expected:
+    - 포티투닷
+    - 5,767억
+  - dataset: ds-004
+    qid: q014
+    difficulty: hard
+    query: 미국이 인텔에 지원한 반도체 보조금은 얼마이며, 한국의 삼성·SK 직접 지원과 비교하면?
+    expected:
+    - 85억 달러
+    - 지원 없음
+  - dataset: ds-004
+    qid: q019
+    difficulty: extreme
+    query: EU AI Act에서는 금지하지만 한국 AI 기본법에서는 명시적으로 금지하지 않는 AI 활용 유형은?
+    expected:
+    - social scoring
+    - 소셜 스코어링
+    - 사회적 점수
+  - dataset: ds-004
+    qid: q021
+    difficulty: extreme
+    query: 대한민국 AI 50 기업 중 매출이 가장 높은 상위 3개 기업과 매출액은?
+    expected:
+    - 몰로코
+    - 478억
+    - 아이헤이트플라잉버그스
+  - dataset: ds-004
+    qid: q023
+    difficulty: extreme
+    query: LLM 벤치마크에서 코딩 분야 1위 모델이 종합 순위에서는 몇 위인가요?
+    expected:
+    - GPT-5.3 Codex
+    - 5위
+  - dataset: ds-004
+    qid: q025
+    difficulty: extreme
+    query: 오픈소스 LLM의 평균 벤치마크 점수와 상용 LLM의 평균 벤치마크 점수 차이는 약 몇 점인가요?
+    expected:
+    - '15'
+    - '16'
+    - '15.9'
+  performance:
+    warmup_s: 0.7
+    query_latency_ms:
+      p50: 6402
+      p95: 150256
+      p99: 259156
+      avg: 34224
+    memory_mb: 10154
+    disk_mb: 10.4
+  cost:
+    embedding_tokens: 1761690
+    embedding_cost_usd: 0.0352
+    llm_cost_usd: 0.0735
+    total_cost_usd: 0.1087
+    total_cost_krw: 146

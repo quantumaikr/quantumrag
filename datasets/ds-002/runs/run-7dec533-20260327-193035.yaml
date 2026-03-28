@@ -1,0 +1,659 @@
+engine_version: 7dec533
+timestamp: '2026-03-27T19:30:35.658810'
+dataset: ds-002
+ingest:
+  documents: 6
+  chunks: 57
+  elapsed_s: 32.51
+results:
+- qid: q001
+  query: Python dataclasses에서 frozen=True로 설정하면 어떤 효과가 있나요?
+  difficulty: easy
+  type: factual
+  answer: '`frozen=True`로 설정하면 dataclass 인스턴스가 **불변(immutable)** 이 되며, 필드 값을 변경하려고
+    하면 `FrozenInstanceError`가 발생합니다. [4][11]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 10.03
+  passed: true
+  expected_keywords:
+  - immutable
+  - 불변
+  - FrozenInstanceError
+  matched_keywords:
+  - immutable
+  - 불변
+  - FrozenInstanceError
+- qid: q002
+  query: 2025년 국내 전기차 신규 등록 대수는?
+  difficulty: easy
+  type: factual
+  answer: "2025년 국내 전기차 **신규 등록 대수는 220,177대**입니다. [1][3][4]  \n\n- (참고) 전년 대비 **50.1%\
+    \ 증가**로 함께 제시됩니다. [1][3][4]  \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 2.42
+  passed: true
+  expected_keywords:
+  - 220,177
+  - 22만
+  matched_keywords:
+  - 220,177
+- qid: q003
+  query: Python typing의 NewType은 런타임에서 어떻게 동작하나요?
+  difficulty: easy
+  type: factual
+  answer: '`NewType`은 런타임에서 인자를 그대로 반환합니다. 즉, `UserId(23413) + UserId(54341)`의 결과는
+    `UserId`가 아니라 `int`입니다. 또한 `NewType`으로 만든 타입은 다른 `NewType`의 기반으로 만들 수 있지만, 그 자체를
+    상속하는 것은 실패합니다. [3]'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 4.83
+  passed: true
+  expected_keywords:
+  - argument
+  - unchanged
+  - 반환
+  - int
+  matched_keywords:
+  - 반환
+  - int
+- qid: q004
+  query: 2025년 한국 유니콘 기업은 몇 개인가요?
+  difficulty: easy
+  type: factual
+  answer: "2025년 기준 한국 유니콘 기업은 **27개**입니다. [2][3]  \n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 2.53
+  passed: true
+  expected_keywords:
+  - '27'
+  matched_keywords:
+  - '27'
+- qid: q005
+  query: dataclasses.field()의 default_factory 파라미터는 무엇을 위한 것인가요?
+  difficulty: easy
+  type: factual
+  answer: '`dataclasses.field()`의 `default_factory`는 **가변 기본값을 위해 사용하는 0-인자 호출 가능
+    객체**를 지정하는 파라미터입니다. 즉, 필드의 기본값을 직접 고정값으로 넣는 대신, 필요할 때 새 값을 생성하도록 합니다. [8]
+
+
+    컨텍스트에는 `default_factory`가 “Zero-argument callable for mutable defaults”라고 설명되어
+    있습니다. [8]'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 4.9
+  passed: true
+  expected_keywords:
+  - mutable
+  - callable
+  - default
+  - list
+  matched_keywords:
+  - mutable
+  - callable
+  - default
+- qid: q006
+  query: TypeVar의 covariant와 contravariant의 차이점을 설명하세요.
+  difficulty: hard
+  type: comparison
+  answer: '이 질문에 충분히 답변하기 위한 정보가 부족합니다.
+
+
+    81개의 문서를 검색했으나 충분히 관련된 내용을 찾지 못했습니다.
+
+
+    제안:
+
+    - 질문을 다른 방식으로 시도해 보세요
+
+    - 관련 문서를 더 추가하세요
+
+    - 관련 문서가 인제스트되었는지 확인하세요'
+  confidence: insufficient_evidence
+  sources_count: 81
+  latency_s: 7.66
+  passed: false
+  expected_keywords:
+  - covariant
+  - contravariant
+  - output
+  - input
+  matched_keywords: []
+- qid: q007
+  query: typing.Protocol과 dataclasses.dataclass의 용도 차이는?
+  difficulty: hard
+  type: comparison
+  answer: '`typing.Protocol`은 **구조적 서브타이핑**을 위한 타입 힌트 도구로, 특정 메서드/속성을 “가진 것처럼” 동작하는
+    객체를 타입 검사에 활용합니다. 즉, 명시적 상속 없이도 인터페이스처럼 사용할 수 있습니다. [1]
+
+
+    반면 `dataclasses.dataclass`는 **사용자 정의 클래스에 `__init__()`, `__repr__()`, `__eq__()`
+    같은 특수 메서드를 자동 생성**해 주는 데코레이터입니다. 주로 데이터 보관용 클래스를 간편하게 만들 때 사용합니다. [2]
+
+
+    정리하면:
+
+    - `Protocol` = **타입 검사/인터페이스 표현용** [1]
+
+    - `dataclass` = **데이터 클래스 자동 생성용** [2]
+
+
+    근거가 되는 컨텍스트에는 `Protocol`의 “Basic Protocol” 항목과 `dataclass`의 자동 메서드 생성 설명이 있으나,
+    `Protocol`의 상세 예시는 제한적으로만 제공됩니다. [1][2]
+
+
+    신뢰도: **PARTIA'
+  confidence: partially_supported
+  sources_count: 2
+  latency_s: 6.4
+  passed: false
+  expected_keywords:
+  - Protocol
+  - structural
+  - dataclass
+  matched_keywords:
+  - Protocol
+  - dataclass
+- qid: q008
+  query: 2025년 전기차 시장에서 기아, 테슬라, 현대의 판매량과 점유율을 비교하세요.
+  difficulty: hard
+  type: numerical
+  answer: '2025년 국내 전기차 시장에서 3개 제조사의 판매량과 점유율은 다음과 같습니다. [4][8]
+
+
+    | 제조사 | 판매량 | 점유율 |
+
+    |---|---:|---:|
+
+    | 기아 | 60,609대 | 27.5% |
+
+    | 테슬라 | 59,893대 | 27.2% |
+
+    | 현대차 | 55,461대 | 25.2% |
+
+
+    비교하면, 기아가 판매량과 점유율 모두 1위이고, 테슬라가 근소한 차이로 2위, 현대차가 3위입니다. [4][8]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 16.88
+  passed: true
+  expected_keywords:
+  - 기아
+  - 테슬라
+  - 현대
+  - 27.5%
+  - 27.2%
+  - 25.2%
+  matched_keywords:
+  - 기아
+  - 테슬라
+  - 현대
+  - 27.5%
+  - 27.2%
+  - 25.2%
+- qid: q009
+  query: 테슬라 모델Y의 2025년 판매량과 전년 대비 증가율은?
+  difficulty: hard
+  type: numerical
+  answer: 테슬라 **모델Y**의 2025년 판매량은 **50,397대**, 전년 대비 증가율은 **+169.2%**입니다. [1] [2]
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 2.89
+  passed: true
+  expected_keywords:
+  - 50,397
+  - 5만
+  - 169.2%
+  matched_keywords:
+  - 50,397
+  - 169.2%
+- qid: q010
+  query: TypeGuard와 TypeIs의 차이점을 설명하세요.
+  difficulty: hard
+  type: comparison
+  answer: "TypeGuard는 `list[object]` 같은 값을 `list[str]`로 좁히는 예시처럼, 기존 타입을 더 구체적인 타입으로\
+    \ 판별하는 데 쓰이는 “older approach”로 소개됩니다. [1]  \nTypeIs는 같은 맥락에서 `TypeGuard`보다 “newer,\
+    \ more intuitive”한 방식으로 제시됩니다. [1]\n\n다만 제공된 컨텍스트에는 TypeIs의 정확한 동작 방식이나 TypeGuard와의\
+    \ 세부 차이(예: 반환 의미, 양방향 좁힘 여부 등)에 대한 설명이 충분하지 않습니다. 따라서 이 자료만으로는 차이점을 상세히 설명하기 어렵습니다.\
+    \ [1]"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 14.87
+  passed: true
+  expected_keywords:
+  - TypeGuard
+  - TypeIs
+  - subtype
+  - narrowing
+  matched_keywords:
+  - TypeGuard
+  - TypeIs
+- qid: q011
+  query: 2025년 벤처 투자에서 가장 높은 성장률을 보인 업종은?
+  difficulty: hard
+  type: factual
+  answer: "제공된 컨텍스트에서 **2025년 벤처 투자(업종별 창업 증감률 기준)** 중 가장 높은 성장률(증감률)은 **금융·보험업: +25.9%**입니다.\
+    \ [6]\n\n- 금융·보험업: **+25.9%** [6]  \n- 정보통신업: +17.5% [6]  \n- 기술기반 창업: +2.9% [6]\
+    \  \n- 전체 창업: -4.0% [6]  \n- 부동산업: -9.1% [6]  \n- 숙박·음식점업: -11.8% [6]  \n\n**신뢰도:\
+    \ PARTIALLY_SUPPORTED**  \n(컨텍스트에 “벤처 투자”의 업종별 성장률이 아니라, “업종별 창업 증감률” 표만 있어 질문의\
+    \ 표현과 100% 일치한다고 단정하긴 어렵습니다.)"
+  confidence: partially_supported
+  sources_count: 1
+  latency_s: 3.95
+  passed: false
+  expected_keywords:
+  - 게이밍
+  - 69.4%
+  matched_keywords: []
+- qid: q012
+  query: dataclasses의 InitVar과 ClassVar의 차이점은?
+  difficulty: hard
+  type: comparison
+  answer: '`InitVar`는 `__init__()`와 `__post_init__()`에 전달되는 “초기화 전용” pseudo-field이지만,
+    객체에 저장되지는 않습니다. `__post_init__()`는 `__init__()` 이후 호출되며 `InitVar` 값을 매개변수로 받습니다.
+    [2][22]
+
+
+    반면 `ClassVar`로 주석된 필드는 dataclasses에서 무시되며, `__init__()`에 포함되지 않습니다. 즉 클래스 변수로
+    취급됩니다. [22]
+
+
+    요약하면:
+
+    - `InitVar`: 초기화 시에만 전달되고 저장되지 않음 [2][22]
+
+    - `ClassVar`: dataclasses 필드로 취급되지 않아 `__init__()`에 포함되지 않음 [22]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 14.57
+  passed: true
+  expected_keywords:
+  - InitVar
+  - ClassVar
+  matched_keywords:
+  - InitVar
+  - ClassVar
+- qid: q013
+  query: 수입 전기차 점유율이 2022년부터 2025년까지 어떻게 변화했나요?
+  difficulty: hard
+  type: numerical
+  answer: "수입 전기차 점유율은 **2022년 25% → 2023년 29.2% → 2024년 36% → 2025년 42.8%**로 지속적으로\
+    \ 상승했습니다. [9][19]\n\n즉, 2022년부터 2025년까지 **17.8%포인트 증가**했습니다.  \n계산: 42.8% - 25%\
+    \ = 17.8%p [9][19]\n\n참고로 2025년에는 국산 전기차 점유율이 57.2%였고, 전년 64.0%에서 6.8%포인트 하락했습니다.\
+    \ [19]\n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 7.45
+  passed: true
+  expected_keywords:
+  - 25%
+  - 29.2%
+  - 36%
+  - 42.8%
+  matched_keywords:
+  - 25%
+  - 29.2%
+  - 36%
+  - 42.8%
+- qid: q014
+  query: 유니콘 브릿지 프로젝트에서 1년차와 2년차 지원 내용의 차이는?
+  difficulty: hard
+  type: comparison
+  answer: '유니콘 브릿지 프로젝트의 지원 내용 차이는 다음과 같습니다.
+
+
+    - **1년차 지원**: 기업당 **6억원 정부 자금**과 **최대 100억원 대출 보증**이 제공됩니다. [8]
+
+    - **2년차 지원**: **상위 20개 기업에 10억원 추가 지원**이 있고, **최대 100억원 보증은 유지**됩니다. [8]
+
+
+    즉, **1년차는 선별된 스타트업 전체에 기본 지원**, **2년차는 상위 20개 기업에 추가 지원을 더하는 구조**입니다. [8]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 10.66
+  passed: true
+  expected_keywords:
+  - 6억
+  - 10억
+  - 50개
+  - 20개
+  matched_keywords:
+  - 6억
+  - 10억
+  - 20개
+- qid: q015
+  query: typing.Annotated와 dataclasses.field()의 metadata 파라미터는 어떤 관계가 있나요?
+  difficulty: hard
+  type: reasoning
+  answer: '`typing.Annotated`는 타입에 추가 정보를 붙이는 용도이고, `dataclasses.field()`의 `metadata`는
+    dataclass 필드에 대한 third-party 확장용 매핑입니다. 즉, 둘 다 “추가 정보”를 담지만, `Annotated`는 타입 쪽,
+    `metadata`는 dataclass 필드 쪽에 붙는다는 점이 다릅니다. [6][9]
+
+
+    컨텍스트에는 `Annotated[int, ValueRange(-10, 5)]` 예시가 있고, `field()`에는 `metadata`가 “Mapping
+    for third-party extensions”라고만 설명되어 있어, 두 기능의 직접적인 연결 관계나 상호작용은 명시되어 있지 않습니다.
+    따라서 둘의 관계를 “같은 메커니즘”이라고 단정할 수는 없습니다. [6][9]'
+  confidence: partially_supported
+  sources_count: 2
+  latency_s: 6.5
+  passed: true
+  expected_keywords:
+  - metadata
+  - Annotated
+  - third-party
+  - 확장
+  matched_keywords:
+  - metadata
+  - Annotated
+  - third-party
+  - 확장
+- qid: q016
+  query: 경상북도의 전기차 침투율이 서울보다 높은 이유는?
+  difficulty: extreme
+  type: reasoning
+  answer: "제공된 컨텍스트만으로는 **“경상북도의 전기차 침투율이 서울보다 높은 이유”**를 설명할 근거가 없습니다. 컨텍스트에는 두 지역의\
+    \ 침투율 수치와(경상북도 16.2%, 서울 12.8%) 보조금/기준에 대한 메모만 있을 뿐, **왜** 경상북도가 더 높은지(예: 인구구조,\
+    \ 소득, 충전 인프라, 정책 집행 차이 등) 원인 데이터가 없습니다. [1]\n\n- 경상북도 침투율: **16.2%** (비고: **보조금\
+    \ 최대 1,100만원**) [1]  \n- 서울 침투율: **12.8%** (비고: **전국 평균 13.1% 이하**) [1]\n\n따라서\
+    \ “이유”에 대한 답은 **추측**이 될 수밖에 있어, 컨텍스트 기반으로는 **설명 불가**입니다.  \n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 8.22
+  passed: true
+  expected_keywords:
+  - 16.2%
+  - 12.8%
+  - 보조금
+  - 1,100만
+  matched_keywords:
+  - 16.2%
+  - 12.8%
+  - 보조금
+  - 1,100만
+- qid: q017
+  query: 두 기사(한국경제, 비즈니스포스트) 모두에서 공통적으로 확인되는 2025년 전기차 시장 핵심 수치 3가지는?
+  difficulty: extreme
+  type: cross_doc
+  answer: "제공된 컨텍스트에는 **한국경제 기사 수치**만 있고, **비즈니스포스트 기사 내용(수치)**는 포함되어 있지 않습니다. 따라서\
+    \ “두 기사(한국경제, 비즈니스포스트) 모두에서 공통적으로 확인되는 2025년 전기차 시장 핵심 수치 3가지”를 **교차검증**해 확정할\
+    \ 수 없습니다. [1]\n\n다만, **한국경제 기사에서 확인되는 2025년 전기차 시장 핵심 수치**는 아래와 같습니다.\n\n1) **2025년\
+    \ 전기차 신규 등록: 220,177대** (전년 대비 **+50.1%**) [1]  \n2) **전기차 침투율(구매비중): 13.1%**\
+    \ (사상 처음 두 자릿수) [1]  \n3) **제조사 판매 상위 3개(점유율 기준)**:  \n   - 기아 **27.5%** (60,609대)\
+    \ [1]  \n   - 테슬라 **27.2%** (59,893대) [1]  \n   - 현대차 **25.2%** (55,461대) [1]\n\
+    \n비즈니스포스트에서 위 3개 수치가 **동일하게** 공통인지 여부는 컨텍스트에 해당"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 8.74
+  passed: true
+  expected_keywords:
+  - 220,177
+  - 22만
+  - 13.1%
+  - 50.1%
+  matched_keywords:
+  - 220,177
+  - 13.1%
+  - 50.1%
+- qid: q018
+  query: typing 모듈의 ClassVar는 dataclasses에서 어떻게 처리되나요?
+  difficulty: extreme
+  type: cross_doc
+  answer: '`typing` 모듈의 `ClassVar`에 대한 직접적인 설명은 제공된 컨텍스트에 없습니다. 따라서 `dataclasses`에서
+    `ClassVar`가 어떻게 처리되는지 이 자료만으로는 확정할 수 없습니다. [22][23]'
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 8.82
+  passed: true
+  expected_keywords:
+  - ClassVar
+  - ignored
+  - 무시
+  - __init__
+  matched_keywords:
+  - ClassVar
+- qid: q019
+  query: BYD의 2025년 한국 시장 판매량은 정확히 얼마인가요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "제공된 컨텍스트에는 **BYD의 2025년 한국 시장(전기차) 판매량**이 “정확히 얼마”인지에 대한 수치가 없습니다. 컨텍스트에는\
+    \ 2025년 **제조사별 판매량 상위 3개(기아, 테슬라, 현대차)**와 **중국산 전기차 총 판매량(74,728대)**, 그리고 **모델별\
+    \ 판매 순위(테슬라 모델Y, 기아 EV3, 현대 아이오닉5)**만 제시되어 있습니다. [1], [2]\n\n따라서 **BYD 단독 판매량**은\
+    \ 컨텍스트만으로는 확인할 수 없습니다. [1], [2]\n\n- 참고로, 컨텍스트에 있는 관련 수치:\n  - **중국산 전기차(전체)**:\
+    \ 74,728대 (전년 대비 112.4% 급증) [2]\n  - **제조사별 판매량(상위 3개)**: 기아 60,609대, 테슬라 59,893대,\
+    \ 현대차 55,461대 [1]\n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 7.29
+  passed: true
+  expected_keywords:
+  - INSUFFICIENT
+  - 없
+  - 확인할 수 없
+  - 구체적
+  matched_keywords:
+  - INSUFFICIENT
+  - 없
+  - 확인할 수 없
+- qid: q020
+  query: 전기차 시장 데이터를 보면, 국산 점유율이 2022년 75%에서 2025년 57.2%로 하락했는데, 이 추세가 계속되면 2027년
+    국산 점유율은 어느 수준일까요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: '제공된 컨텍스트에는 **국산 점유율이 2022년 75% → 2025년 57.2%로 하락**했다는 정보가 없고, 대신 **국산 점유율은
+    2025년 57.2%이며 전년(2024년) 64.0%에서 6.8%p 하락**했다는 정보만 있습니다. 또한 **2023~2024년 국산 점유율
+    수치**가 없어 2022→2025의 “연속 하락 추세”를 정량적으로 재구성할 수 없습니다. 따라서 **2027년 국산 점유율을 수치로 예측(계산)**하는
+    것은 컨텍스트만으로는 불가능합니다. [1][2]
+
+
+    다만, 컨텍스트에서 확인되는 하락 폭은 아래와 같습니다.
+
+    - **국산 점유율(2025): 57.2%** [1][2]
+
+    - **국산 점유율(2024): 64.0% → 2025년 57.2%로 6.8%p 하락** [1][2]
+
+
+    위 정보만으로는 2026, 2027에도 같은 속도로 하락한다고 가정할 근거(예: 2023~2024의 국산 점유율 변화)가 없어 예측값을 제시할
+    수 없습니다. [1][2]
+
+
+    **결론:** 컨텍스트만'
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 8.23
+  passed: true
+  expected_keywords:
+  - INSUFFICIENT
+  - 없
+  - 예측
+  - 추정
+  - 확인
+  matched_keywords:
+  - INSUFFICIENT
+  - 없
+  - 예측
+  - 추정
+  - 확인
+- qid: q021
+  query: asyncio.TaskGroup과 typing.Generic은 어떤 관계가 있나요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: '제공된 컨텍스트만으로는 `asyncio.TaskGroup`과 `typing.Generic` 사이의 직접적인 관계가 명시되어 있지
+    않습니다. `TaskGroup`은 코루틴과 태스크를 위한 고수준 asyncio API로, `asyncio.create_task()`와 함께
+    동시 실행에 사용되며 모든 태스크를 기다리고 실패 시 남은 태스크를 취소하며 예외를 `ExceptionGroup`으로 묶습니다. [3] 반면
+    `typing` 모듈의 `Generic`에 대한 설명은 컨텍스트에 없습니다. [15][21][22]
+
+
+    따라서 두 개념의 관계를 이 컨텍스트만으로는 설명할 수 없습니다. [3][15][21][22]'
+  confidence: insufficient_evidence
+  sources_count: 4
+  latency_s: 9.5
+  passed: true
+  expected_keywords:
+  - INSUFFICIENT
+  - 없
+  - 관계 없
+  - 관련 없
+  - 직접적
+  matched_keywords:
+  - 없
+  - 직접적
+- qid: q022
+  query: 2025년 기준 전기차 산업과 스타트업 산업의 투자 규모를 비교하세요.
+  difficulty: extreme
+  type: cross_doc
+  answer: "2025년 기준으로 비교하면, **스타트업 산업의 투자 규모는 13.6조원**이며, **AI 관련 투자 규모는 113조원(글로벌\
+    \ 기준)**입니다. [12][13]  \n전기차 산업의 경우, 컨텍스트에는 **투자 규모**가 아니라 **시장 규모/판매 규모**만 제시되어\
+    \ 있습니다. 예를 들어 2025년 국내 전기차 신규 등록은 **220,177대**, 침투율은 **13.1%**로 나와 있습니다. [6][15][20]\n\
+    \n따라서 **전기차 산업과 스타트업 산업의 “투자 규모”를 직접 비교할 수 있는 전기차 투자 수치가 컨텍스트에 없어, 정확한 투자 규모 비교는\
+    \ 불가능합니다.** [6][15][20][12][13]\n\n신뢰도: **INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 5
+  latency_s: 10.51
+  passed: true
+  expected_keywords:
+  - 13.6조
+  - 전기차
+  - 벤처
+  matched_keywords:
+  - 13.6조
+  - 전기차
+- qid: q023
+  query: dataclasses에서 상속 시 부모 클래스의 필드가 자식에서 override되면 __init__ 파라미터 순서가 어떻게 되나요?
+  difficulty: extreme
+  type: reasoning
+  answer: '상속 시 dataclasses는 **필드를 MRO 순서로 결합**하며, **자식 클래스에서 부모 필드를 override하면 그
+    필드의 값이 자식 정의로 대체**됩니다. 예시에서는 `Base`의 `x`가 `C`에서 override되어, 생성되는 `__init__`는 `x`,
+    `y`, `z` 순서로 나타납니다: `__init__(self, x: int = 15, y: int = 0, z: int = 10)` [1]
+
+
+    따라서 질문에 대한 답은, **override된 부모 필드는 자식 클래스 정의가 반영된 상태로 유지되며, `__init__` 파라미터는 MRO
+    순서로 정렬됩니다** [1]'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 5.01
+  passed: true
+  expected_keywords:
+  - 'x: int = 15'
+  - 'y: int = 0'
+  - 'z: int = 10'
+  - MRO
+  matched_keywords:
+  - 'x: int = 15'
+  - 'y: int = 0'
+  - 'z: int = 10'
+  - MRO
+- qid: q024
+  query: 2025년 전체 창업은 감소했는데 기술 기반 창업은 증가한 이유를 설명해주세요.
+  difficulty: extreme
+  type: reasoning
+  answer: '컨텍스트만으로는 **“왜”**에 대한 직접적인 원인 설명은 충분하지 않습니다. 다만 확인되는 사실은 다음과 같습니다.
+
+
+    - 2025년 총 창업기업 수는 **113만 5,561개로 전년 대비 4.0% 감소**했습니다. [10]
+
+    - 반면 **기술 기반 창업은 22만 1,063개로 2.9% 증가**했고, 전체 창업의 **19.5%**를 차지했습니다. [10]
+
+    - 업종별로는 **금융·보험업(+25.9%)**, **정보통신업(+17.5%)**이 증가했고, **숙박·음식점업(-11.8%)**, **부동산업(-9.1%)**은
+    감소했습니다. [11]
+
+    - 또한 AI 관련 투자 규모가 **113조원(글로벌 기준)**으로 제시되어 있어, 기술·정보통신 분야의 성장과 맞물린 흐름은 확인됩니다.
+    [10][13]
+
+
+    따라서 컨텍스트에서 추론할 수 있는 범위는, **비기술 업종의 감소가 전체 창업 감소를 이끌었지만, 정보통신업·금융/보험업 등 기술 관련 업종의
+    증가와 AI 투자 확대가 기술 기반 창업 증가에 기'
+  confidence: partially_supported
+  sources_count: 3
+  latency_s: 10.53
+  passed: true
+  expected_keywords:
+  - 4.0%
+  - 감소
+  - 2.9%
+  - 증가
+  - AI
+  - 기술
+  matched_keywords:
+  - 4.0%
+  - 감소
+  - 2.9%
+  - 증가
+  - AI
+  - 기술
+- qid: q025
+  query: 제주도의 전기차 개인 구매 침투율은 전국 평균의 몇 배인가요?
+  difficulty: extreme
+  type: numerical
+  answer: '제주도 전기차 **개인 구매 침투율**은 **33.1%**이고, 전국 평균은 **13.1%**입니다. [1]
+
+
+    배수로 계산하면 **33.1% ÷ 13.1% = 2.53배**입니다. [1]
+
+
+    따라서 제주도의 전기차 개인 구매 침투율은 전국 평균의 **약 2.53배(약 2.5배)**입니다. [1]
+
+
+    **신뢰도: STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 2.66
+  passed: true
+  expected_keywords:
+  - 33.1%
+  - 13.1%
+  - '2.5'
+  - 약 2.5배
+  matched_keywords:
+  - 33.1%
+  - 13.1%
+  - '2.5'
+  - 약 2.5배
+summary:
+  total: 25
+  passed: 22
+  failed: 3
+  pass_rate: 0.88
+  avg_latency_s: 7.84
+  by_difficulty:
+    easy:
+      total: 5
+      passed: 5
+      pass_rate: 1.0
+    hard:
+      total: 10
+      passed: 7
+      pass_rate: 0.7
+    extreme:
+      total: 10
+      passed: 10
+      pass_rate: 1.0
+  by_type:
+    comparison:
+      total: 5
+      passed: 3
+      pass_rate: 0.6
+    cross_doc:
+      total: 3
+      passed: 3
+      pass_rate: 1.0
+    factual:
+      total: 6
+      passed: 5
+      pass_rate: 0.8333
+    hallucination_test:
+      total: 3
+      passed: 3
+      pass_rate: 1.0
+    numerical:
+      total: 4
+      passed: 4
+      pass_rate: 1.0
+    reasoning:
+      total: 4
+      passed: 4
+      pass_rate: 1.0

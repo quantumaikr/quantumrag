@@ -1,0 +1,276 @@
+questions:
+  # ===== EASY (5) — 단일 소스, 직접적 사실 조회 =====
+
+  - id: q001
+    query: "트랜스포머 논문의 제목은 무엇인가요?"
+    expected_keywords: ["Attention Is All You Need"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["001"]
+
+  - id: q002
+    query: "Singleton 패턴은 어떤 역할을 하나요?"
+    expected_keywords: ["single", "하나", "인스턴스", "instance", "global"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["004"]
+
+  - id: q003
+    query: "RAG 시스템의 4가지 주요 워크플로우 단계는?"
+    expected_keywords: ["Indexing", "Retrieval", "Generation"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["006"]
+
+  - id: q004
+    query: "마키나락스의 AI 플랫폼 이름은?"
+    expected_keywords: ["Runway"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["007"]
+
+  - id: q005
+    query: "Fixed-Size Chunking의 주요 단점은 무엇인가요?"
+    expected_keywords: ["semantic", "sentence", "split", "context", "의미", "문맥"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["005"]
+
+  # ===== HARD (12) — 동일 문서 섹션 구분, 수치/수식, 크로스-소스 =====
+
+  - id: q006
+    query: "트랜스포머의 셀프-어텐션 계산 복잡도는?"
+    expected_keywords: ["O(n²", "O(n2", "O(n^2", "n²", "n제곱", "n^2"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["001"]
+
+  - id: q007
+    query: "트랜스포머에서 포지셔널 인코딩에 사인과 코사인 함수를 사용하는 이유는?"
+    expected_keywords: ["상대적", "외삽", "extrapolation", "relative"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q008
+    query: "BERT와 GPT의 트랜스포머 구조 활용 방식 차이는?"
+    expected_keywords: ["인코더", "디코더", "encoder", "decoder", "양방향", "단방향"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["001"]
+
+  - id: q009
+    query: "Decorator 패턴과 Adapter 패턴의 차이점은?"
+    expected_keywords: ["behavior", "동작", "책임", "responsibilities", "interface", "인터페이스", "호환"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["004"]
+
+  - id: q010
+    query: "Observer 패턴은 어떤 메커니즘을 구현하나요?"
+    expected_keywords: ["publish", "subscribe", "발행", "구독", "event"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["004"]
+
+  - id: q011
+    query: "Semantic Chunking과 LLM-Based Chunking의 복잡도 차이는?"
+    expected_keywords: ["Medium-High", "High"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["005"]
+
+  - id: q012
+    query: "Late Chunking의 장점은 무엇인가요?"
+    expected_keywords: ["full", "context", "document", "전체", "문맥"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["005"]
+
+  - id: q013
+    query: "Naive RAG의 한계점들을 설명해주세요."
+    expected_keywords: ["precision", "recall", "hallucination"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["006"]
+
+  - id: q014
+    query: "HyDE는 어떤 방식으로 retrieval을 수행하나요?"
+    expected_keywords: ["hypothetical", "가설", "document", "문서", "embedding"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: reasoning
+    source_ids: ["006"]
+
+  - id: q015
+    query: "삼성SDS에서 개발 환경 프로비저닝 시간을 얼마나 단축했나요?"
+    expected_keywords: ["1주일", "2~3분", "2-3분", "week", "minute"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["002"]
+
+  - id: q016
+    query: "Spotify가 Kubeflow Pipeline으로 달성한 생산성 향상 수치는?"
+    expected_keywords: ["700%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["002"]
+
+  - id: q017
+    query: "글로벌 MLOps 시장의 2029년 예상 규모는?"
+    expected_keywords: ["60억", "6 billion", "60"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["003"]
+
+  # ===== EXTREME (13) — 크로스-문서, 환각 테스트, 다중 소스 구분, 고도 추론 =====
+
+  - id: q018
+    query: "MLOps와 LLMOps의 성능 개선 방법 차이를 설명해주세요."
+    expected_keywords: ["재학습", "프롬프트", "파인튜닝", "RAG", "fine-tuning", "prompt"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: comparison
+    source_ids: ["003"]
+
+  - id: q019
+    query: "삼성SDS, VESSL, 마키나락스 세 회사의 MLOps 플랫폼 접근 방식의 차이점은?"
+    expected_keywords: ["Kubeflow", "VESSL", "Runway"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["002", "003", "007"]
+
+  - id: q020
+    query: "트랜스포머의 인코더-디코더 어텐션에서 쿼리, 키, 밸류는 각각 어디에서 오나요?"
+    expected_keywords: ["디코더", "인코더", "decoder", "encoder"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q021
+    query: "RAG의 Adaptive Retrieval에 해당하는 기법들과 그 특징은?"
+    expected_keywords: ["FLARE", "Self-RAG"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: extreme
+    type: factual
+    source_ids: ["006"]
+
+  - id: q022
+    query: "Memento 패턴과 Command 패턴 모두 undo 기능에 사용될 수 있나요? 차이점은?"
+    expected_keywords: ["state", "상태", "encapsulate", "캡슐화", "action", "동작"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["004"]
+
+  - id: q023
+    query: "RAG 시스템에서 청킹 전략이 검색 정확도에 미치는 영향을 설명해주세요."
+    expected_keywords: ["embedding", "임베딩", "chunk", "청크", "retrieval", "검색"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["005", "006"]
+
+  - id: q024
+    query: "트랜스포머가 알파폴드2에서 어떤 역할을 했는지와 그래프 신경망과의 관계는?"
+    expected_keywords: ["AlphaFold", "알파폴드", "GNN", "그래프", "hybrid", "하이브리드", "단백질"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: factual
+    source_ids: ["001"]
+
+  - id: q025
+    query: "Kubernetes 없이 MLOps를 구축할 수 있나요?"
+    expected_keywords: ["insufficient", "정보가 부족"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q026
+    query: "트랜스포머의 계층 정규화가 배치 정규화보다 적합한 이유는?"
+    expected_keywords: ["미니배치", "batch", "샘플", "sample", "feature", "특성"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q027
+    query: "Flyweight 패턴에서 intrinsic state와 extrinsic state는 각각 무엇인가요?"
+    expected_keywords: ["intrinsic", "extrinsic", "공유", "shared", "common", "external", "variable"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: factual
+    source_ids: ["004"]
+
+  - id: q028
+    query: "VESSL과 삼성SDS의 MLOps에서 Katib의 역할은 무엇인가요?"
+    expected_keywords: ["하이퍼파라미터", "hyperparameter", "최적화", "optimization"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["002"]
+
+  - id: q029
+    query: "RAG에서 CRAG와 Self-RAG의 공통점과 차이점은?"
+    expected_keywords: ["self-correction", "self-reflection", "retriever", "adaptive"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: comparison
+    source_ids: ["006"]
+
+  - id: q030
+    query: "GPT-5가 트랜스포머 아키텍처를 대체했다는 것이 사실인가요?"
+    expected_keywords: ["insufficient", "정보가 부족"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []

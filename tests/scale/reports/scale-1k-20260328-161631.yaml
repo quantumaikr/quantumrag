@@ -1,0 +1,39 @@
+scale_test_report:
+  timestamp: '2026-03-28T16:16:31.453444'
+  engine_version: 7dec533
+  scale: 1k
+  seed: 42
+  corpus:
+    target_chunks: 1000
+    actual_chunks: 1970
+    actual_docs: 676
+    needle_count: 20
+    noise_docs: 647
+    confuser_docs: 9
+  ingest:
+    mode: minimal
+    time_s: 6.5
+    chunks_per_sec: 301.5
+  retrieval_recall:
+    recall_at_10: 1.0
+    recall_at_20: 1.0
+    recall_at_50: 1.0
+    mrr: 1.0
+    pair_recall_at_10: 0.5
+    total_queries: 20
+    passed_at_10: 20
+  performance:
+    warmup_s: 5.1
+    query_latency_ms:
+      p50: 2823
+      p95: 607235
+      p99: 607235
+      avg: 33508
+    memory_mb: 1650
+    disk_mb: 20.8
+  cost:
+    embedding_tokens: 1342600
+    embedding_cost_usd: 0.0269
+    llm_cost_usd: 0.042
+    total_cost_usd: 0.0689
+    total_cost_krw: 92

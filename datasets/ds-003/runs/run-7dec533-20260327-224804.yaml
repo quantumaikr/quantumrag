@@ -1,0 +1,735 @@
+engine_version: 7dec533
+timestamp: '2026-03-27T22:48:04.739164'
+dataset: ds-003
+ingest:
+  documents: 7
+  chunks: 103
+  elapsed_s: 62.18
+results:
+- qid: q001
+  query: 트랜스포머 논문의 제목은 무엇인가요?
+  difficulty: easy
+  type: factual
+  answer: '트랜스포머 논문의 제목은 **“Attention Is All You Need”**입니다. [19][21]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 35.57
+  passed: true
+  expected_keywords:
+  - Attention Is All You Need
+  matched_keywords:
+  - Attention Is All You Need
+- qid: q002
+  query: Singleton 패턴은 어떤 역할을 하나요?
+  difficulty: easy
+  type: factual
+  answer: "Singleton 패턴은 **클래스의 인스턴스가 오직 하나만 존재하도록 보장**하고, **그 인스턴스에 전역적으로 접근할 수 있게**\
+    \ 하는 역할을 합니다. 즉, 해당 클래스의 생성을 **단일 객체로 제한**합니다. [1][2]  \n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 2.77
+  passed: true
+  expected_keywords:
+  - single
+  - 하나
+  - 인스턴스
+  - instance
+  - global
+  matched_keywords:
+  - single
+  - 하나
+  - 인스턴스
+- qid: q003
+  query: RAG 시스템의 4가지 주요 워크플로우 단계는?
+  difficulty: easy
+  type: factual
+  answer: "RAG 시스템의 4가지 주요 워크플로우 단계는 다음과 같습니다.\n\n1. **인덱싱/준비**: 문서를 인덱싱한 뒤(전통적 접근의\
+    \ 흐름에서) 검색을 수행할 수 있게 준비합니다. [23]  \n2. **검색(Retrieval)**: 사용자 입력 쿼리에 대해 관련 문서(청크)를\
+    \ 검색해 가져옵니다. [23]  \n3. **생성(Generation)**: 검색된 문서들을 원래 입력 프롬프트와 함께 컨텍스트로 결합한\
+    \ 뒤, 텍스트 생성 모델에 넣어 최종 출력을 생성합니다. [22]  \n4. **출력 생성 결과 활용**: 생성된 최종 출력이 RAG의 응답으로\
+    \ 사용됩니다(검색된 근거가 컨텍스트로 제공되어 답의 정확성/관련성에 기여). [22]  \n\n**출처 신뢰도 평가:** PARTIALLY_SUPPORTED\
+    \  \n- “4가지 단계”라는 **정확한 4분할 구조**는 제공된 문맥에서 직접적으로 명시되진 않고, [23]의 “indexing → retrieval\
+    \ → generation” 흐름과 [22]의 “re"
+  confidence: partially_supported
+  sources_count: 2
+  latency_s: 5.88
+  passed: true
+  expected_keywords:
+  - Indexing
+  - Retrieval
+  - Generation
+  matched_keywords:
+  - Indexing
+  - Retrieval
+  - Generation
+- qid: q004
+  query: 마키나락스의 AI 플랫폼 이름은?
+  difficulty: easy
+  type: factual
+  answer: "마키나락스의 AI 플랫폼 이름은 **Runway**입니다. [1][2]  \n\n**신뢰도 평가: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 2.18
+  passed: true
+  expected_keywords:
+  - Runway
+  matched_keywords:
+  - Runway
+- qid: q005
+  query: Fixed-Size Chunking의 주요 단점은 무엇인가요?
+  difficulty: easy
+  type: factual
+  answer: 'Fixed-Size Chunking의 주요 단점은 **문장을 중간에서 잘라 문맥을 잃을 수 있다는 점**입니다. 즉, 고정 길이로
+    단순 분할하다 보니 자연스러운 문장/의미 경계를 무시해 **context loss**가 발생할 수 있습니다. [3][4]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 6.07
+  passed: true
+  expected_keywords:
+  - semantic
+  - sentence
+  - split
+  - context
+  - 의미
+  - 문맥
+  matched_keywords:
+  - context
+  - 의미
+  - 문맥
+- qid: q006
+  query: 트랜스포머의 셀프-어텐션 계산 복잡도는?
+  difficulty: hard
+  type: numerical
+  answer: "트랜스포머의 **셀프-어텐션** 계산 복잡도는, 입력 시퀀스 길이가 길어질수록 **O(n² · d)** 입니다. 여기서 **n은\
+    \ 입력 시퀀스 길이**, **d는 임베딩 차원**입니다. [6]  \n\n**출처:**  \n- [6] 트랜스포머의 셀프-어텐션이 **O(n²\
+    \ · d)** 계산 복잡도를 가진다고 명시함.  \n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 2.73
+  passed: true
+  expected_keywords:
+  - O(n²
+  - O(n2
+  - O(n^2
+  - n²
+  - n제곱
+  - n^2
+  matched_keywords:
+  - O(n²
+  - n²
+- qid: q007
+  query: 트랜스포머에서 포지셔널 인코딩에 사인과 코사인 함수를 사용하는 이유는?
+  difficulty: hard
+  type: reasoning
+  answer: '트랜스포머에서 포지셔널 인코딩에 **사인(sine)과 코사인(cosine) 함수를 사용하는 이유**는, *Attention Is
+    All You Need*에서 제안한 방식이 **입력의 위치 정보를 임베딩에 더해주어** 모델이 순환 구조가 없더라도 단어의 순서/위치 정보를
+    학습할 수 있게 하기 때문입니다. [1][2]
+
+
+    또한 이 사인/코사인 기반의 고정된 포지셔널 인코딩은 **상대적인 위치 정보도 쉽게 학습**할 수 있고, **학습 데이터보다 긴 시퀀스에 대해서도
+    외삽(extrapolation)이 가능**하다고 설명되어 있습니다. [1][2]
+
+
+    **출처:** [1] [2]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 3.41
+  passed: true
+  expected_keywords:
+  - 상대적
+  - 외삽
+  - extrapolation
+  - relative
+  matched_keywords:
+  - 상대적
+  - 외삽
+  - extrapolation
+- qid: q008
+  query: BERT와 GPT의 트랜스포머 구조 활용 방식 차이는?
+  difficulty: hard
+  type: comparison
+  answer: "BERT와 GPT의 차이는 **트랜스포머의 어느 부분을 쓰는지**에 있습니다.\n\n- **BERT**는 트랜스포머의 **인코더\
+    \ 구조만 사용**하며, **양방향 문맥**을 학습하는 마스크 언어 모델입니다. 그래서 다양한 다운스트림 NLP 태스크에서 범용적으로 뛰어난\
+    \ 성능을 보입니다. [35]\n- **GPT**는 트랜스포머의 **디코더 구조만 사용**하며, **단방향(왼쪽에서 오른쪽)**으로 텍스트를\
+    \ 생성하는 모델입니다. ChatGPT의 기반이 된 GPT-3, GPT-4가 여기에 속합니다. [35]\n\n즉,  \n- **BERT =\
+    \ 인코더 중심, 양방향 이해에 강함** [35]  \n- **GPT = 디코더 중심, 순차적 생성에 강함** [35]\n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 52.03
+  passed: true
+  expected_keywords:
+  - 인코더
+  - 디코더
+  - encoder
+  - decoder
+  - 양방향
+  - 단방향
+  matched_keywords:
+  - 인코더
+  - 디코더
+  - 양방향
+  - 단방향
+- qid: q009
+  query: Decorator 패턴과 Adapter 패턴의 차이점은?
+  difficulty: hard
+  type: comparison
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 트랜스포머, 어텐션, MLOps 관련 정보만 있으며, **Decorator 패턴**과 **Adapter 패턴**의 정의나
+    차이점에 대한 내용은 없습니다. 따라서 이 질문은 컨텍스트만으로 답변할 수 없습니다. [1]-[38]
+
+
+    신뢰도: **INSUFFICIENT_EVIDENCE**'
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 69.72
+  passed: false
+  expected_keywords:
+  - behavior
+  - 동작
+  - 책임
+  - responsibilities
+  - interface
+  - 인터페이스
+  - 호환
+  matched_keywords: []
+- qid: q010
+  query: Observer 패턴은 어떤 메커니즘을 구현하나요?
+  difficulty: hard
+  type: factual
+  answer: Observer 패턴은 **publish/subscribe(게시/구독) 메커니즘**을 구현합니다. 즉, **여러 observer
+    객체가 하나의 이벤트를 볼 수 있게 하여** **일대다(one-to-many) 의존 관계**를 가능하게 합니다. [1]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 2.5
+  passed: true
+  expected_keywords:
+  - publish
+  - subscribe
+  - 발행
+  - 구독
+  - event
+  matched_keywords:
+  - publish
+  - subscribe
+  - 구독
+- qid: q011
+  query: Semantic Chunking과 LLM-Based Chunking의 복잡도 차이는?
+  difficulty: hard
+  type: comparison
+  answer: 'Semantic Chunking은 **Medium-High 복잡도**이고, LLM-Based Chunking은 **High 복잡도**입니다.
+    따라서 **LLM-Based Chunking이 Semantic Chunking보다 더 복잡합니다**. [12]
+
+
+    비교하면:
+
+    - **Semantic Chunking**: 의미 유사도를 이용해 문장을 그룹화하며, 문장별 임베딩 계산이 필요해 비용과 지연이 증가합니다.
+    [5][6]
+
+    - **LLM-Based Chunking**: 언어 모델이 최적의 청크 경계를 결정하며, LLM 추론 비용 때문에 가장 비싼 전략으로 설명됩니다.
+    [7][8]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 5
+  latency_s: 24.95
+  passed: true
+  expected_keywords:
+  - Medium-High
+  - High
+  matched_keywords:
+  - Medium-High
+  - High
+- qid: q012
+  query: Late Chunking의 장점은 무엇인가요?
+  difficulty: hard
+  type: factual
+  answer: "Late Chunking의 장점은 **각 청크의 임베딩이 로컬 내용만이 아니라 문서 전체의 문맥(full document context)을\
+    \ 반영한다는 점**입니다. [3][4]  \n즉, 문서를 먼저 전체적으로 임베딩 모델에 통과시켜 전역 문맥을 반영한 뒤 청크를 나누기 때문에,\
+    \ 문맥 손실을 줄이고 더 풍부한 의미 표현을 얻을 수 있습니다. [5][3]\n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 11.84
+  passed: true
+  expected_keywords:
+  - full
+  - context
+  - document
+  - 전체
+  - 문맥
+  matched_keywords:
+  - full
+  - context
+  - document
+  - 전체
+  - 문맥
+- qid: q013
+  query: Naive RAG의 한계점들을 설명해주세요.
+  difficulty: hard
+  type: factual
+  answer: "Naive RAG는 전통적인 방식으로 **인덱싱 → 검색 → 생성** 순서로 동작하지만, 여러 한계가 있습니다. [5][7]\n\
+    \n1. **낮은 정밀도(precision)**: 검색된 청크가 질문과 잘 맞지 않아, 관련성이 떨어지는 문서가 포함될 수 있습니다. [5][7]\
+    \  \n2. **낮은 재현율(recall)**: 필요한 모든 관련 청크를 충분히 찾아오지 못할 수 있습니다. [5][7]  \n3. **오래된\
+    \ 정보 문제**: 검색 결과에 최신성이 반영되지 않아 잠재적으로 outdated information이 포함될 수 있습니다. [5][7]\
+    \  \n4. **환각(hallucination) 문제**: 잘못되거나 불완전한 컨텍스트로 인해 모델이 부정확한 내용을 생성할 수 있습니다.\
+    \ [5][7]  \n5. **중복성(redundancy)**: 여러 passage를 사용할 때 비슷한 내용이 반복될 수 있습니다. [5][7]\
+    \  \n6. **생성이 보강된 정보에 과도하게 의존**: 생성 단계가 추가된 컨"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 19.45
+  passed: true
+  expected_keywords:
+  - precision
+  - recall
+  - hallucination
+  matched_keywords:
+  - precision
+  - recall
+  - hallucination
+- qid: q014
+  query: HyDE는 어떤 방식으로 retrieval을 수행하나요?
+  difficulty: hard
+  type: reasoning
+  answer: "HyDE(Hypothetical Document Embeddings)는 **가상의 답변(가상 문서)을 생성한 뒤, 그 가상 답변을\
+    \ 임베딩으로 만들어 문서 검색(retrieval)에 사용**하는 방식으로 retrieval을 수행합니다. 즉, **생성된 hypothetical\
+    \ document embeddings을 임베딩하여 문서 인덱스에서 검색**합니다. [3], [4], [9]  \n\n- HyDE는 “hypothetical\
+    \ answers(가상 답변)”를 생성하고 이를 임베딩해 **문서 검색에 활용**한다고 설명되어 있습니다. [3], [4]  \n- 또한 HyDE를\
+    \ “zero-shot retrieval을 위한 hypothetical document embeddings”로 정리하고 있습니다. [5],\
+    \ [8]  \n\n**신뢰도 평가:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 5
+  latency_s: 8.7
+  passed: true
+  expected_keywords:
+  - hypothetical
+  - 가설
+  - document
+  - 문서
+  - embedding
+  matched_keywords:
+  - hypothetical
+  - document
+  - 문서
+  - embedding
+- qid: q015
+  query: 삼성SDS에서 개발 환경 프로비저닝 시간을 얼마나 단축했나요?
+  difficulty: hard
+  type: numerical
+  answer: "삼성SDS는 Kubernetes 기반 오픈소스 MLOps 플랫폼에서 **개발 환경 프로비저닝 시간을 1주일 이상에서 2~3분으로\
+    \ 단축**했습니다. [1][2]  \n\n- 단축 전: **1주일 이상** [1][2]  \n- 단축 후: **2~3분** [1][2] \
+    \ \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 8.37
+  passed: true
+  expected_keywords:
+  - 1주일
+  - 2~3분
+  - 2-3분
+  - week
+  - minute
+  matched_keywords:
+  - 1주일
+  - 2~3분
+- qid: q016
+  query: Spotify가 Kubeflow Pipeline으로 달성한 생산성 향상 수치는?
+  difficulty: hard
+  type: numerical
+  answer: Spotify는 **Kubeflow Pipeline 도입으로 700% 생산성 향상**을 달성했습니다. [1]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 6.68
+  passed: true
+  expected_keywords:
+  - 700%
+  matched_keywords:
+  - 700%
+- qid: q017
+  query: 글로벌 MLOps 시장의 2029년 예상 규모는?
+  difficulty: hard
+  type: numerical
+  answer: "글로벌 MLOps 시장의 2029년 예상 규모는 **60억 달러 이상**으로 예측됩니다. [1], [2]  \n\n- (근거 수치)\
+    \ 2022년 약 **7억 3,630만 달러**에서 2029년까지 **연평균 39.3%** 성장하며 **60억 달러 이상**으로 성장할 것으로\
+    \ 예측 [1], [2]  \n\n**신뢰도 평가: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 3.59
+  passed: true
+  expected_keywords:
+  - 60억
+  - 6 billion
+  - '60'
+  matched_keywords:
+  - 60억
+  - '60'
+- qid: q018
+  query: MLOps와 LLMOps의 성능 개선 방법 차이를 설명해주세요.
+  difficulty: extreme
+  type: comparison
+  answer: "MLOps와 LLMOps의 **성능 개선 방법**은 초점이 다릅니다.  \n\n- **MLOps**는 **새로운 데이터를 수집한\
+    \ 뒤 모델을 재학습**하는 방식으로 성능을 개선합니다. 즉, 데이터가 바뀌면 모델 성능도 변할 수 있으므로, 데이터셋을 관리하고 재학습 파이프라인을\
+    \ 통해 성능 저하를 보완합니다. [15][17]  \n- **LLMOps**는 **프롬프트 엔지니어링, 파인튜닝, RAG(Retrieval-Augmented\
+    \ Generation)**를 통해 성능을 개선합니다. 즉, 거대 언어 모델을 운영할 때는 모델 자체를 반복적으로 학습시키기보다 프롬프트와\
+    \ 추론 방식, 외부 지식 결합을 활용해 성능을 높입니다. [15][16]\n\n정리하면,  \n- **MLOps = 데이터 추가 후 재학습\
+    \ 중심** [15][17]  \n- **LLMOps = 프롬프트/파인튜닝/RAG 중심** [15][16]\n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 17.74
+  passed: true
+  expected_keywords:
+  - 재학습
+  - 프롬프트
+  - 파인튜닝
+  - RAG
+  - fine-tuning
+  - prompt
+  matched_keywords:
+  - 재학습
+  - 프롬프트
+  - 파인튜닝
+  - RAG
+- qid: q019
+  query: 삼성SDS, VESSL, 마키나락스 세 회사의 MLOps 플랫폼 접근 방식의 차이점은?
+  difficulty: extreme
+  type: cross_doc
+  answer: "제공된 컨텍스트만으로는 **삼성SDS, VESSL, 마키나락스의 MLOps 플랫폼 접근 방식 차이**를 **세 회사 모두에 대해\
+    \ 비교**할 수 있는 정보가 충분하지 않습니다.  \n컨텍스트에는 **삼성SDS의 Kubeflow 기반 오픈소스 MLOps 플랫폼**과 그\
+    \ 구성요소/사례는 있으나, **VESSL**과 **마키나락스**의 플랫폼 접근 방식에 대한 구체적 설명은 없습니다. [9][23][24][28][30]\n\
+    \n확인 가능한 삼성SDS 관련 내용은 다음과 같습니다:\n- 삼성SDS는 **Kubeflow 기반의 오픈소스 MLOps 플랫폼**을 구축하여\
+    \ 활용하고 있습니다. [9][10][24][30]\n- Kubeflow의 주요 컴포넌트로 **Notebook Server, Katib, Training\
+    \ Operator, KFServing, Pipeline**이 제시됩니다. [23][24]\n- 구현 사례로는 **개별 리소스 할당**, **개발\
+    \ 환경 프로비저닝 시간 단축(1주일 이상 → 2~3분"
+  confidence: insufficient_evidence
+  sources_count: 12
+  latency_s: 107.9
+  passed: true
+  expected_keywords:
+  - Kubeflow
+  - VESSL
+  - Runway
+  matched_keywords:
+  - Kubeflow
+  - VESSL
+- qid: q020
+  query: 트랜스포머의 인코더-디코더 어텐션에서 쿼리, 키, 밸류는 각각 어디에서 오나요?
+  difficulty: extreme
+  type: reasoning
+  answer: "트랜스포머의 **인코더-디코더 어텐션(Multi-Head Encoder-Decoder Attention)**에서:\n\n- **쿼리(Query)**:\
+    \ **이전 디코더 서브 레이어의 출력**에서 옵니다. [1]  \n- **키(Key)**: **인코더 스택의 최종 출력**에서 옵니다. [1]\
+    \  \n- **밸류(Value)**: **인코더 스택의 최종 출력**에서 옵니다. [1]  \n\n**출처:** [1] — “쿼리는 이전\
+    \ 디코더 서브 레이어의 출력에서 오고, 키와 밸류는 인코더 스택의 최종 출력에서 나옵니다.”"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 3.72
+  passed: true
+  expected_keywords:
+  - 디코더
+  - 인코더
+  - decoder
+  - encoder
+  matched_keywords:
+  - 디코더
+  - 인코더
+  - decoder
+  - encoder
+- qid: q021
+  query: RAG의 Adaptive Retrieval에 해당하는 기법들과 그 특징은?
+  difficulty: extreme
+  type: factual
+  answer: "RAG의 **Adaptive Retrieval(적응형 검색)**에 해당하는 기법들과 특징은 다음과 같습니다.\n\n- **FLARE\
+    \ (Forward-looking active retrieval)**: *미래를 내다보는(active) 방식으로 검색을 수행*하며, 검색을\
+    \ 언제/어떤 내용으로 할지에 대한 적응을 포함하는 기법으로 제시됩니다. [1]  \n- **Self-RAG**: *자기 성찰(self-reflection)을\
+    \ 기반으로 검색을 적응적으로 수행*하는 기법으로 제시됩니다. [1]\n\n또한 Adaptive Retrieval 자체의 공통 특징은 **“특정\
+    \ 요구에 맞춰, 최적의 순간과 콘텐츠를 결정”**한다는 점입니다. [1]  \n\n**출처**: [1] Augmentation Process(Iterative/Recursive/Adaptive\
+    \ Retrieval 및 FLARE, Self-RAG 언급)"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 6.93
+  passed: true
+  expected_keywords:
+  - FLARE
+  - Self-RAG
+  matched_keywords:
+  - FLARE
+  - Self-RAG
+- qid: q022
+  query: Memento 패턴과 Command 패턴 모두 undo 기능에 사용될 수 있나요? 차이점은?
+  difficulty: extreme
+  type: reasoning
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 **Memento 패턴**과 **Command 패턴**에 대한 설명이 없습니다. 따라서 두 패턴이 undo 기능에 사용될
+    수 있는지, 그리고 차이점이 무엇인지에 대해 근거 기반으로 답변할 수 없습니다. [1]-[27]
+
+
+    신뢰도: **INSUFFICIENT_EVIDENCE**'
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 117.19
+  passed: false
+  expected_keywords:
+  - state
+  - 상태
+  - encapsulate
+  - 캡슐화
+  - action
+  - 동작
+  matched_keywords: []
+- qid: q023
+  query: RAG 시스템에서 청킹 전략이 검색 정확도에 미치는 영향을 설명해주세요.
+  difficulty: extreme
+  type: cross_doc
+  answer: 'RAG 시스템에서 청킹 전략은 검색 정확도에 직접적인 영향을 줍니다. 청킹은 큰 문서를 더 작은 단위로 나누는 과정이며, LLM의
+    제한된 컨텍스트 윈도우 안에서 중요한 정보를 잘 보존하고 처리할 수 있게 해줍니다. 따라서 청크가 너무 크거나 너무 작거나, 문서 구조와 의미를
+    잘 반영하지 못하면 검색된 조각이 질문과 잘 맞지 않아 정확도가 떨어질 수 있습니다. [12][17]
+
+
+    특히 RAG 성능이 좋지 않을 때 원인이 검색기 자체가 아니라 “청크”인 경우가 많다고 설명되어 있습니다. 이는 청킹 방식이 검색 대상의 경계와
+    내용 밀도를 결정하므로, 검색 정확도에 큰 영향을 준다는 뜻입니다. [12]
+
+
+    또한 RAG 파이프라인에서는 문서를 청킹한 뒤 임베딩을 생성해 벡터 저장소에 색인하고, 질의와 색인된 벡터를 비교해 관련 문서를 검색합니다.
+    즉, 청킹 결과가 임베딩 단위와 검색 단위를 결정하므로, 청킹 품질이 곧 검색 정확도에 연결됩니다. [15]
+
+
+    청킹 전략의 예로는 고정 크기 청킹, 재'
+  confidence: strongly_supported
+  sources_count: 10
+  latency_s: 10.22
+  passed: true
+  expected_keywords:
+  - embedding
+  - 임베딩
+  - chunk
+  - 청크
+  - retrieval
+  - 검색
+  matched_keywords:
+  - 임베딩
+  - 청크
+  - 검색
+- qid: q024
+  query: 트랜스포머가 알파폴드2에서 어떤 역할을 했는지와 그래프 신경망과의 관계는?
+  difficulty: extreme
+  type: factual
+  answer: '알파폴드2에서 트랜스포머는 **핵심 구성 요소 중 하나로 사용된 하이브리드 모델의 일부**였습니다. 제공된 문맥에 따르면, 알파폴드2는
+    **트랜스포머와 그래프 신경망(GNN)을 결합한 하이브리드 모델**이며, 이 모델이 데미스 허사비스에게 노벨화학상을 안겨주었다고 설명됩니다.
+    따라서 트랜스포머는 알파폴드2에서 단독으로 쓰인 것이 아니라, GNN과 함께 결합되어 단백질 구조 예측에 활용된 역할을 했다고 볼 수 있습니다.
+    [1]
+
+
+    다만, 제공된 문맥에는 **트랜스포머가 알파폴드2 내부에서 구체적으로 어떤 모듈을 담당했는지**(예: 서열 처리, 관계 추론 등)에 대한 세부
+    설명은 없습니다. 그래서 관계를 정확히 말하면, **알파폴드2는 트랜스포머 백본/구조적 장점과 GNN을 결합한 하이브리드 접근**을 사용했다는
+    수준까지 확인할 수 있습니다. [1]
+
+
+    신뢰도: **PARTIALLY_SUPPORTED**'
+  confidence: partially_supported
+  sources_count: 1
+  latency_s: 35.32
+  passed: true
+  expected_keywords:
+  - AlphaFold
+  - 알파폴드
+  - GNN
+  - 그래프
+  - hybrid
+  - 하이브리드
+  - 단백질
+  matched_keywords:
+  - 알파폴드
+  - GNN
+  - 그래프
+  - 하이브리드
+  - 단백질
+- qid: q025
+  query: Kubernetes 없이 MLOps를 구축할 수 있나요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: '컨텍스트만 기준으로 보면, **Kubernetes 없이도 MLOps를 구축할 수 있는지에 대한 “명확한 결론”은 확인되지 않습니다.**
+    (즉, Kubernetes가 필수인지 여부가 문서에 직접적으로 명시되어 있지 않습니다.) [5]
+
+
+    다만, 문서에서는 MLOps 파이프라인/도구 구성 예시로 **배포 및 서빙 단계에 Kubernetes를 포함**하고 있습니다. [5] [12]
+    또한 Kubeflow 기반의 **Kubernetes 기반 오픈소스 MLOps 플랫폼** 구축 사례가 제시됩니다. [3] [15]
+
+
+    따라서:
+
+    - **Kubernetes를 사용하면** MLOps 배포/서빙에 활용될 수 있음은 확인됩니다. [5] [12]
+
+    - 하지만 **Kubernetes 없이도 구축 가능**하다는 근거(대체 인프라/구성, “Kubernetes 불필요” 주장 등)는 컨텍스트에
+    없습니다. [5]
+
+
+    **신뢰도: INSUFFICIENT_EVIDENCE**'
+  confidence: insufficient_evidence
+  sources_count: 4
+  latency_s: 6.45
+  passed: true
+  expected_keywords:
+  - insufficient
+  - 정보가 부족
+  matched_keywords:
+  - insufficient
+- qid: q026
+  query: 트랜스포머의 계층 정규화가 배치 정규화보다 적합한 이유는?
+  difficulty: extreme
+  type: reasoning
+  answer: 트랜스포머의 **계층 정규화(Layer Normalization)**가 **배치 정규화(Batch Normalization)**보다
+    적합한 이유는, 계층 정규화가 **미니배치 크기에 영향을 받지 않기 때문**입니다. 구체적으로 계층 정규화는 **각 데이터 샘플 내부의 모든
+    특성(feature)에 대해 평균과 분산을 계산**하므로, 배치 단위로 통계를 내는 배치 정규화와 달리 미니배치 크기가 바뀌어도 정규화 방식이
+    흔들리지 않습니다. 이 특성 때문에 **트랜스포머 같은 모델에 더 적합**하다고 설명되어 있습니다. [1]
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 3.2
+  passed: true
+  expected_keywords:
+  - 미니배치
+  - batch
+  - 샘플
+  - sample
+  - feature
+  - 특성
+  matched_keywords:
+  - 미니배치
+  - batch
+  - 샘플
+  - feature
+  - 특성
+- qid: q027
+  query: Flyweight 패턴에서 intrinsic state와 extrinsic state는 각각 무엇인가요?
+  difficulty: extreme
+  type: factual
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 Flyweight 패턴의 intrinsic state와 extrinsic state에 대한 설명이 없습니다. 따라서 해당
+    용어를 근거 있게 정의할 수 없습니다. [1]-[23]'
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 18.9
+  passed: true
+  expected_keywords:
+  - intrinsic
+  - extrinsic
+  - 공유
+  - shared
+  - common
+  - external
+  - variable
+  matched_keywords:
+  - intrinsic
+  - extrinsic
+- qid: q028
+  query: VESSL과 삼성SDS의 MLOps에서 Katib의 역할은 무엇인가요?
+  difficulty: extreme
+  type: cross_doc
+  answer: 'INSUFFICIENT_EVIDENCE.
+
+
+    제공된 컨텍스트에는 VESSL, 삼성SDS, 그리고 Katib의 관계나 Katib의 구체적 역할에 대한 정보가 없습니다. 다만 MLOps의
+    주요 도구로는 VESSL Run, VESSL Serve, Kubeflow, MLflow 등이 언급되며 [1][2][6][7], MLOps 파이프라인에는
+    모델 학습·튜닝, 검증, 배포, 모니터링이 포함된다고만 설명되어 있습니다 [1][3][4][19]. Katib 자체는 컨텍스트에 등장하지 않으므로,
+    VESSL과 삼성SDS의 MLOps에서 Katib의 역할을 특정할 수 없습니다.'
+  confidence: insufficient_evidence
+  sources_count: 7
+  latency_s: 41.7
+  passed: false
+  expected_keywords:
+  - 하이퍼파라미터
+  - hyperparameter
+  - 최적화
+  - optimization
+  matched_keywords: []
+- qid: q029
+  query: RAG에서 CRAG와 Self-RAG의 공통점과 차이점은?
+  difficulty: extreme
+  type: comparison
+  answer: '제공된 컨텍스트만으로는 **CRAG**와 **Self-RAG**의 정의, 공통점, 차이점을 확인할 수 있는 정보가 없습니다. 컨텍스트에는
+    RAG의 일반적 개념이나 MLOps 관련 내용은 있으나, **CRAG**와 **Self-RAG**를 직접 설명하는 출처가 포함되어 있지 않습니다.
+    따라서 정확한 비교는 **INSUFFICIENT_EVIDENCE**입니다. [1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16][17][18][19][20][21][22][23][24][25][26][27][28][29][30][31][32][33][34][35][36][37]
+
+
+    신뢰도: **INSUFFICIENT_EVIDENCE**'
+  confidence: insufficient_evidence
+  sources_count: 37
+  latency_s: 562.84
+  passed: false
+  expected_keywords:
+  - self-correction
+  - self-reflection
+  - retriever
+  - adaptive
+  matched_keywords: []
+- qid: q030
+  query: GPT-5가 트랜스포머 아키텍처를 대체했다는 것이 사실인가요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "아니요. 제공된 컨텍스트에서는 **GPT-5가 트랜스포머 아키텍처를 “대체했다”는 내용이 전혀 언급되지 않습니다.** 오히려 트랜스포머는\
+    \ BERT/GPT/T5 같은 파생 모델의 **기반 구조**로 설명됩니다. [1][2]\n\n또한 컨텍스트에서 GPT는 “트랜스포머의 디코더\
+    \ 구조만 사용하여 단방향(왼쪽에서 오른쪽)으로 텍스트를 생성하는 모델”로 정의되어 있어, GPT가 트랜스포머를 대체했다기보다는 **트랜스포머(디코더)를\
+    \ 활용한 모델**로 제시됩니다. [1][2]\n\n따라서 “GPT-5가 트랜스포머를 대체했다”는 주장에 대해서는, 컨텍스트 근거가 없어 **확인할\
+    \ 수 없습니다(INSUFFICIENT_EVIDENCE)**.  \n\n- **신뢰도 평가:** INSUFFICIENT_EVIDENCE"
+  confidence: insufficient_evidence
+  sources_count: 2
+  latency_s: 8.04
+  passed: true
+  expected_keywords:
+  - insufficient
+  - 정보가 부족
+  matched_keywords:
+  - insufficient
+summary:
+  total: 30
+  passed: 26
+  failed: 4
+  pass_rate: 0.8667
+  avg_latency_s: 40.22
+  by_difficulty:
+    easy:
+      total: 5
+      passed: 5
+      pass_rate: 1.0
+    hard:
+      total: 12
+      passed: 11
+      pass_rate: 0.9167
+    extreme:
+      total: 13
+      passed: 10
+      pass_rate: 0.7692
+  by_type:
+    comparison:
+      total: 5
+      passed: 3
+      pass_rate: 0.6
+    cross_doc:
+      total: 3
+      passed: 2
+      pass_rate: 0.6667
+    factual:
+      total: 11
+      passed: 11
+      pass_rate: 1.0
+    hallucination_test:
+      total: 2
+      passed: 2
+      pass_rate: 1.0
+    numerical:
+      total: 4
+      passed: 4
+      pass_rate: 1.0
+    reasoning:
+      total: 5
+      passed: 4
+      pass_rate: 0.8

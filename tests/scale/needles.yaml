@@ -1,0 +1,144 @@
+# Scale Test Needles — 20 unique facts planted in a noise corpus.
+# Each needle has a deterministic ID, a unique fact, and a query to find it.
+# The fact contains distinctive entities + numbers that won't appear in noise.
+
+needles:
+  - id: N01
+    fact: "프로젝트 오리온의 2025년 총 예산은 47억3천만원이며, 집행률은 83%이다."
+    query: "프로젝트 오리온의 예산과 집행률은?"
+    expected_keywords: ["47억3천만", "83%"]
+    match_mode: all
+
+  - id: N02
+    fact: "Zephyr Labs는 2024년 Series C에서 1억2천만 달러를 유치했으며 기업가치는 9억 달러로 평가되었다."
+    query: "Zephyr Labs의 Series C 투자유치 규모와 기업가치는?"
+    expected_keywords: ["1억2천만", "9억"]
+    match_mode: all
+
+  - id: N03
+    fact: "KRATOS-7 프로세서는 5나노 공정으로 제조되며 전력 효율이 기존 대비 42% 향상되었다."
+    query: "KRATOS-7 프로세서의 공정과 전력 효율 개선율은?"
+    expected_keywords: ["5나노", "42%"]
+    match_mode: all
+
+  - id: N04
+    fact: "The HelioSync protocol achieves 99.97% data consistency across 12 distributed nodes with average latency of 3.2ms."
+    query: "What is the data consistency rate and latency of HelioSync protocol?"
+    expected_keywords: ["99.97%", "3.2ms"]
+    match_mode: all
+
+  - id: N05
+    fact: "대한민국 인공지능안전원은 2025년 9월 설립되었으며 초대 원장은 김태훈 박사이다."
+    query: "인공지능안전원의 설립 시기와 초대 원장은?"
+    expected_keywords: ["2025년 9월", "김태훈"]
+    match_mode: all
+
+  - id: N06
+    fact: "NovaChem Industries reported Q3 2025 revenue of $847M, up 23% YoY, with EBITDA margin of 31.4%."
+    query: "What was NovaChem's Q3 2025 revenue and EBITDA margin?"
+    expected_keywords: ["847", "31.4%"]
+    match_mode: all
+
+  - id: N07
+    fact: "양자내성암호(PQC) 표준 CRYSTALS-Kyber의 키 크기는 1,568바이트이며 NIST 레벨 3 보안을 제공한다."
+    query: "CRYSTALS-Kyber의 키 크기와 보안 레벨은?"
+    expected_keywords: ["1,568", "레벨 3"]
+    match_mode: all
+
+  - id: N08
+    fact: "ArcticWind 해상풍력단지는 총 설비용량 1.4GW이며 2026년 3월 상업운전을 개시할 예정이다."
+    query: "ArcticWind 해상풍력단지의 설비용량과 상업운전 시기는?"
+    expected_keywords: ["1.4GW", "2026년 3월"]
+    match_mode: all
+
+  - id: N09
+    fact: "The Meridian-5 satellite constellation consists of 340 LEO satellites at 550km altitude providing 98.6% global coverage."
+    query: "How many satellites does Meridian-5 have and what is its coverage?"
+    expected_keywords: ["340", "98.6%"]
+    match_mode: all
+
+  - id: N10
+    fact: "카이로스 바이오텍의 신약후보물질 KBT-4419는 임상 2상에서 종양 축소율 67%를 달성했으며, 3상 진입이 2026년 하반기로 예정되어 있다."
+    query: "KBT-4419의 임상 2상 결과와 3상 일정은?"
+    expected_keywords: ["67%", "2026년 하반기"]
+    match_mode: all
+
+  # --- Multi-needle pairs (q11-q14: 답변에 두 바늘이 모두 필요) ---
+
+  - id: N11
+    fact: "글로벌 탄소포집(CCS) 시장 규모는 2025년 기준 38억 달러이다."
+    query: "글로벌 CCS 시장 규모와 연평균 성장률은?"
+    expected_keywords: ["38억", "27.4%"]
+    match_mode: all
+    pair_with: N12
+
+  - id: N12
+    fact: "탄소포집 기술의 연평균 성장률(CAGR)은 27.4%로 전망되며 주요 업체는 Climeworks와 Carbon Engineering이다."
+    query: "글로벌 CCS 시장 규모와 연평균 성장률은?"
+    expected_keywords: ["38억", "27.4%"]
+    match_mode: all
+    pair_with: N11
+
+  - id: N13
+    fact: "한국형 도심항공교통(K-UAM) 1단계 노선은 잠실-김포공항 구간이며 비행시간은 약 20분이다."
+    query: "K-UAM 1단계 노선, 비행시간, 예상 운임은?"
+    expected_keywords: ["잠실", "20분", "11만원"]
+    match_mode: all
+    pair_with: N14
+
+  - id: N14
+    fact: "K-UAM 1단계의 예상 운임은 편도 11만원이며 2025년 12월 시범운항을 목표로 하고 있다."
+    query: "K-UAM 1단계 노선, 비행시간, 예상 운임은?"
+    expected_keywords: ["잠실", "20분", "11만원"]
+    match_mode: all
+    pair_with: N13
+
+  # --- Confusion needles (유사하지만 다른 사실) ---
+
+  - id: N15
+    fact: "스텔라 에너지의 2025년 매출은 2,340억원이며 영업이익률은 8.7%이다."
+    query: "스텔라 에너지의 2025년 매출과 영업이익률은?"
+    expected_keywords: ["2,340억", "8.7%"]
+    match_mode: all
+    confusers:
+      - "스텔라 에너지의 2024년 매출은 1,890억원이며 영업이익률은 6.2%였다."
+      - "스텔라 테크의 2025년 매출은 3,120억원이며 영업이익률은 12.1%이다."
+      - "스텔라 에너지의 2025년 1분기 매출은 580억원이었다."
+
+  - id: N16
+    fact: "TitanDB v3.0 achieved 1.2 million QPS on read-heavy workloads with p99 latency of 4.7ms in benchmark tests."
+    query: "What is TitanDB v3.0's QPS and p99 latency?"
+    expected_keywords: ["1.2 million", "4.7ms"]
+    match_mode: all
+    confusers:
+      - "TitanDB v2.8 achieved 890K QPS with p99 latency of 8.3ms."
+      - "TitanDB v3.0 write throughput is 340K operations per second."
+      - "NeptunDB v3.0 achieved 1.5 million QPS with p99 latency of 6.1ms."
+
+  - id: N17
+    fact: "대한항공의 2025년 화물 부문 매출은 4조8,700억원으로 전년 대비 15.3% 증가했다."
+    query: "대한항공의 2025년 화물 매출과 성장률은?"
+    expected_keywords: ["4조8,700억", "15.3%"]
+    match_mode: all
+    confusers:
+      - "대한항공의 2025년 여객 부문 매출은 12조3,400억원이었다."
+      - "대한항공의 2024년 화물 부문 매출은 4조2,200억원이었다."
+      - "아시아나항공의 2025년 화물 매출은 1조9,800억원이었다."
+
+  - id: N18
+    fact: "OpenAI의 GPT-5.2 학습에 사용된 GPU 시간은 약 1억2천만 시간이며, 학습 비용은 약 7억 달러로 추정된다."
+    query: "GPT-5.2의 학습 GPU 시간과 비용은?"
+    expected_keywords: ["1억2천만", "7억 달러"]
+    match_mode: all
+
+  - id: N19
+    fact: "한국의 AI 특허 출원 건수는 2024년 기준 세계 3위(18,472건)이며, 1위 미국(52,891건), 2위 중국(41,203건)에 이어진다."
+    query: "한국의 AI 특허 출원 순위와 건수는?"
+    expected_keywords: ["3위", "18,472"]
+    match_mode: all
+
+  - id: N20
+    fact: "Quantum-resistant TLS 1.4 specification draft was finalized in January 2026 by IETF Working Group with 128-bit post-quantum security level."
+    query: "When was quantum-resistant TLS 1.4 finalized and what security level does it provide?"
+    expected_keywords: ["January 2026", "128-bit"]
+    match_mode: all

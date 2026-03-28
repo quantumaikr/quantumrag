@@ -1,0 +1,489 @@
+engine_version: 7dec533
+timestamp: '2026-03-28T23:44:37.877928'
+dataset: ds-001
+ingest:
+  documents: 0
+  chunks: 0
+  elapsed_s: 0.0
+  cached: true
+execution:
+  concurrency: 3
+  query_timeout_s: 120
+  wall_time_s: 169.32
+  sum_latency_s: 502.03
+results:
+- qid: q001
+  query: Python asyncio에서 코루틴을 실행하는 세 가지 방법은?
+  difficulty: easy
+  type: factual
+  answer: "Python asyncio에서 코루틴을 실행하는 세 가지 방법은 다음과 같습니다. [1]\n\n1. **`asyncio.run()`\
+    \ 사용**: 최상위 엔트리 포인트를 실행합니다. [1]  \n2. **코루틴을 `await`로 기다리기**: 각 코루틴을 **순차적으로**\
+    \ 기다립니다. [1]  \n3. **`asyncio.create_task()` 또는 `asyncio.TaskGroup` 사용**: 코루틴을\
+    \ **동시에(컨커런트)** 실행합니다. [1]  \n\n**출처:** [1] “Three Ways to Run Coroutines” (Using\
+    \ `asyncio.run()`, Awaiting coroutines, Using `asyncio.create_task()` or `asyncio.TaskGroup`)\
+    \  \n\n신뢰도: **STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 13.27
+  passed: true
+  expected_keywords:
+  - asyncio.run
+  - await
+  - create_task
+  matched_keywords:
+  - asyncio.run
+  - await
+  - create_task
+- qid: q002
+  query: Python collections.Counter에서 가장 많이 등장한 요소를 찾는 메서드는?
+  difficulty: easy
+  type: factual
+  answer: '`collections.Counter`에서 가장 많이 등장한 요소를 찾는 메서드는 **`most_common(n=None)`**
+    입니다. (가장 많이 등장한 요소와 그 개수를 n개만큼 반환) [1] [2]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 13.26
+  passed: true
+  expected_keywords:
+  - most_common
+  matched_keywords:
+  - most_common
+- qid: q003
+  query: SK하이닉스의 2025년 3분기 영업이익은 얼마인가요?
+  difficulty: easy
+  type: factual
+  answer: 'SK하이닉스의 2025년 3분기 영업이익은 **11조3834억원**입니다. [1]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 10.12
+  passed: true
+  expected_keywords:
+  - 11조3834억
+  matched_keywords:
+  - 11조3834억
+- qid: q004
+  query: deque의 maxlen 속성은 무엇을 의미하나요?
+  difficulty: easy
+  type: factual
+  answer: 'INSUFFICIENT_EVIDENCE
+
+
+    제공된 컨텍스트에는 `deque`의 `maxlen` 속성에 대한 설명이 없습니다. 따라서 이 질문에 답할 수 있는 근거가 없습니다.'
+  confidence: insufficient_evidence
+  sources_count: 60
+  latency_s: 37.16
+  passed: false
+  expected_keywords:
+  - 최대
+  - 크기
+  - maximum
+  - size
+  - unbounded
+  matched_keywords: []
+- qid: q005
+  query: asyncio.TaskGroup은 Python 몇 버전부터 사용 가능한가요?
+  difficulty: easy
+  type: factual
+  answer: '`asyncio.TaskGroup`은 **Python 3.11+**부터 사용할 수 있습니다. [1] [2] [3] [4]'
+  confidence: strongly_supported
+  sources_count: 4
+  latency_s: 25.41
+  passed: true
+  expected_keywords:
+  - '3.11'
+  matched_keywords:
+  - '3.11'
+- qid: q006
+  query: asyncio.gather()와 asyncio.TaskGroup의 차이점은 무엇인가요?
+  difficulty: hard
+  type: comparison
+  answer: '`asyncio.gather()`와 `asyncio.TaskGroup`은 둘 다 여러 awaitable/Task를 함께 다루지만,
+    문서상 역할이 다릅니다. `gather()`는 awaitable 객체들을 **동시에 실행하고 결과를 모아 리스트로 반환**하는 함수입니다.
+    [7][13] 반면 `TaskGroup`은 여러 Task를 **관리하는 비동기 컨텍스트 매니저**입니다. [4][13]
+
+
+    정리하면:
+
+    - `asyncio.gather(*aws, return_exceptions=False)`: 여러 awaitable을 동시에 실행하고 **집계된
+    결과(list)** 를 돌려줍니다. [7][13]
+
+    - `asyncio.TaskGroup`: 여러 Task를 **그룹으로 관리**하는 **async context manager**입니다. [4][13]
+
+
+    따라서 문서 기준으로는 `gather()`는 “결과 수집”에 초점이 있고, `TaskGroup`은 “작업 그룹 관리”에 초점이 있습니다. [7][4'
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 25.41
+  passed: false
+  expected_keywords:
+  - gather
+  - TaskGroup
+  - ExceptionGroup
+  matched_keywords:
+  - gather
+  - TaskGroup
+- qid: q007
+  query: 삼성전자와 SK하이닉스의 2025년 HBM 시장 점유율은 각각 몇 %인가요?
+  difficulty: hard
+  type: numerical
+  answer: "컨텍스트에는 **“2025년 HBM 시장 점유율”**(삼성전자 %, SK하이닉스 %)에 대한 수치가 제시되어 있지 않습니다. 대신\
+    \ **HBM 시장 구도(현재 구도)** 또는 **HBM4 시장 점유율 전망**(예: 90% 이상 공급 전망, SK 50% 이상/삼성 40%\
+    \ 안팎)만 확인됩니다. [11], [16], [18]\n\n따라서 요청하신 **2025년 점유율(각각 몇 %)**은 컨텍스트만으로는 확인할\
+    \ 수 없어 **INSUFFICIENT_EVIDENCE**입니다.\n\n- 삼성전자 2025년 HBM 시장 점유율: INSUFFICIENT_EVIDENCE\
+    \  \n- SK하이닉스 2025년 HBM 시장 점유율: INSUFFICIENT_EVIDENCE  \n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 3
+  latency_s: 38.9
+  passed: true
+  expected_keywords:
+  - 삼성
+  - SK하이닉스
+  matched_keywords:
+  - 삼성
+  - SK하이닉스
+- qid: q008
+  query: Counter 객체 간 수학 연산 중 intersection과 union의 동작 차이를 설명하세요.
+  difficulty: hard
+  type: comparison
+  answer: '`Counter` 객체의 수학 연산에서 **intersection**과 **union**은 모두 각 원소의 개수를 기준으로 계산하지만,
+    기준이 다릅니다. `Counter`는 해시 가능한 객체를 키로, 개수를 값으로 저장하는 딕셔너리 서브클래스입니다. [25]
+
+
+    - **intersection (`&`)**: 두 Counter에 공통으로 있는 원소에 대해 **각각의 개수 중 더 작은 값(min)** 을
+    사용합니다. 즉, 두 객체가 모두 가진 원소만 남기고, 그 빈도는 최소값으로 정합니다. [25]
+
+    - **union (`|`)**: 두 Counter에 있는 원소에 대해 **각각의 개수 중 더 큰 값(max)** 을 사용합니다. 즉, 두
+    객체에 등장한 모든 원소를 포함하고, 빈도는 최대값으로 정합니다. [25]
+
+
+    예를 들어, `Counter({''a'': 3, ''b'': 1})`와 `Counter({''a'': 1, ''b'': 2, ''c'': 4})`가
+    있으면:
+
+    - intersection 결과는 `{'''
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 70.08
+  passed: true
+  expected_keywords:
+  - min
+  - max
+  matched_keywords:
+  - min
+  - max
+- qid: q009
+  query: 2025년에서 2028년까지 글로벌 HBM 시장의 연평균 성장률(CAGR)은?
+  difficulty: hard
+  type: numerical
+  answer: "2025년에서 2028년까지 글로벌 HBM 시장의 연평균 성장률(CAGR)은 **약 40%**입니다. [1][3]  \n\n-\
+    \ 2025년: 약 **350억 달러** [1][3]  \n- 2028년: 약 **1,000억 달러** [1][3]  \n- CAGR: 약\
+    \ **40%** [1][3]  \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 1.61
+  passed: true
+  expected_keywords:
+  - 40%
+  matched_keywords:
+  - 40%
+- qid: q010
+  query: asyncio에서 태스크 취소를 방지하는 방법은 무엇이며, 어떻게 작동하나요?
+  difficulty: hard
+  type: reasoning
+  answer: '`asyncio`에서 태스크 취소를 방지하는 방법은 `asyncio.shield(aw)`를 사용하는 것입니다. 이 함수는 awaitable을
+    취소로부터 보호합니다. [26]
+
+
+    작동 방식은, 바깥쪽에서 취소가 발생하더라도 `shield()`로 감싼 awaitable 자체는 취소되지 않도록 유지하는 것입니다. 즉, 취소
+    전파를 막아 해당 작업이 계속 진행되게 합니다. [26]
+
+
+    참고로 `asyncio.TaskGroup`은 반대로, 어떤 태스크가 실패하면 나머지 태스크를 취소하는 방식으로 동작하므로 취소 방지와는 목적이
+    다릅니다. [27]'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 78.77
+  passed: true
+  expected_keywords:
+  - shield
+  matched_keywords:
+  - shield
+- qid: q011
+  query: defaultdict와 ChainMap의 용도 차이를 설명하세요.
+  difficulty: hard
+  type: comparison
+  answer: '`defaultdict`와 `ChainMap`은 둘 다 `collections` 모듈의 컨테이너 타입이지만, 용도가 다릅니다.
+    `defaultdict`는 **없는 키에 대해 기본값을 자동으로 생성하는 dict 서브클래스**이고, `ChainMap`은 **여러 개의 매핑(dict
+    등)을 하나의 뷰처럼 묶어서 보는 dict-like 클래스**입니다. [11]
+
+
+    - `defaultdict`: 키가 없을 때 `default_factory`를 사용해 값을 만들어 주므로, 카운팅이나 그룹핑처럼 “없는 키를
+    자동 초기화”해야 할 때 유용합니다. [11]
+
+    - `ChainMap`: 여러 딕셔너리를 하나의 논리적 맵처럼 다루며, 여러 설정값/스코프를 겹쳐서 조회해야 할 때 유용합니다. [11]
+
+
+    즉, `defaultdict`는 **“없는 키 처리”**에 초점이 있고, `ChainMap`은 **“여러 맵을 한 번에 조회”**하는 데 초점이
+    있습니다. [11]'
+  confidence: strongly_supported
+  sources_count: 1
+  latency_s: 71.37
+  passed: true
+  expected_keywords:
+  - defaultdict
+  - ChainMap
+  matched_keywords:
+  - defaultdict
+  - ChainMap
+- qid: q012
+  query: SK하이닉스의 2025년 영업이익은 전년 대비 얼마나 증가했나요?
+  difficulty: hard
+  type: numerical
+  answer: "SK하이닉스의 **2025년 영업이익은 전년 대비 101.2% 증가**했습니다. [5], [6]\n\n- **2025년 연간 영업이익:**\
+    \ 47조2063억원 [5], [6]  \n- **전년(2024년) 연간 영업이익:** 23조4673억원 [5], [6]  \n- **증가액:**\
+    \ 23조7390억원 [5], [6]  \n- **증가율:** 101.2% [5], [6]\n\n(요청하신 “실적 공시 매출” 항목은, 제공된\
+    \ 컨텍스트에서 SK하이닉스의 **2025년 매출**과 **영업이익 비교**는 함께 제시되어 있으나, “전년 대비 매출” 수치 비교는 영업이익\
+    \ 비교만큼 명확히 제공되지 않았습니다. 매출 수치는 332조7,700억원으로만 확인됩니다. [5], [6])\n\n**신뢰도:** STRONGLY_SUPPORTED"
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 41.74
+  passed: true
+  expected_keywords:
+  - 101.2%
+  - 23조7390억
+  matched_keywords:
+  - 101.2%
+  - 23조7390억
+- qid: q013
+  query: 2026년 HBM 시장에서 HBM4와 HBM3E의 예상 비중은?
+  difficulty: hard
+  type: numerical
+  answer: "2026년 HBM 시장에서 **HBM4 예상 비중은 55%**, **HBM3E 예상 비중은 45%**입니다. [1][2][3][8][9][10]\
+    \  \n\n- HBM4 비중: **55%** [1][2][3][8][9][10]  \n- HBM3E 비중: **45%** [1][2][3][8][9][10]\
+    \  \n\n**신뢰도: STRONGLY_SUPPORTED**"
+  confidence: strongly_supported
+  sources_count: 6
+  latency_s: 22.82
+  passed: true
+  expected_keywords:
+  - 55%
+  - 45%
+  matched_keywords:
+  - 55%
+  - 45%
+- qid: q014
+  query: 두 뉴스 기사에서 삼성전자의 HBM 점유율 수치가 다르게 보도되었는데, 각각 얼마인가요?
+  difficulty: extreme
+  type: cross_doc
+  answer: "두 뉴스 기사에서 보도된 **삼성전자의 HBM 점유율 수치**는 다음과 같습니다.\n\n- **17%** ([Source 2])\
+    \  \n- **(다른 기사 수치)**: 컨텍스트에는 삼성전자의 HBM 점유율이 **17% 외에 다른 값으로 명시된 항목이 없습니다.** 따라서\
+    \ 두 번째 기사에서의 삼성전자 HBM 점유율 수치는 **컨텍스트만으로는 확인할 수 없습니다.** ([Source 3]은 Source 2와\
+    \ 동일한 수치 구조를 포함하지만, 삼성전자 점유율은 17%로만 제시되어 있습니다.)\n\n**신뢰도 평가: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 45
+  latency_s: 3.56
+  passed: false
+  expected_keywords:
+  - 17%
+  - 40%
+  matched_keywords:
+  - 17%
+- qid: q015
+  query: 삼성전자와 SK하이닉스의 2025년 합산 영업이익에서 각 회사가 차지하는 비중은?
+  difficulty: extreme
+  type: numerical
+  answer: '2025년 **합산 영업이익(삼성전자+SK하이닉스)**은 **90조8074억원**입니다. [1][2]
+
+
+    각 회사의 2025년 영업이익은 다음과 같습니다.
+
+    - **삼성전자 2025년 영업이익: 43조5,300억원** [12][13]
+
+    - **SK하이닉스 2025년 영업이익: 47조2,063억원** [11][12][13]
+
+
+    따라서 비중은 합산(90조8074억원) 대비로 계산하면,
+
+    - **삼성전자 비중** = 43조5,300억원 / 90조8,074억원 ≈ **47.9%**
+
+    - **SK하이닉스 비중** = 47조2,063억원 / 90조8,074억원 ≈ **52.1%**
+
+
+    (계산에 사용한 합산 영업이익 및 개별 영업이익 출처: [1][2], [11][12][13])
+
+
+    **신뢰도: STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 5
+  latency_s: 10.65
+  passed: true
+  expected_keywords:
+  - 삼성
+  - SK하이닉스
+  - 43조
+  - 47조
+  matched_keywords:
+  - 삼성
+  - SK하이닉스
+  - 43조
+  - 47조
+- qid: q016
+  query: Python asyncio의 eager_task_factory가 HBM4 반도체 설계에 사용되나요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "제공된 컨텍스트만으로는 **Python asyncio의 `eager_task_factory`가 HBM4 반도체 설계에 사용되는지**를\
+    \ 확인할 수 없습니다. 컨텍스트에는 `asyncio.eager_task_factory`의 동작(태스크 생성 시 동기적으로 실행이 시작되고,\
+    \ 이벤트 루프에서 블로킹이 있을 때만 스케줄된다는 점)만 있고, HBM4 반도체 설계/개발 도구나 공정·설계 흐름과의 연관 정보는 없습니다.\
+    \ [1]\n\n따라서 결론은 **INSUFFICIENT_EVIDENCE** 입니다.\n\n- `asyncio.eager_task_factory`가\
+    \ 무엇을 하는지: 태스크 팩토리로서 “eager task execution”을 위한 동작 설명만 존재 [1]  \n- HBM4 반도체 설계에\
+    \ 사용되는지 여부: 컨텍스트에 관련 근거 없음 [1]\n\n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 1
+  latency_s: 13.97
+  passed: true
+  expected_keywords:
+  - INSUFFICIENT
+  - 없
+  - 관련 없
+  - 확인할 수 없
+  matched_keywords:
+  - INSUFFICIENT
+  - 없
+  - 확인할 수 없
+- qid: q017
+  query: asyncio.wait()의 return_when 파라미터에 FIRST_COMPLETED를 사용하면 나머지 태스크는 어떻게 되나요?
+  difficulty: extreme
+  type: reasoning
+  answer: '`asyncio.wait()`에서 `return_when=FIRST_COMPLETED`를 사용하면, **아무 하나의 Future/Task가
+    완료되는 즉시** `wait()`가 반환됩니다. 이때 반환값은 `(done, pending)` 집합이며, **완료된 것들은 `done`에**,
+    **아직 끝나지 않은 나머지 태스크들은 `pending`에 남습니다**. 즉, `FIRST_COMPLETED`는 “첫 완료 시점에 반환”할
+    뿐, 나머지 태스크를 자동으로 취소하지는 않습니다. [1][2][3]
+
+
+    따라서 질문에 대한 답은: **나머지 태스크는 취소되지 않고 `pending` 상태로 남습니다.** [1][2][3]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 3
+  latency_s: 8.36
+  passed: true
+  expected_keywords:
+  - pending
+  - done
+  matched_keywords:
+  - pending
+  - done
+- qid: q018
+  query: 마이크론의 HBM 시장 점유율은 삼성전자보다 높은가요?
+  difficulty: extreme
+  type: reasoning
+  answer: "아니요. 컨텍스트에 따르면 **마이크론(미국)은 “나머지”**로만 제시되어 있고, **삼성전자(40% 안팎)**가 마이크론보다\
+    \ 높은 것으로 나타납니다. [4][5][6]\n\n- 삼성전자: **40% 안팎** [4][5][6]  \n- 마이크론: **나머지**(정확한\
+    \ 수치 미제시) [4][5][6]\n\n따라서 “마이크론의 HBM 시장 점유율이 삼성전자보다 높은가?”에 대해 **높다고 확인할 근거가 없습니다(오히려\
+    \ 삼성전자가 더 높게 제시됨)**. [4][5][6]\n\n**신뢰도: PARTIALLY_SUPPORTED** (마이크론의 정확한 점유율\
+    \ 수치가 없어 “삼성전자보다 낮다”를 수치로 확정하긴 어렵습니다.)"
+  confidence: partially_supported
+  sources_count: 3
+  latency_s: 7.53
+  passed: true
+  expected_keywords:
+  - 마이크론
+  - 삼성
+  - 낮
+  matched_keywords:
+  - 마이크론
+  - 삼성
+  - 낮
+- qid: q019
+  query: OrderedDict의 move_to_end 메서드를 활용한 LRU 캐시 구현에서 maxsize를 초과하면 어떤 항목이 제거되나요?
+  difficulty: extreme
+  type: reasoning
+  answer: '`OrderedDict`를 이용한 LRU 캐시 예시에서는 `maxsize`를 초과하면 `popitem(last=False)`가
+    호출되어, **가장 먼저 들어온 항목(FIFO, 즉 오래된 항목)** 이 제거됩니다. 또한 `move_to_end(args)`로 최근 사용한
+    항목을 끝으로 보내므로, 남아 있는 항목 중 가장 덜 최근에 사용된 것이 앞쪽에 위치하게 됩니다. [1][2]
+
+
+    신뢰도: **STRONGLY_SUPPORTED**'
+  confidence: strongly_supported
+  sources_count: 2
+  latency_s: 5.29
+  passed: true
+  expected_keywords:
+  - popitem
+  - last=False
+  - 오래된
+  - oldest
+  - FIFO
+  matched_keywords:
+  - popitem
+  - last=False
+  - 오래된
+  - FIFO
+- qid: q020
+  query: 인텔의 HBM 시장 진출 현황은 어떤가요?
+  difficulty: extreme
+  type: hallucination_test
+  answer: "제공된 컨텍스트에는 **인텔(Intel)의 HBM 시장 진출 현황**(예: HBM 제품 출시 여부, 양산/출하 시점, 시장 점유율,\
+    \ 고객/공급 계약 등)에 대한 정보가 없습니다. 따라서 현재로서는 답변을 구성할 근거가 부족합니다.  \n\n- INSUFFICIENT_EVIDENCE\n\
+    \n**신뢰도: INSUFFICIENT_EVIDENCE**"
+  confidence: insufficient_evidence
+  sources_count: 60
+  latency_s: 2.75
+  passed: true
+  expected_keywords:
+  - INSUFFICIENT
+  - 없
+  - 언급되지 않
+  - 확인할 수 없
+  matched_keywords:
+  - INSUFFICIENT
+  - 없
+summary:
+  total: 20
+  passed: 17
+  failed: 3
+  timeout: 0
+  pass_rate: 0.85
+  avg_latency_s: 25.1
+  wall_time_s: 169.32
+  by_difficulty:
+    easy:
+      total: 5
+      passed: 4
+      pass_rate: 0.8
+    hard:
+      total: 8
+      passed: 7
+      pass_rate: 0.875
+    extreme:
+      total: 7
+      passed: 6
+      pass_rate: 0.8571
+  by_type:
+    comparison:
+      total: 3
+      passed: 2
+      pass_rate: 0.6667
+    cross_doc:
+      total: 1
+      passed: 0
+      pass_rate: 0.0
+    factual:
+      total: 5
+      passed: 4
+      pass_rate: 0.8
+    hallucination_test:
+      total: 2
+      passed: 2
+      pass_rate: 1.0
+    numerical:
+      total: 5
+      passed: 5
+      pass_rate: 1.0
+    reasoning:
+      total: 4
+      passed: 4
+      pass_rate: 1.0

@@ -1,0 +1,276 @@
+questions:
+  # ===== EASY (5) — 단일 소스, 직접적 사실 조회 (테이블 정확 추출 포함) =====
+
+  - id: q001
+    query: "LLM 벤치마크 종합 점수 1위 모델은 무엇이고 몇 점인가요?"
+    expected_keywords: ["GPT-5.2", "90.3"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["001"]
+
+  - id: q002
+    query: "EU AI Act에서 금지되는 AI 활용 유형은 몇 가지인가요?"
+    expected_keywords: ["8", "eight"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: numerical
+    source_ids: ["004"]
+
+  - id: q003
+    query: "한국 AI 기본법은 언제 시행되나요?"
+    expected_keywords: ["2026년 1월 22일", "2026년 1월"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["005"]
+
+  - id: q004
+    query: "포브스코리아 대한민국 AI 50에서 1위 기업은?"
+    expected_keywords: ["포티투닷"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: factual
+    source_ids: ["006"]
+
+  - id: q005
+    query: "2026년 HBM 시장 규모는 얼마로 전망되나요?"
+    expected_keywords: ["546억", "546"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: easy
+    type: numerical
+    source_ids: ["002"]
+
+  # ===== HARD (12) — 밀집 테이블 정밀 추출, 소스 간 수치 교차, 시간순서 추론 =====
+
+  - id: q006
+    query: "GPQA Diamond 벤치마크에서 1위 모델과 점수는?"
+    expected_keywords: ["Gemini 3.1 Pro", "94.3"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["001"]
+
+  - id: q007
+    query: "가장 비용효율이 높은 LLM 모델은 무엇이며 효율 점수는?"
+    expected_keywords: ["DeepSeek V3.2", "310.86"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["001"]
+
+  - id: q008
+    query: "SK하이닉스의 2025년 3분기 영업이익은 얼마인가요?"
+    expected_keywords: ["11조3,834억", "11조3834억", "113834"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["003"]
+
+  - id: q009
+    query: "삼성전자의 HBM 점유율이 2025년 2분기에서 3분기 사이 어떻게 변화했나요?"
+    expected_keywords: ["17%", "35%"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["002"]
+
+  - id: q010
+    query: "EU AI Act에서 금지된 AI 관행 위반 시 최대 벌금은?"
+    expected_keywords: ["35", "7%"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["004"]
+
+  - id: q011
+    query: "한국 AI 기본법에서 고영향 AI로 분류되는 분야 수와 EU AI Act의 고위험 분야 수를 비교하세요."
+    expected_keywords: ["11", "8"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["004", "005"]
+
+  - id: q012
+    query: "대한민국 AI 50에서 투자유치액이 가장 높은 기업은 어디이며 얼마인가요?"
+    expected_keywords: ["포티투닷", "5,767억"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["006"]
+
+  - id: q013
+    query: "대한민국 AI 50 중 AI 반도체(NPU) 분야 기업들을 모두 나열하세요."
+    expected_keywords: ["리벨리온", "딥엑스", "퓨리오사"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["006"]
+
+  - id: q014
+    query: "미국이 인텔에 지원한 반도체 보조금은 얼마이며, 한국의 삼성·SK 직접 지원과 비교하면?"
+    expected_keywords: ["85억 달러", "지원 없음"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: hard
+    type: comparison
+    source_ids: ["003"]
+
+  - id: q015
+    query: "Claude Opus 4.6의 벤치마크 종합 점수, 가격, 속도를 알려주세요."
+    expected_keywords: ["89.6", "15", "60"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["001"]
+
+  - id: q016
+    query: "한국 AI 기본법의 안전성 확보 의무 대상이 되는 AI 시스템의 연산량 기준은?"
+    expected_keywords: ["10²⁶", "10^26", "FLOP"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: factual
+    source_ids: ["005"]
+
+  - id: q017
+    query: "2025년 HBM 시장 성장률은 전년 대비 몇 퍼센트 증가했나요?"
+    expected_keywords: ["81%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: hard
+    type: numerical
+    source_ids: ["003"]
+
+  # ===== EXTREME (13) — 크로스-소스 모순 검증, 3-hop 추론, 부정/배제, 환각 테스트 =====
+
+  - id: q018
+    query: "2025년 2분기 HBM 시장에서 SK하이닉스, 삼성전자, 마이크론의 점유율을 소스별로 비교하면 수치가 일치하나요?"
+    expected_keywords: ["62%", "17%", "21%"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["002", "003"]
+
+  - id: q019
+    query: "EU AI Act에서는 금지하지만 한국 AI 기본법에서는 명시적으로 금지하지 않는 AI 활용 유형은?"
+    expected_keywords: ["social scoring", "소셜 스코어링", "사회적 점수", "biometric", "생체", "예측 치안", "predictive"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: cross_doc
+    source_ids: ["004", "005"]
+
+  - id: q020
+    query: "EU AI Act의 최대 벌금(3,500만 유로)과 한국 AI 기본법의 최대 과태료(3천만원)의 격차는 약 몇 배인가요?"
+    expected_keywords: ["1000", "천"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["004", "005"]
+
+  - id: q021
+    query: "대한민국 AI 50 기업 중 매출이 가장 높은 상위 3개 기업과 매출액은?"
+    expected_keywords: ["몰로코", "478억", "아이헤이트플라잉버그스", "376억"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: numerical
+    source_ids: ["006"]
+
+  - id: q022
+    query: "대한민국 AI 50 기업 중 특허는 100건 이상이지만 매출이 100억원 미만인 기업이 있나요?"
+    expected_keywords: ["에이젠글로벌", "노타", "47억", "84억"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["006"]
+
+  - id: q023
+    query: "LLM 벤치마크에서 코딩 분야 1위 모델이 종합 순위에서는 몇 위인가요?"
+    expected_keywords: ["GPT-5.3 Codex", "5위"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q024
+    query: "SK하이닉스의 분기별 영업이익 추이(2025년 1~4분기)를 보면 분기당 평균 증가액은 대략 얼마인가요?"
+    expected_keywords: ["2조", "약 2조", "23000억", "2.3조"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["003"]
+
+  - id: q025
+    query: "오픈소스 LLM의 평균 벤치마크 점수와 상용 LLM의 평균 벤치마크 점수 차이는 약 몇 점인가요?"
+    expected_keywords: ["15", "16", "15.9"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: numerical
+    source_ids: ["001"]
+
+  - id: q026
+    query: "한국 AI 기본법에서 해외 AI 사업자의 국내 대리인 지정 의무를 지는 3가지 조건을 모두 알려주세요."
+    expected_keywords: ["1조", "100억", "100만"]
+    match_mode: all
+    expect_insufficient: false
+    difficulty: extreme
+    type: factual
+    source_ids: ["005"]
+
+  - id: q027
+    query: "GPT-5.2가 모든 벤치마크에서 1위를 차지했나요?"
+    expected_keywords: ["아니", "GPQA", "Gemini", "HumanEval", "Codex", "HellaSwag", "GPT-4o"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["001"]
+
+  - id: q028
+    query: "EU AI Act에서 자율주행차의 AI 시스템은 어떤 위험 등급으로 분류되나요?"
+    expected_keywords: ["high-risk", "고위험", "high risk"]
+    match_mode: any
+    expect_insufficient: false
+    difficulty: extreme
+    type: reasoning
+    source_ids: ["004"]
+
+  - id: q029
+    query: "중국의 AI 규제법이 한국 AI 기본법보다 먼저 시행되었다는 것이 맞나요?"
+    expected_keywords: ["insufficient", "정보가 부족"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
+
+  - id: q030
+    query: "Anthropic이 임베딩 모델을 자체 개발하여 Claude Opus 4.6에 탑재했다는 것이 사실인가요?"
+    expected_keywords: ["insufficient", "정보가 부족"]
+    match_mode: any
+    expect_insufficient: true
+    difficulty: extreme
+    type: hallucination_test
+    source_ids: []
