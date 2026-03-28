@@ -16,6 +16,7 @@ class IngestRequest(BaseModel):
     recursive: bool = True
     metadata: dict[str, Any] | None = None
     chunking_strategy: str | None = Field(default=None, max_length=100)
+    mode: str | None = Field(default=None, description="Ingest mode: full, fast, or minimal")
 
 
 class QueryRequest(BaseModel):

@@ -316,13 +316,15 @@ class TestEvaluator:
         benchmark_file.write_text(json.dumps(benchmark))
 
         engine = self._make_mock_engine()
-        engine.aquery = AsyncMock(return_value=QueryResult(
-            answer="Python is a programming language.",
-            sources=[
-                Source(chunk_id="c1", excerpt="Python is a programming language used widely."),
-            ],
-            confidence=Confidence.STRONGLY_SUPPORTED,
-        ))
+        engine.aquery = AsyncMock(
+            return_value=QueryResult(
+                answer="Python is a programming language.",
+                sources=[
+                    Source(chunk_id="c1", excerpt="Python is a programming language used widely."),
+                ],
+                confidence=Confidence.STRONGLY_SUPPORTED,
+            )
+        )
 
         evaluator = Evaluator(engine)
         result = await evaluator.evaluate(benchmark_file=str(benchmark_file))
@@ -366,16 +368,18 @@ class TestEvaluator:
         benchmark_file.write_text(json.dumps(benchmark))
 
         engine = self._make_mock_engine()
-        engine.aquery = AsyncMock(return_value=QueryResult(
-            answer="The revenue was 10 million dollars in 2024.",
-            sources=[
-                Source(
-                    chunk_id="c1",
-                    excerpt="The revenue was 10 million dollars in 2024.",
-                ),
-            ],
-            confidence=Confidence.STRONGLY_SUPPORTED,
-        ))
+        engine.aquery = AsyncMock(
+            return_value=QueryResult(
+                answer="The revenue was 10 million dollars in 2024.",
+                sources=[
+                    Source(
+                        chunk_id="c1",
+                        excerpt="The revenue was 10 million dollars in 2024.",
+                    ),
+                ],
+                confidence=Confidence.STRONGLY_SUPPORTED,
+            )
+        )
 
         evaluator = Evaluator(engine)
         result = await evaluator.evaluate(benchmark_file=str(benchmark_file))
@@ -396,69 +400,81 @@ class TestEvaluator:
 class TestWeaknessAnalysis:
     def test_all_metrics_good(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.95,
-            "faithfulness": 0.85,
-            "answer_relevancy": 0.75,
-            "token_f1": 0.65,
-            "latency": 1.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.95,
+                "faithfulness": 0.85,
+                "answer_relevancy": 0.75,
+                "token_f1": 0.65,
+                "latency": 1.0,
+            }
+        )
         assert len(suggestions) == 1
         assert "Good job" in suggestions[0]
 
     def test_low_recall(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.3,
-            "faithfulness": 0.85,
-            "answer_relevancy": 0.75,
-            "token_f1": 0.65,
-            "latency": 1.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.3,
+                "faithfulness": 0.85,
+                "answer_relevancy": 0.75,
+                "token_f1": 0.65,
+                "latency": 1.0,
+            }
+        )
         assert any("recall" in s.lower() for s in suggestions)
 
     def test_low_faithfulness(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.9,
-            "faithfulness": 0.3,
-            "answer_relevancy": 0.75,
-            "token_f1": 0.65,
-            "latency": 1.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.9,
+                "faithfulness": 0.3,
+                "answer_relevancy": 0.75,
+                "token_f1": 0.65,
+                "latency": 1.0,
+            }
+        )
         assert any("faithfulness" in s.lower() for s in suggestions)
 
     def test_low_relevancy(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.9,
-            "faithfulness": 0.85,
-            "answer_relevancy": 0.2,
-            "token_f1": 0.65,
-            "latency": 1.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.9,
+                "faithfulness": 0.85,
+                "answer_relevancy": 0.2,
+                "token_f1": 0.65,
+                "latency": 1.0,
+            }
+        )
         assert any("relevancy" in s.lower() for s in suggestions)
 
     def test_high_latency(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.9,
-            "faithfulness": 0.85,
-            "answer_relevancy": 0.75,
-            "token_f1": 0.65,
-            "latency": 10.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.9,
+                "faithfulness": 0.85,
+                "answer_relevancy": 0.75,
+                "token_f1": 0.65,
+                "latency": 10.0,
+            }
+        )
         assert any("latency" in s.lower() for s in suggestions)
 
     def test_multiple_weaknesses(self) -> None:
         evaluator = Evaluator(MagicMock())
-        suggestions = evaluator._analyze_weaknesses({
-            "retrieval_recall@5": 0.2,
-            "faithfulness": 0.3,
-            "answer_relevancy": 0.1,
-            "token_f1": 0.1,
-            "latency": 20.0,
-        })
+        suggestions = evaluator._analyze_weaknesses(
+            {
+                "retrieval_recall@5": 0.2,
+                "faithfulness": 0.3,
+                "answer_relevancy": 0.1,
+                "token_f1": 0.1,
+                "latency": 20.0,
+            }
+        )
         assert len(suggestions) == 5
 
 

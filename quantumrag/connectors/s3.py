@@ -66,9 +66,7 @@ class S3Connector:
         try:
             import boto3
         except ImportError as e:
-            raise ImportError(
-                "S3 connector requires boto3. Install with: pip install boto3"
-            ) from e
+            raise ImportError("S3 connector requires boto3. Install with: pip install boto3") from e
 
         self._client = boto3.client("s3", **self._boto_kwargs)
         return self._client

@@ -119,5 +119,3 @@ def _has_factual_content(sentence: str) -> bool:
     # Contains capitalized words that look like proper nouns (English named entities)
     tokens = sentence.split()
     return any(t[0].isupper() and len(t) > 1 for t in tokens if t and t[0].isalpha())
-
-

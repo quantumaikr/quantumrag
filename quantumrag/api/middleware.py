@@ -20,6 +20,7 @@ logger = structlog.get_logger("quantumrag.api")
 # API key authentication
 # ---------------------------------------------------------------------------
 
+
 def setup_api_key_auth(app: FastAPI, api_key: str | None = None) -> None:
     """Add optional API key authentication middleware.
 
@@ -48,6 +49,7 @@ def setup_api_key_auth(app: FastAPI, api_key: str | None = None) -> None:
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------
+
 
 def setup_cors(
     app: FastAPI,
@@ -90,6 +92,7 @@ def setup_cors(
 # Request logging
 # ---------------------------------------------------------------------------
 
+
 def setup_request_logging(app: FastAPI) -> None:
     """Log every request with method, path, status and latency."""
 
@@ -111,6 +114,7 @@ def setup_request_logging(app: FastAPI) -> None:
 # ---------------------------------------------------------------------------
 # Request ID tracking
 # ---------------------------------------------------------------------------
+
 
 def setup_request_id(app: FastAPI) -> None:
     """Add request ID tracking — extracts ``X-Request-ID`` from the incoming

@@ -22,6 +22,7 @@ from quantumrag.core.retrieve.reranker import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_chunks(n: int = 5) -> list[ScoredChunk]:
     """Create *n* dummy scored chunks."""
     return [
@@ -41,6 +42,7 @@ def _make_chunks(n: int = 5) -> list[ScoredChunk]:
 # ---------------------------------------------------------------------------
 # CohereReranker
 # ---------------------------------------------------------------------------
+
 
 class TestCohereReranker:
     @pytest.mark.asyncio
@@ -104,6 +106,7 @@ class TestCohereReranker:
 # JinaReranker
 # ---------------------------------------------------------------------------
 
+
 class TestJinaReranker:
     @pytest.mark.asyncio
     async def test_rerank_calls_api_and_returns_reranked(self) -> None:
@@ -166,6 +169,7 @@ class TestJinaReranker:
 # create_reranker factory
 # ---------------------------------------------------------------------------
 
+
 class TestCreateReranker:
     def test_flashrank(self) -> None:
         r = create_reranker("flashrank")
@@ -187,6 +191,7 @@ class TestCreateReranker:
 # ---------------------------------------------------------------------------
 # BudgetManager
 # ---------------------------------------------------------------------------
+
 
 class TestBudgetManager:
     def test_daily_limit_raises(self, tmp_path: Path) -> None:
@@ -215,9 +220,7 @@ class TestBudgetManager:
         mgr.check_budget()  # should not raise
 
     def test_usage_summary(self, tmp_path: Path) -> None:
-        mgr = BudgetManager(
-            db_path=tmp_path / "budget.db", daily_limit=10.0, monthly_limit=100.0
-        )
+        mgr = BudgetManager(db_path=tmp_path / "budget.db", daily_limit=10.0, monthly_limit=100.0)
         mgr.record_cost(2.50)
         mgr.record_cost(1.25)
 

@@ -94,6 +94,7 @@ class AutoChunker:
         # Emit chunk signals
         try:
             from quantumrag.core.pipeline.signals import emit_chunk_signals
+
             chunks = emit_chunk_signals(chunks, document_profile=document_profile)
         except Exception as e:
             logger.debug("chunk_signal_emission_skipped", error=str(e))

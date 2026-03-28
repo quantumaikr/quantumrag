@@ -337,8 +337,6 @@ class TestFilterKeyValidation:
             _validate_filter_key("")
 
     @pytest.mark.asyncio
-    async def test_list_documents_rejects_bad_filter_key(
-        self, store: SQLiteDocumentStore
-    ) -> None:
+    async def test_list_documents_rejects_bad_filter_key(self, store: SQLiteDocumentStore) -> None:
         with pytest.raises(ValueError, match="Invalid filter key"):
             await store.list_documents(filters={"bad;key": "value"})

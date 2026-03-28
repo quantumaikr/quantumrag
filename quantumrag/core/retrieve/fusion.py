@@ -47,8 +47,18 @@ class FusionRetriever:
         query: str,
         top_k: int = 5,
         filters: dict[str, Any] | None = None,
+        weights: dict[str, float] | None = None,
     ) -> list[ScoredChunk]:
-        """Run fusion search across all three indexes."""
+        """Run fusion search across all three indexes.
+
+        Args:
+            query: Search query text.
+            top_k: Number of results to return.
+            filters: Optional metadata filters.
+            weights: Per-query weight overrides for RRF fusion.  Keys are
+                ``"original"``, ``"hype"``, ``"bm25"``.  When *None* the
+                instance-level ``self._weights`` are used.
+        """
         # Embed query once, use for both vector searches (with cache)
         if query in self._embed_cache:
             query_vector = self._embed_cache[query]
@@ -72,11 +82,13 @@ class FusionRetriever:
         # Map HyPE results back to chunk IDs
         hype_chunk_results = self._map_hype_to_chunks(hype_results)
 
-        # Fuse with RRF
+        # Fuse with RRF (use per-query weights when provided)
+        effective_weights = weights if weights is not None else self._weights
         fused = self._reciprocal_rank_fusion(
             original=original_results,
             hype=hype_chunk_results,
             bm25=bm25_results,
+            weights=effective_weights,
         )
 
         # Take top_k and retrieve full chunks in a single batch query
@@ -105,6 +117,7 @@ class FusionRetriever:
             hype_hits=len(hype_results),
             bm25_hits=len(bm25_results),
             fused_results=len(scored_chunks),
+            weights=effective_weights,
         )
         return scored_chunks
 
@@ -137,17 +150,23 @@ class FusionRetriever:
         original: list[VectorSearchResult],
         hype: list[VectorSearchResult],
         bm25: list[BM25SearchResult],
+        weights: dict[str, float] | None = None,
     ) -> list[tuple[str, float]]:
         """Combine results using Reciprocal Rank Fusion.
 
         RRF score = sum(weight / (k + rank)) for each result list
+
+        Args:
+            weights: Optional weight overrides.  Falls back to
+                ``self._weights`` when *None*.
         """
         scores: dict[str, float] = {}
         k = self._rrf_k
 
-        w_original = self._weights.get("original", 0.4)
-        w_hype = self._weights.get("hype", 0.35)
-        w_bm25 = self._weights.get("bm25", 0.25)
+        w = weights if weights is not None else self._weights
+        w_original = w.get("original", 0.4)
+        w_hype = w.get("hype", 0.35)
+        w_bm25 = w.get("bm25", 0.25)
 
         for rank, result in enumerate(original):
             scores[result.id] = scores.get(result.id, 0.0) + w_original / (k + rank + 1)

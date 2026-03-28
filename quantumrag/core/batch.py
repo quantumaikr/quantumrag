@@ -82,9 +82,7 @@ class BatchJob:
             "success": self.success_count,
             "errors": self.error_count,
             "elapsed_seconds": round(self.elapsed_seconds, 2),
-            "avg_latency_ms": (
-                round(sum(latencies) / len(latencies), 1) if latencies else 0
-            ),
+            "avg_latency_ms": (round(sum(latencies) / len(latencies), 1) if latencies else 0),
         }
 
 
@@ -150,11 +148,15 @@ class BatchProcessor:
                     )
                     bq.result = {
                         "answer": result.answer,
-                        "confidence": result.confidence.value if hasattr(result.confidence, "value") else str(result.confidence),
+                        "confidence": result.confidence.value
+                        if hasattr(result.confidence, "value")
+                        else str(result.confidence),
                         "sources": [
                             {"document": s.document, "excerpt": s.excerpt[:200]}
                             for s in result.sources
-                        ] if result.sources else [],
+                        ]
+                        if result.sources
+                        else [],
                     }
                 except Exception as e:
                     bq.error = str(e)

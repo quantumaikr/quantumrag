@@ -43,10 +43,21 @@ class IncrementalResult:
 
 # Common document extensions
 _DOC_EXTENSIONS = {
-    ".txt", ".md", ".pdf", ".docx", ".doc",
-    ".xlsx", ".xls", ".pptx", ".ppt",
-    ".html", ".htm", ".csv", ".json",
-    ".hwp", ".hwpx",
+    ".txt",
+    ".md",
+    ".pdf",
+    ".docx",
+    ".doc",
+    ".xlsx",
+    ".xls",
+    ".pptx",
+    ".ppt",
+    ".html",
+    ".htm",
+    ".csv",
+    ".json",
+    ".hwp",
+    ".hwpx",
 }
 
 
@@ -82,13 +93,13 @@ class IncrementalIndexer:
         elif path.is_dir():
             if recursive:
                 current_files = [
-                    f for f in path.rglob("*")
+                    f
+                    for f in path.rglob("*")
                     if f.is_file() and f.suffix.lower() in _DOC_EXTENSIONS
                 ]
             else:
                 current_files = [
-                    f for f in path.iterdir()
-                    if f.is_file() and f.suffix.lower() in _DOC_EXTENSIONS
+                    f for f in path.iterdir() if f.is_file() and f.suffix.lower() in _DOC_EXTENSIONS
                 ]
         else:
             return changes
@@ -158,7 +169,9 @@ class IncrementalIndexer:
         # Add new files
         for file_path in changes.added:
             try:
-                await indexer.ingest_file(file_path, extra_metadata={"content_hash": _file_hash(file_path)})
+                await indexer.ingest_file(
+                    file_path, extra_metadata={"content_hash": _file_hash(file_path)}
+                )
                 result.added += 1
             except Exception:
                 logger.warning("add_failed", path=str(file_path), exc_info=True)
@@ -173,7 +186,9 @@ class IncrementalIndexer:
                 for doc in docs:
                     await self._store.delete_document(doc.id)
 
-                await indexer.ingest_file(file_path, extra_metadata={"content_hash": _file_hash(file_path)})
+                await indexer.ingest_file(
+                    file_path, extra_metadata={"content_hash": _file_hash(file_path)}
+                )
                 result.updated += 1
             except Exception:
                 logger.warning("update_failed", path=str(file_path), exc_info=True)

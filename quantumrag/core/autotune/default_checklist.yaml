@@ -1,0 +1,71 @@
+# QuantumRAG Quality Checklist
+# AutoTune uses this to evaluate parameter configurations.
+# Each criterion is scored and weighted into a composite objective.
+#
+# Directions:
+#   maximize: higher is better (e.g., pass rate, recall)
+#   minimize: lower is better (e.g., latency, cost)
+
+name: "QuantumRAG Default Quality Checklist"
+version: "1.0"
+
+criteria:
+  # --- Accuracy (60% weight) ---
+  - id: scenario_pass_rate
+    description: "시나리오 테스트 전체 통과율 (107개 시나리오)"
+    target: 0.95
+    weight: 0.35
+    metric: scenario_pass_rate
+    direction: maximize
+
+  - id: hard_scenario_pass_rate
+    description: "Hard + Extreme 난이도 통과율 (50개 시나리오)"
+    target: 0.90
+    weight: 0.15
+    metric: hard_scenario_pass_rate
+    direction: maximize
+
+  - id: faithfulness
+    description: "답변 충실도 — 할루시네이션 없이 출처에 근거한 답변"
+    target: 0.70
+    weight: 0.10
+    metric: faithfulness
+    direction: maximize
+
+  # --- Retrieval (20% weight) ---
+  - id: retrieval_recall
+    description: "검색 재현율 (Recall@5) — 정답 소스가 상위 5개에 포함"
+    target: 0.80
+    weight: 0.12
+    metric: retrieval_recall
+    direction: maximize
+
+  - id: context_precision
+    description: "컨텍스트 정밀도 — 검색된 청크 중 실제 사용 비율"
+    target: 0.70
+    weight: 0.08
+    metric: context_precision
+    direction: maximize
+
+  # --- Performance (12% weight) ---
+  - id: latency_p95
+    description: "P95 응답 시간 ≤ 5초"
+    target: 5.0
+    weight: 0.07
+    metric: latency_p95
+    direction: minimize
+
+  - id: latency_median
+    description: "중앙값 응답 시간 ≤ 3초"
+    target: 3.0
+    weight: 0.05
+    metric: latency_median
+    direction: minimize
+
+  # --- Cost (8% weight) ---
+  - id: cost_efficiency
+    description: "쿼리 복잡도 대비 모델 티어 적정성"
+    target: 0.70
+    weight: 0.08
+    metric: cost_efficiency
+    direction: maximize

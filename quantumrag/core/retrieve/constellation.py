@@ -11,11 +11,13 @@ graph-based approach that captures:
 - Cross-document references (same entity mentioned in different docs)
 - Temporal context (same version/date across documents)
 
-The key insight: ONE good retrieval hit unlocks an entire constellation
-of related information, solving the fundamental "retrieval gap" problem.
+Query-Aware Expansion (v9):
+When query_domains is provided, graph-discovered chunks whose structured
+facts match the query domain receive a score boost.  This ensures that
+a finance query prioritises finance-fact chunks over, say, HR chunks
+that happen to be graph neighbours.
 
-Performance: Graph traversal is O(k * avg_degree), typically <1ms,
-vs the previous approach of N database calls for sibling expansion.
+Performance: Graph traversal is O(k * avg_degree), typically <1ms.
 """
 
 from __future__ import annotations
@@ -28,6 +30,28 @@ from quantumrag.core.retrieve.fusion import ScoredChunk
 
 logger = get_logger("quantumrag.constellation")
 
+# Map fact types to their source domain for domain-aware boosting
+_FACT_TYPE_TO_DOMAIN: dict[str, str] = {
+    "customer_contract": "contract",
+    "security_issue": "security",
+    "security_summary": "security",
+    "finance_metric": "finance",
+    "fund_allocation": "finance",
+    "team_info": "hr",
+    "team_leader": "hr",
+    "patent": "patent",
+    "product_version": "product",
+}
+
+
+def _chunk_matches_domains(chunk: Any, query_domains: list[str]) -> bool:
+    """Check if a chunk's facts overlap with the requested query domains."""
+    facts = chunk.metadata.get("facts")
+    if not facts:
+        return False
+    chunk_domains = {_FACT_TYPE_TO_DOMAIN.get(f.get("type", ""), "") for f in facts}
+    return bool(chunk_domains & set(query_domains))
+
 
 async def expand_with_constellation(
     chunks: list[ScoredChunk],
@@ -35,12 +59,9 @@ async def expand_with_constellation(
     document_store: Any,
     top_k: int,
     max_expansion: int = 8,
+    query_domains: list[str] | None = None,
 ) -> list[ScoredChunk]:
     """Expand retrieved chunks using the pre-computed constellation graph.
-
-    This is the revolutionary replacement for the slower sibling expansion.
-    Instead of querying the database for sibling chunks, we traverse the
-    pre-computed graph in microseconds.
 
     Args:
         chunks: Initial fusion search results
@@ -48,6 +69,9 @@ async def expand_with_constellation(
         document_store: For fetching full chunk content
         top_k: Original top_k from the query
         max_expansion: Maximum number of chunks to add from graph
+        query_domains: Domains detected from the query (e.g., ["contract", "finance"]).
+                       When provided, graph-discovered chunks matching these domains
+                       get a 1.3x score boost.
 
     Returns:
         Expanded list of ScoredChunk with graph-discovered chunks included
@@ -59,12 +83,9 @@ async def expand_with_constellation(
     seen_ids = {sc.chunk.id for sc in chunks}
 
     # Use ALL retrieved chunks as seeds, not just top-k
-    # This ensures that if chunk A (position 6) has a critical sibling,
-    # it's discoverable even though A isn't in the top-k seeds
     all_seed_ids = [sc.chunk.id for sc in chunks]
 
     # Graph traversal with 2 hops — catches indirect siblings
-    # e.g., email_header → confirmed_PoC → in_progress_PoC
     constellation = graph.get_constellation(
         all_seed_ids,
         max_hops=2,
@@ -81,6 +102,15 @@ async def expand_with_constellation(
 
     expanded = list(chunks)
     base_score = chunks[0].score if chunks else 0.5
+    domain_boost = 1.3  # 30% boost for domain-matching chunks
+
+    async def _add_chunk(cid: str, graph_weight: float, chunk: Any) -> None:
+        score = base_score * graph_weight
+        # Query-aware boost: reward chunks whose facts match query domain
+        if query_domains and _chunk_matches_domains(chunk, query_domains):
+            score *= domain_boost
+        expanded.append(ScoredChunk(chunk=chunk, score=score))
+        seen_ids.add(cid)
 
     if hasattr(document_store, "get_chunks_batch"):
         chunks_map = await document_store.get_chunks_batch(new_ids)
@@ -89,22 +119,14 @@ async def expand_with_constellation(
                 continue
             chunk = chunks_map.get(cid)
             if chunk:
-                expanded.append(ScoredChunk(
-                    chunk=chunk,
-                    score=base_score * graph_weight,
-                ))
-                seen_ids.add(cid)
+                await _add_chunk(cid, graph_weight, chunk)
     else:
         for cid, graph_weight in constellation:
             if cid in seen_ids:
                 continue
             chunk = await document_store.get_chunk(cid)
             if chunk:
-                expanded.append(ScoredChunk(
-                    chunk=chunk,
-                    score=base_score * graph_weight,
-                ))
-                seen_ids.add(cid)
+                await _add_chunk(cid, graph_weight, chunk)
 
     # Re-sort by score
     expanded.sort(key=lambda x: x.score, reverse=True)
@@ -116,6 +138,7 @@ async def expand_with_constellation(
             seed_chunks=len(seed_ids),
             graph_expansion=added,
             total=len(expanded),
+            domain_aware=bool(query_domains),
         )
 
     return expanded

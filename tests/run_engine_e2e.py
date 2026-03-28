@@ -46,7 +46,9 @@ def main() -> None:
     )
 
     print(f"\n  Provider: {config.models.embedding.provider} / {config.models.embedding.model}")
-    print(f"  LLM (simple): {config.models.generation.simple.provider} / {config.models.generation.simple.model}")
+    print(
+        f"  LLM (simple): {config.models.generation.simple.provider} / {config.models.generation.simple.model}"
+    )
     print(f"  Data dir: {DATA_DIR}")
     print(f"  Docs dir: {DOCS_DIR}")
 

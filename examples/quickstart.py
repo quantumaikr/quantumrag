@@ -7,12 +7,12 @@ This example shows the simplest way to use QuantumRAG:
 
 Requirements:
     pip install quantumrag[all]
-    export OPENAI_API_KEY=your-key  # or use Ollama for local models
+    export OPENAI_API_KEY=your-key  # or any of: GOOGLE_API_KEY, ANTHROPIC_API_KEY
 """
 
 from quantumrag import Engine
 
-# Create engine with defaults (uses OpenAI by default)
+# Create engine — auto-detects your API key and selects optimal models
 engine = Engine()
 
 # Or use a local model via Ollama (no API key needed):

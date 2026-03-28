@@ -127,9 +127,7 @@ class SemanticCache:
         self._misses += 1
         return None
 
-    def get_semantic(
-        self, query: str, query_embedding: list[float]
-    ) -> CacheEntry | None:
+    def get_semantic(self, query: str, query_embedding: list[float]) -> CacheEntry | None:
         """Look up cached result using embedding similarity."""
         # First try exact match
         exact = self.get(query)

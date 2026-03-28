@@ -29,6 +29,7 @@ from quantumrag.core.pipeline.signals import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_doc(content: str, title: str = "Test Doc") -> Document:
     return Document(content=content, metadata=DocumentMetadata(title=title))
 
@@ -73,15 +74,11 @@ class TestPipelineContext:
 
     def test_merge_retrieval_hints_fusion_weights(self) -> None:
         ctx = PipelineContext()
-        ctx.merge_retrieval_hints(
-            RetrievalHints(fusion_weights={"original": 0.6, "bm25": 0.4})
-        )
+        ctx.merge_retrieval_hints(RetrievalHints(fusion_weights={"original": 0.6, "bm25": 0.4}))
         assert ctx.retrieval_hints.fusion_weights == {"original": 0.6, "bm25": 0.4}
 
         # Merge another set — averages
-        ctx.merge_retrieval_hints(
-            RetrievalHints(fusion_weights={"original": 0.2, "bm25": 0.8})
-        )
+        ctx.merge_retrieval_hints(RetrievalHints(fusion_weights={"original": 0.2, "bm25": 0.8}))
         assert ctx.retrieval_hints.fusion_weights["original"] == pytest.approx(0.4)
         assert ctx.retrieval_hints.fusion_weights["bm25"] == pytest.approx(0.6)
 
@@ -482,7 +479,9 @@ class TestEmitChunkSignals:
 
     def test_legal_info_type_detection(self) -> None:
         chunks = [
-            _make_chunk("제3조 (손해배상) 당사자가 본 계약을 위반한 경우 위약금을 지급한다.", index=0),
+            _make_chunk(
+                "제3조 (손해배상) 당사자가 본 계약을 위반한 경우 위약금을 지급한다.", index=0
+            ),
         ]
         result = emit_chunk_signals(chunks)
         signal = read_chunk_signal(result[0])
@@ -554,9 +553,7 @@ class TestQuerySignal:
         assert signal.domain == DomainType.GENERAL
 
     def test_retrieval_hints_embedded(self) -> None:
-        signal = QuerySignal(
-            retrieval_hints=RetrievalHints(skip_compression=True)
-        )
+        signal = QuerySignal(retrieval_hints=RetrievalHints(skip_compression=True))
         assert signal.retrieval_hints.skip_compression
 
 
@@ -745,9 +742,7 @@ class TestPipelineContextWithProfiles:
     def test_profile_propagation(self) -> None:
         """Test that document profiles are accessible in pipeline context."""
         profiler = DocumentProfiler()
-        doc = _make_doc(
-            "제1조 갑과 을의 계약. 제2조 손해배상 조항."
-        )
+        doc = _make_doc("제1조 갑과 을의 계약. 제2조 손해배상 조항.")
         profile = profiler.profile(doc)
 
         ctx = PipelineContext()
@@ -767,14 +762,14 @@ class TestPipelineContextWithProfiles:
         # 1. Ingest: profile document
         profiler = DocumentProfiler()
         doc = _make_doc(
-            "매출 150억원, 영업이익 30억원, 투자금 100억원. "
-            "전년대비 매출 25% 성장. CAGR 35%."
+            "매출 150억원, 영업이익 30억원, 투자금 100억원. " "전년대비 매출 25% 성장. CAGR 35%."
         )
         profile = profiler.profile(doc)
         assert profile.domain == DomainType.FINANCIAL
 
         # 2. Chunk with profile
         from quantumrag.core.ingest.chunker.auto import AutoChunker
+
         chunker = AutoChunker(chunk_size=512)
         chunks = chunker.chunk(doc, document_profile=profile)
         assert len(chunks) >= 1

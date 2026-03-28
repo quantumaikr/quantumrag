@@ -11,127 +11,6 @@ from typing import Any
 from unittest.mock import AsyncMock
 
 # ──────────────────────────────────────────────
-# Sprint 12: QueryDecomposer
-# ──────────────────────────────────────────────
-
-
-class TestQueryDecomposer:
-    """Test heuristic query decomposition."""
-
-    def _make(self, llm=None):
-        from quantumrag.core.generate.decomposer import QueryDecomposer
-        return QueryDecomposer(llm_provider=llm)
-
-    def test_single_simple_query_returns_as_is(self):
-        decomposer = self._make()
-        result = asyncio.run(decomposer.decompose("What is Python?"))
-        assert result == ["What is Python?"]
-
-    def test_multiple_question_marks_split(self):
-        decomposer = self._make()
-        result = asyncio.run(
-            decomposer.decompose("What is Python? How does it compare to Java?")
-        )
-        assert len(result) == 2
-        assert any("Python" in q for q in result)
-        assert any("Java" in q for q in result)
-
-    def test_english_conjunction_split(self):
-        decomposer = self._make()
-        result = asyncio.run(
-            decomposer.decompose(
-                "Explain the benefits of RAG and describe the key challenges"
-            )
-        )
-        assert len(result) == 2
-
-    def test_korean_conjunction_split(self):
-        decomposer = self._make()
-        result = asyncio.run(
-            decomposer.decompose("RAG의 장점을 설명하세요 또한 주요 과제를 설명하세요")
-        )
-        assert len(result) == 2
-
-    def test_no_decomposition_for_short_query(self):
-        decomposer = self._make()
-        result = asyncio.run(decomposer.decompose("hello"))
-        assert result == ["hello"]
-
-    def test_llm_fallback_on_failure(self):
-        """If LLM fails, falls back to heuristic."""
-        mock_llm = AsyncMock()
-        mock_llm.generate.side_effect = RuntimeError("LLM unavailable")
-
-        decomposer = self._make(llm=mock_llm)
-        result = asyncio.run(
-            decomposer.decompose("What is X? What is Y?")
-        )
-        # Should still get results via heuristic fallback
-        assert len(result) == 2
-
-
-# ──────────────────────────────────────────────
-# Sprint 12: SpeculativeRAG
-# ──────────────────────────────────────────────
-
-
-class TestSpeculativeRAG:
-    """Test speculative parallel processing."""
-
-    def test_process_merges_sub_results(self):
-        from quantumrag.core.generate.speculative import SpeculativeRAG
-        from quantumrag.core.models import Confidence, QueryResult, Source
-
-        spec = SpeculativeRAG()
-
-        mock_retriever = AsyncMock()
-        mock_generator = AsyncMock()
-
-        # Setup retriever to return chunks and sources
-        mock_retriever.retrieve.return_value = (
-            [],
-            [Source(chunk_id="c1", excerpt="test")],
-        )
-        mock_generator.generate.return_value = QueryResult(
-            answer="Test answer",
-            sources=[Source(chunk_id="c1", excerpt="test")],
-            confidence=Confidence.STRONGLY_SUPPORTED,
-        )
-
-        result = asyncio.run(
-            spec.process(
-                query="Complex question",
-                sub_queries=["Sub Q1", "Sub Q2"],
-                retriever=mock_retriever,
-                generator=mock_generator,
-            )
-        )
-
-        assert result.answer
-        assert len(result.trace) >= 2  # decompose + parallel steps
-        assert mock_retriever.retrieve.call_count == 2
-
-    def test_process_handles_empty_sub_queries(self):
-        from quantumrag.core.generate.speculative import SpeculativeRAG
-        from quantumrag.core.models import Confidence
-
-        spec = SpeculativeRAG()
-        mock_retriever = AsyncMock()
-        mock_generator = AsyncMock()
-        mock_retriever.retrieve.side_effect = RuntimeError("fail")
-
-        result = asyncio.run(
-            spec.process(
-                query="Complex question",
-                sub_queries=["Sub Q1"],
-                retriever=mock_retriever,
-                generator=mock_generator,
-            )
-        )
-        assert result.confidence == Confidence.INSUFFICIENT_EVIDENCE
-
-
-# ──────────────────────────────────────────────
 # Sprint 13: Connector base models
 # ──────────────────────────────────────────────
 
@@ -209,6 +88,7 @@ class TestACLFilter:
 
     def _make(self):
         from quantumrag.core.security.acl import ACLFilter
+
         return ACLFilter()
 
     def test_no_identity_returns_all(self):

@@ -20,16 +20,33 @@ class TestQuantumRAGConfigDefaults:
         assert config.domain == "general"
 
     def test_default_models(self) -> None:
+        # default() calls auto() — provider depends on env vars.
         config = QuantumRAGConfig.default()
+        assert config.models.embedding.provider in (
+            "openai",
+            "gemini",
+            "anthropic",
+            "ollama",
+        )
+        assert config.models.embedding.model  # non-empty
+        assert config.models.generation.simple.model  # non-empty
+        assert config.models.reranker.provider == "flashrank"
+
+    def test_auto_openai(self) -> None:
+        with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}, clear=False):
+            config = QuantumRAGConfig.auto()
         assert config.models.embedding.provider == "openai"
         assert config.models.embedding.model == "text-embedding-3-small"
         assert config.models.generation.simple.model == "gpt-5.4-nano"
-        assert config.models.generation.complex.provider == "openai"
-        assert config.models.reranker.provider == "flashrank"
+
+    def test_auto_gemini(self) -> None:
+        with patch.dict(os.environ, {"GOOGLE_API_KEY": "AIza-test"}, clear=False):
+            config = QuantumRAGConfig.auto()
+        assert config.models.embedding.provider == "gemini"
 
     def test_default_retrieval(self) -> None:
         config = QuantumRAGConfig.default()
-        assert config.retrieval.top_k == 7
+        assert config.retrieval.top_k == 10
         assert config.retrieval.fusion_weights.original == 0.4
         assert config.retrieval.fusion_weights.hype == 0.35
         assert config.retrieval.fusion_weights.bm25 == 0.25

@@ -106,7 +106,10 @@ class TestValidateUrl:
             _validate_url("http://")
 
     def test_private_ip_blocked(self) -> None:
-        with patch("quantumrag.connectors.url._is_private_ip", return_value=True), pytest.raises(ConnectorError, match="SSRF protection"):
+        with (
+            patch("quantumrag.connectors.url._is_private_ip", return_value=True),
+            pytest.raises(ConnectorError, match="SSRF protection"),
+        ):
             _validate_url("https://internal-service.local/api")
 
     def test_public_url_allowed(self) -> None:

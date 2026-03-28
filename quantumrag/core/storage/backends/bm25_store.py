@@ -109,7 +109,6 @@ class TantivyBM25Store:
             return []
 
         try:
-
             searcher = self._index.searcher()
             # Pre-tokenize query (e.g. Korean morphemes) before parsing
             parsed_query = self._index.parse_query(self._preprocess(query), ["content"])

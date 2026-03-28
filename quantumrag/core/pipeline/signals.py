@@ -37,12 +37,15 @@ from quantumrag.core.utils.text import (
 
 _LIST_ITEM_START_RE = re.compile(r"^\s*\d+[.)]\s+")
 _TEMPORAL_RE = re.compile(r"(?:기간별|월별|분기별|연도별|언제|when|timeline)", re.IGNORECASE)
-_VERIFICATION_RE = re.compile(r"(?:맞나요|사실인가|정말|진짜|확인|verify|is it true)", re.IGNORECASE)
+_VERIFICATION_RE = re.compile(
+    r"(?:맞나요|사실인가|정말|진짜|확인|verify|is it true)", re.IGNORECASE
+)
 _CALCULATION_RE = re.compile(r"계산|합계|총|평균|calculate|sum|total|average", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
 # Chunk Signal Emission
 # ---------------------------------------------------------------------------
+
 
 def emit_chunk_signals(
     chunks: list[Chunk],
@@ -69,13 +72,9 @@ def emit_chunk_signals(
 
         # Relationship signals: detect continuations
         if i > 0:
-            signal.continues_previous = _detects_continuation(
-                chunks[i - 1].content, chunk.content
-            )
+            signal.continues_previous = _detects_continuation(chunks[i - 1].content, chunk.content)
         if i < len(chunks) - 1:
-            signal.has_continuation = _detects_continuation(
-                chunk.content, chunks[i + 1].content
-            )
+            signal.has_continuation = _detects_continuation(chunk.content, chunks[i + 1].content)
 
         # If chunk continues or is continued, it's incomplete
         if signal.continues_previous or signal.has_continuation:
@@ -207,6 +206,7 @@ def _detects_continuation(prev_content: str, next_content: str) -> bool:
 # ---------------------------------------------------------------------------
 # Query Signal Emission
 # ---------------------------------------------------------------------------
+
 
 def build_query_signal(
     query: str,
@@ -340,8 +340,7 @@ def _build_retrieval_hints(
                 profile_weights.setdefault(key, []).append(val)
         if profile_weights and not hints.fusion_weights:
             hints.fusion_weights = {
-                k: round(sum(v) / len(v), 2)
-                for k, v in profile_weights.items()
+                k: round(sum(v) / len(v), 2) for k, v in profile_weights.items()
             }
 
     return hints
@@ -350,6 +349,7 @@ def _build_retrieval_hints(
 # ---------------------------------------------------------------------------
 # Signal Reading Utilities
 # ---------------------------------------------------------------------------
+
 
 def read_chunk_signal(chunk: Chunk) -> ChunkSignal | None:
     """Read signal from a chunk's metadata."""
@@ -370,6 +370,7 @@ def chunk_should_skip_compression(chunk: Chunk) -> bool:
     if signal is None:
         return False
     return (
-        signal.information_type in (InformationType.TABULAR, InformationType.LEGAL, InformationType.CODE)
+        signal.information_type
+        in (InformationType.TABULAR, InformationType.LEGAL, InformationType.CODE)
         or signal.has_table
     )

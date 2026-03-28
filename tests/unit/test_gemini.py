@@ -15,14 +15,15 @@ from quantumrag.core.errors import (
     LLMRateLimitError,
 )
 
-
 # ---------------------------------------------------------------------------
 # GeminiLLMProvider
 # ---------------------------------------------------------------------------
 
 
 class TestGeminiLLMProvider:
-    def _make_provider(self, mock_genai: MagicMock, model: str = "gemini-3.1-flash-lite-preview") -> Any:
+    def _make_provider(
+        self, mock_genai: MagicMock, model: str = "gemini-3.1-flash-lite-preview"
+    ) -> Any:
         from quantumrag.core.llm.providers.gemini import GeminiLLMProvider
 
         with patch("quantumrag.core.llm.providers.gemini._get_genai", return_value=mock_genai):
@@ -88,7 +89,9 @@ class TestGeminiLLMProvider:
         provider._client.aio.models.generate_content = AsyncMock(return_value=resp)
 
         with patch("quantumrag.core.llm.providers.gemini._get_genai", return_value=mock_genai):
-            with pytest.raises(GenerationError, match=r"\[gemini/gemini-3\.1-flash-lite-preview\].*invalid JSON"):
+            with pytest.raises(
+                GenerationError, match=r"\[gemini/gemini-3\.1-flash-lite-preview\].*invalid JSON"
+            ):
                 await provider.generate_structured("test")
 
     async def test_generate_structured_strips_code_fences(self) -> None:
@@ -108,7 +111,9 @@ class TestGeminiLLMProvider:
         with (
             patch(
                 "quantumrag.core.llm.providers.gemini._get_genai",
-                side_effect=GenerationError("google-genai package is not installed", provider="gemini"),
+                side_effect=GenerationError(
+                    "google-genai package is not installed", provider="gemini"
+                ),
             ),
             pytest.raises(GenerationError, match="not installed"),
         ):
@@ -123,9 +128,7 @@ class TestGeminiLLMProvider:
 
 
 class TestGeminiEmbeddingProvider:
-    def _make_provider(
-        self, mock_genai: MagicMock, model: str = "gemini-embedding-001"
-    ) -> Any:
+    def _make_provider(self, mock_genai: MagicMock, model: str = "gemini-embedding-001") -> Any:
         from quantumrag.core.llm.providers.gemini import GeminiEmbeddingProvider
 
         with patch("quantumrag.core.llm.providers.gemini._get_genai", return_value=mock_genai):

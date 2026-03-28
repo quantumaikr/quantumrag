@@ -77,14 +77,15 @@ def _generate_fact_terms(chunk: Chunk) -> str:
 
     return " ".join(terms)
 
+
 # Default prompt for HyPE question generation
-_HYPE_SYSTEM_PROMPT = """You are a question generation assistant. Given a text chunk, generate hypothetical questions that this chunk would answer.
+_HYPE_SYSTEM_PROMPT = """You are a question generation assistant. Given a text chunk from a document, generate hypothetical questions that this chunk would answer.
 Output ONLY a JSON array of question strings, nothing else."""
 
-_HYPE_USER_TEMPLATE = """Generate {n} diverse questions that the following text would answer.
-The questions should be natural, specific, and cover different aspects of the content.
+_HYPE_USER_TEMPLATE = """Generate {n} diverse, specific questions that the following text would answer.
+Questions should cover: key concepts, technical terms, named entities, numerical data, and relationships.
 If the text is in Korean, generate Korean questions. If in English, generate English questions.
-
+{context}
 Text:
 {text}
 
@@ -109,6 +110,7 @@ class TripleIndexBuilder:
         llm_provider: Any | None = None,  # LLMProvider for HyPE generation
         hype_questions_per_chunk: int = 3,
         enable_hype: bool = True,
+        max_concurrency: int = 5,
     ) -> None:
         self._vector_store = vector_store
         self._hype_vector_store = hype_vector_store
@@ -117,6 +119,7 @@ class TripleIndexBuilder:
         self._llm_provider = llm_provider
         self._hype_n = hype_questions_per_chunk
         self._enable_hype = enable_hype and llm_provider is not None
+        self._max_concurrency = max_concurrency
 
     async def build(
         self,
@@ -174,8 +177,19 @@ class TripleIndexBuilder:
         all_metadata: list[dict[str, Any]] = []
         hype_failures = 0
 
-        for chunk in chunks:
-            questions = await self._generate_hype_questions_with_retry(chunk)
+        # Concurrent HyPE generation with semaphore to bound LLM calls
+        semaphore = asyncio.Semaphore(self._max_concurrency)
+        results: list[tuple[Chunk, list[str]]] = []
+
+        async def _gen_one(chunk: Chunk) -> tuple[Chunk, list[str]]:
+            async with semaphore:
+                qs = await self._generate_hype_questions_with_retry(chunk)
+                return (chunk, qs)
+
+        tasks = [_gen_one(c) for c in chunks]
+        results = await asyncio.gather(*tasks)
+
+        for chunk, questions in results:
             if questions:
                 chunk.hype_questions = questions
                 for i, q in enumerate(questions):
@@ -288,7 +302,30 @@ class TripleIndexBuilder:
 
     async def _generate_hype_questions(self, chunk: Chunk) -> list[str]:
         """Generate hypothetical questions for a chunk using LLM."""
-        prompt = _HYPE_USER_TEMPLATE.format(n=self._hype_n, text=chunk.content[:2000])
+        # Adaptive question count: larger chunks get more questions
+        n = self._hype_n
+        content_len = len(chunk.content)
+        if content_len > 1500:
+            n = max(n, 5)
+        elif content_len > 800:
+            n = max(n, 4)
+
+        # Build context from chunk metadata (section, document title)
+        context_parts: list[str] = []
+        meta = chunk.metadata or {}
+        if meta.get("title"):
+            context_parts.append(f"Document: {meta['title']}")
+        if meta.get("breadcrumb"):
+            context_parts.append(f"Section: {meta['breadcrumb']}")
+        elif meta.get("section"):
+            context_parts.append(f"Section: {meta['section']}")
+        context = "\n".join(context_parts)
+        if context:
+            context = f"\nDocument context:\n{context}\n"
+
+        # Use full content (no truncation) — LLM handles long inputs
+        text = chunk.content[:4000] if content_len > 4000 else chunk.content
+        prompt = _HYPE_USER_TEMPLATE.format(n=n, text=text, context=context)
 
         try:
             result = await self._llm_provider.generate_structured(
@@ -303,7 +340,7 @@ class TripleIndexBuilder:
             else:
                 questions = []
 
-            return [str(q) for q in questions[: self._hype_n]]
+            return [str(q) for q in questions[:n]]
         except Exception as e:
             # Fallback: try plain text generation and parse JSON
             logger.debug("hype_structured_failed", chunk_id=chunk.id, error=str(e))
@@ -311,7 +348,7 @@ class TripleIndexBuilder:
                 response = await self._llm_provider.generate(prompt, system=_HYPE_SYSTEM_PROMPT)
                 questions = json.loads(response.text)
                 if isinstance(questions, list):
-                    return [str(q) for q in questions[: self._hype_n]]
+                    return [str(q) for q in questions[:n]]
             except (json.JSONDecodeError, Exception) as fallback_err:
                 logger.warning(
                     "hype_generation_failed",

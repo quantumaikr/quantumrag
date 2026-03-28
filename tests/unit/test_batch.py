@@ -72,10 +72,12 @@ class TestBatchProcessor:
     def test_create_job_from_dicts(self) -> None:
         engine = _make_mock_engine()
         processor = BatchProcessor(engine)
-        job = processor.create_job([
-            {"query": "Q1", "top_k": 5},
-            {"query": "Q2", "filters": {"source": "doc1"}},
-        ])
+        job = processor.create_job(
+            [
+                {"query": "Q1", "top_k": 5},
+                {"query": "Q2", "filters": {"source": "doc1"}},
+            ]
+        )
         assert job.total == 2
         assert job.queries[0].top_k == 5
 

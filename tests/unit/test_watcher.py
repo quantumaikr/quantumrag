@@ -44,6 +44,7 @@ class TestPollingBackend:
         existing.write_text("updated")
         # Ensure mtime changes on platforms with coarse resolution
         import os
+
         os.utime(existing, (time.time() + 10, time.time() + 10))
 
         added, modified, _deleted = backend.poll_events()
@@ -87,12 +88,17 @@ class TestFileWatcher:
         changes: list[tuple[list[Path], list[Path], list[Path]]] = []
 
         async def callback(
-            added: list[Path], modified: list[Path], deleted: list[Path],
+            added: list[Path],
+            modified: list[Path],
+            deleted: list[Path],
         ) -> None:
             changes.append((added, modified, deleted))
 
         watcher = FileWatcher(
-            tmp_path, callback, debounce_seconds=0.1, poll_interval=0.05,
+            tmp_path,
+            callback,
+            debounce_seconds=0.1,
+            poll_interval=0.05,
         )
         await watcher.start()
         try:
@@ -116,18 +122,24 @@ class TestFileWatcher:
         changes: list[tuple[list[Path], list[Path], list[Path]]] = []
 
         async def callback(
-            added: list[Path], modified: list[Path], deleted: list[Path],
+            added: list[Path],
+            modified: list[Path],
+            deleted: list[Path],
         ) -> None:
             changes.append((added, modified, deleted))
 
         watcher = FileWatcher(
-            tmp_path, callback, debounce_seconds=0.1, poll_interval=0.05,
+            tmp_path,
+            callback,
+            debounce_seconds=0.1,
+            poll_interval=0.05,
         )
         await watcher.start()
         try:
             await asyncio.sleep(0.1)  # let initial snapshot settle
             existing.write_text("v2")
             import os
+
             os.utime(existing, (time.time() + 10, time.time() + 10))
             await asyncio.sleep(0.5)
         finally:
@@ -143,13 +155,18 @@ class TestFileWatcher:
         callback_count = 0
 
         async def callback(
-            added: list[Path], modified: list[Path], deleted: list[Path],
+            added: list[Path],
+            modified: list[Path],
+            deleted: list[Path],
         ) -> None:
             nonlocal callback_count
             callback_count += 1
 
         watcher = FileWatcher(
-            tmp_path, callback, debounce_seconds=0.3, poll_interval=0.05,
+            tmp_path,
+            callback,
+            debounce_seconds=0.3,
+            poll_interval=0.05,
         )
         await watcher.start()
         try:
@@ -173,12 +190,17 @@ class TestFileWatcher:
         changes: list[tuple[list[Path], list[Path], list[Path]]] = []
 
         async def callback(
-            added: list[Path], modified: list[Path], deleted: list[Path],
+            added: list[Path],
+            modified: list[Path],
+            deleted: list[Path],
         ) -> None:
             changes.append((added, modified, deleted))
 
         watcher = FileWatcher(
-            tmp_path, callback, debounce_seconds=0.1, poll_interval=0.05,
+            tmp_path,
+            callback,
+            debounce_seconds=0.1,
+            poll_interval=0.05,
         )
         await watcher.start()
         try:
@@ -198,7 +220,9 @@ class TestFileWatcher:
     @pytest.mark.asyncio
     async def test_stop_start_lifecycle(self, tmp_path: Path) -> None:
         async def noop(
-            added: list[Path], modified: list[Path], deleted: list[Path],
+            added: list[Path],
+            modified: list[Path],
+            deleted: list[Path],
         ) -> None:
             pass
 
@@ -212,10 +236,21 @@ class TestFileWatcher:
     def test_supported_extensions_matches_incremental(self) -> None:
         """Ensure SUPPORTED_EXTENSIONS matches the canonical set."""
         expected = {
-            ".txt", ".md", ".pdf", ".docx", ".doc",
-            ".xlsx", ".xls", ".pptx", ".ppt",
-            ".html", ".htm", ".csv", ".json",
-            ".hwp", ".hwpx",
+            ".txt",
+            ".md",
+            ".pdf",
+            ".docx",
+            ".doc",
+            ".xlsx",
+            ".xls",
+            ".pptx",
+            ".ppt",
+            ".html",
+            ".htm",
+            ".csv",
+            ".json",
+            ".hwp",
+            ".hwpx",
         }
         assert expected == SUPPORTED_EXTENSIONS
 

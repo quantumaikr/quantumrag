@@ -82,11 +82,15 @@ class StorageFactory:
 
         # Lazy imports so heavy deps are only loaded when actually requested.
         from quantumrag.core.storage.backends.bm25_store import TantivyBM25Store
+        from quantumrag.core.storage.backends.chroma_store import ChromaVectorStore
+        from quantumrag.core.storage.backends.faiss_store import FAISSVectorStore
         from quantumrag.core.storage.backends.lancedb_store import LanceDBVectorStore
         from quantumrag.core.storage.backends.sqlite import SQLiteDocumentStore
 
         cls._document_store_registry.setdefault("sqlite", SQLiteDocumentStore)
         cls._vector_store_registry.setdefault("lancedb", LanceDBVectorStore)
+        cls._vector_store_registry.setdefault("chroma", ChromaVectorStore)
+        cls._vector_store_registry.setdefault("faiss", FAISSVectorStore)
         cls._bm25_store_registry.setdefault("tantivy", TantivyBM25Store)
         cls._defaults_registered = True
 

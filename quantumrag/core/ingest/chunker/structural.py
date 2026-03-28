@@ -114,7 +114,11 @@ class StructuralChunker:
                     metadata={
                         "section": heading_label,
                         "breadcrumb": breadcrumb,
-                    } if heading_label else {"breadcrumb": breadcrumb} if breadcrumb else {},
+                    }
+                    if heading_label
+                    else {"breadcrumb": breadcrumb}
+                    if breadcrumb
+                    else {},
                 )
                 chunks.append(chunk)
                 chunk_index += 1
@@ -131,6 +135,7 @@ class StructuralChunker:
 
 class HierSection:
     """A section with its full heading ancestry."""
+
     __slots__ = ("content", "headings")
 
     def __init__(self, headings: list[str], content: str) -> None:
@@ -193,9 +198,7 @@ def _split_hierarchical(text: str) -> list[HierSection]:
     return sections
 
 
-def _split_html_hierarchical(
-    text: str, matches: list[re.Match[str]]
-) -> list[HierSection]:
+def _split_html_hierarchical(text: str, matches: list[re.Match[str]]) -> list[HierSection]:
     """Split HTML headings into hierarchical sections."""
     sections: list[HierSection] = []
     heading_stack: list[tuple[int, str]] = []

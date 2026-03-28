@@ -168,20 +168,24 @@ def build_chunk_graph(chunks: list[Chunk]) -> ChunkGraph:
     # 1. Sibling edges — adjacent chunks in same document
     for doc_id, doc_chunk_list in doc_chunks.items():
         for i in range(len(doc_chunk_list) - 1):
-            graph.add_edge(ChunkEdge(
-                source_id=doc_chunk_list[i].id,
-                target_id=doc_chunk_list[i + 1].id,
-                edge_type="sibling",
-                weight=0.9,  # High weight: adjacent chunks almost always co-relevant
-            ))
+            graph.add_edge(
+                ChunkEdge(
+                    source_id=doc_chunk_list[i].id,
+                    target_id=doc_chunk_list[i + 1].id,
+                    edge_type="sibling",
+                    weight=0.9,  # High weight: adjacent chunks almost always co-relevant
+                )
+            )
             # Also connect chunks 2 apart with moderate weight
             if i + 2 < len(doc_chunk_list):
-                graph.add_edge(ChunkEdge(
-                    source_id=doc_chunk_list[i].id,
-                    target_id=doc_chunk_list[i + 2].id,
-                    edge_type="sibling",
-                    weight=0.6,
-                ))
+                graph.add_edge(
+                    ChunkEdge(
+                        source_id=doc_chunk_list[i].id,
+                        target_id=doc_chunk_list[i + 2].id,
+                        edge_type="sibling",
+                        weight=0.6,
+                    )
+                )
 
     # 2. Parent section edges — same breadcrumb parent
     breadcrumb_groups: dict[str, list[Chunk]] = defaultdict(list)
@@ -196,15 +200,17 @@ def build_chunk_graph(chunks: list[Chunk]) -> ChunkGraph:
 
     for parent_bc, group in breadcrumb_groups.items():
         for i, chunk_a in enumerate(group):
-            for chunk_b in group[i + 1:]:
+            for chunk_b in group[i + 1 :]:
                 if chunk_a.document_id == chunk_b.document_id:
                     continue  # Already connected as siblings
-                graph.add_edge(ChunkEdge(
-                    source_id=chunk_a.id,
-                    target_id=chunk_b.id,
-                    edge_type="parent",
-                    weight=0.7,
-                ))
+                graph.add_edge(
+                    ChunkEdge(
+                        source_id=chunk_a.id,
+                        target_id=chunk_b.id,
+                        edge_type="parent",
+                        weight=0.7,
+                    )
+                )
 
     # 3. Entity cross-reference edges — shared entities across documents
     entity_to_chunks: dict[str, list[str]] = defaultdict(list)
@@ -221,18 +227,20 @@ def build_chunk_graph(chunks: list[Chunk]) -> ChunkGraph:
         # Connect chunks that share this entity (across different documents)
         chunk_doc_map = {c.id: c.document_id for c in chunks}
         for i, cid_a in enumerate(chunk_ids):
-            for cid_b in chunk_ids[i + 1:]:
+            for cid_b in chunk_ids[i + 1 :]:
                 doc_a = chunk_doc_map.get(cid_a, "")
                 doc_b = chunk_doc_map.get(cid_b, "")
                 if doc_a != doc_b:
                     # Cross-document entity reference — high value!
                     weight = 0.6 if len(chunk_ids) <= 5 else 0.4
-                    graph.add_edge(ChunkEdge(
-                        source_id=cid_a,
-                        target_id=cid_b,
-                        edge_type="entity",
-                        weight=weight,
-                    ))
+                    graph.add_edge(
+                        ChunkEdge(
+                            source_id=cid_a,
+                            target_id=cid_b,
+                            edge_type="entity",
+                            weight=weight,
+                        )
+                    )
 
     logger.info(
         "chunk_graph_built",

@@ -48,11 +48,11 @@ def _make_fusion_mock(chunks: list[ScoredChunk] | None = None) -> MagicMock:
 class TestFusionCandidateMultiplier:
     def test_retrieval_config_default(self) -> None:
         cfg = RetrievalConfig()
-        assert cfg.fusion_candidate_multiplier == 3
+        assert cfg.fusion_candidate_multiplier == 4
 
     def test_full_config_default(self) -> None:
         cfg = QuantumRAGConfig.default()
-        assert cfg.retrieval.fusion_candidate_multiplier == 3
+        assert cfg.retrieval.fusion_candidate_multiplier == 4
 
     @pytest.mark.asyncio
     async def test_retriever_uses_multiplier(self) -> None:
@@ -175,7 +175,7 @@ class TestKoreanDetectionThreshold:
 class TestMaxContextChars:
     def test_generation_config_default(self) -> None:
         cfg = GenerationOutputConfig()
-        assert cfg.max_context_chars == 12000
+        assert cfg.max_context_chars == 16000
 
     def test_context_within_limit(self) -> None:
         llm = MagicMock()
@@ -211,10 +211,7 @@ class TestMaxContextChars:
         llm = MagicMock()
         gen = Generator(llm_provider=llm, max_context_chars=500)
         # Build chunks that fit exactly and one that exceeds
-        chunks = [
-            _make_scored_chunk("x" * 50, chunk_id=f"c{i}")
-            for i in range(10)
-        ]
+        chunks = [_make_scored_chunk("x" * 50, chunk_id=f"c{i}") for i in range(10)]
         ctx = gen._build_context(chunks)
         assert len(ctx) <= 600  # generous upper bound including headers
 

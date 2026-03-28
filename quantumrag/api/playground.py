@@ -391,6 +391,14 @@ _PLAYGROUND_HTML = """\
             <input type="text" id="pathInput" placeholder="./docs or /path/to/file.txt">
           </div>
 
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Ingest mode</label>
+            <select id="ingestMode" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px">
+              <option value="full">Full — all enrichment (best quality)</option>
+              <option value="fast">Fast — skip HyPE/preambles (quick indexing)</option>
+              <option value="minimal">Minimal — embed + BM25 only (fastest)</option>
+            </select>
+          </div>
           <button class="btn btn-primary" id="ingestBtn" onclick="doIngest()">Ingest Documents</button>
           <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
           <div class="ingest-result" id="ingestResult"></div>
@@ -668,6 +676,7 @@ async function doIngest() {
 
   const textInput = document.getElementById('textInput').value.trim();
   const pathInput = document.getElementById('pathInput').value.trim();
+  const ingestMode = document.getElementById('ingestMode').value;
 
   if (!textInput && selectedFiles.length === 0 && !pathInput) {
     result.className = 'ingest-result error';
@@ -705,7 +714,7 @@ async function doIngest() {
         try {
           const resp = await fetch(API + '/v1/ingest/text', {
             method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ content: textInput, title: 'Pasted Text' })
+            body: JSON.stringify({ content: textInput, title: 'Pasted Text', mode: ingestMode })
           });
           const data = await resp.json();
           if (resp.ok) {
@@ -719,7 +728,7 @@ async function doIngest() {
       else if (task.type === 'file') {
         setFileStatus(task.index, 'uploading', 'Uploading...');
         try {
-          const fd = new FormData(); fd.append('file', task.file);
+          const fd = new FormData(); fd.append('file', task.file); fd.append('mode', ingestMode);
           const resp = await fetch(API + '/v1/ingest/upload', { method: 'POST', body: fd });
           setFileStatus(task.index, 'processing', 'Processing...');
           const data = await resp.json();
@@ -750,7 +759,7 @@ async function doIngest() {
         try {
           const resp = await fetch(API + '/v1/ingest', {
             method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ path: pathInput, recursive: true })
+            body: JSON.stringify({ path: pathInput, recursive: true, mode: ingestMode })
           });
           const data = await resp.json();
           if (resp.ok) {

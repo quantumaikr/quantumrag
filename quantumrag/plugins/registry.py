@@ -124,9 +124,7 @@ class PluginRegistry:
         self._plugins: dict[str, PluginInfo] = {}
         self._hook_implementations: dict[str, list[tuple[str, Any]]] = {}
 
-    def register(
-        self, plugin: Plugin, config: dict[str, Any] | None = None
-    ) -> None:
+    def register(self, plugin: Plugin, config: dict[str, Any] | None = None) -> None:
         """Register and initialize a plugin."""
         name = plugin.name
         if name in self._plugins:
@@ -175,9 +173,7 @@ class PluginRegistry:
         for hook_name in info.hooks:
             if hook_name in self._hook_implementations:
                 self._hook_implementations[hook_name] = [
-                    (n, h)
-                    for n, h in self._hook_implementations[hook_name]
-                    if n != name
+                    (n, h) for n, h in self._hook_implementations[hook_name] if n != name
                 ]
 
         # Cleanup

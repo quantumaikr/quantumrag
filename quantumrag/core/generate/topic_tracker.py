@@ -24,24 +24,63 @@ logger = get_logger("quantumrag.topic_tracker")
 
 # Signals that the user is explicitly changing the topic
 _TOPIC_CHANGE_SIGNALS = [
-    "다른", "새로운", "그런데", "참고로", "그건 그렇고",
-    "한편", "별도로", "다시", "바꿔서", "전환",
+    "다른",
+    "새로운",
+    "그런데",
+    "참고로",
+    "그건 그렇고",
+    "한편",
+    "별도로",
+    "다시",
+    "바꿔서",
+    "전환",
 ]
 
 # General topic keywords that indicate the user is asking about the broader
 # domain, not continuing the previous specific topic
 _GENERAL_TOPIC_KEYWORDS = [
-    "경쟁사", "경쟁", "시장", "업계", "산업", "전체",
-    "비교", "모든", "누구", "어디", "회사들",
+    "경쟁사",
+    "경쟁",
+    "시장",
+    "업계",
+    "산업",
+    "전체",
+    "비교",
+    "모든",
+    "누구",
+    "어디",
+    "회사들",
 ]
 
 # Known entity names for detection (shared with rewriter)
 _KNOWN_ENTITIES = {
-    "퀀텀소프트", "QuantumSoft", "퀀텀아이", "Upstage", "리턴제로", "ReturnZero",
-    "뤼튼", "Wrtn", "포티투마루", "42Maru", "삼성전자", "KB국민은행",
-    "네이버", "현대자동차", "소프트뱅크", "NTT", "미쓰비시",
-    "QuantumRAG", "QuantumChat", "QuantumGuard", "QuantumAnalytics",
-    "김태현", "박서연", "이준호", "정민지", "최영수", "강지훈",
+    "퀀텀소프트",
+    "QuantumSoft",
+    "퀀텀아이",
+    "Upstage",
+    "리턴제로",
+    "ReturnZero",
+    "뤼튼",
+    "Wrtn",
+    "포티투마루",
+    "42Maru",
+    "삼성전자",
+    "KB국민은행",
+    "네이버",
+    "현대자동차",
+    "소프트뱅크",
+    "NTT",
+    "미쓰비시",
+    "QuantumRAG",
+    "QuantumChat",
+    "QuantumGuard",
+    "QuantumAnalytics",
+    "김태현",
+    "박서연",
+    "이준호",
+    "정민지",
+    "최영수",
+    "강지훈",
 }
 
 
@@ -112,7 +151,9 @@ def _extract_recent_topic(history: list[dict[str, str]] | list[Any]) -> str | No
     recent = history[-4:] if len(history) > 4 else history
 
     for turn in reversed(recent):
-        content = turn.get("content", "") if isinstance(turn, dict) else getattr(turn, "content", "")
+        content = (
+            turn.get("content", "") if isinstance(turn, dict) else getattr(turn, "content", "")
+        )
         role = turn.get("role", "") if isinstance(turn, dict) else getattr(turn, "role", "")
 
         # Check user messages for explicit entity mentions

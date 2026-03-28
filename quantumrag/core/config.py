@@ -38,9 +38,7 @@ class GenerationConfig(BaseModel):
         default_factory=lambda: GenerationTierConfig(provider="openai", model="gpt-5.4-mini")
     )
     complex: GenerationTierConfig = Field(
-        default_factory=lambda: GenerationTierConfig(
-            provider="openai", model="gpt-5.4-mini"
-        )
+        default_factory=lambda: GenerationTierConfig(provider="openai", model="gpt-5.4-mini")
     )
 
 
@@ -71,9 +69,12 @@ class ChunkingConfig(BaseModel):
 
 
 class IngestConfig(BaseModel):
+    mode: str = "full"  # full, fast, minimal
     chunking: ChunkingConfig = Field(default_factory=ChunkingConfig)
     quality_check: bool = True
     contextual_preamble: bool = True  # LLM-generated context for each chunk (Anthropic-style)
+    max_concurrency: int = 5  # Max concurrent LLM calls (HyPE, preambles)
+    parse_concurrency: int = 4  # Max concurrent document parsing threads
 
 
 class FusionWeightsConfig(BaseModel):
@@ -83,24 +84,25 @@ class FusionWeightsConfig(BaseModel):
 
 
 class RetrievalConfig(BaseModel):
-    top_k: int = 7
-    fusion_candidate_multiplier: int = 3
+    top_k: int = 10
+    fusion_candidate_multiplier: int = 4
     fusion_weights: FusionWeightsConfig = Field(default_factory=FusionWeightsConfig)
     rerank: bool = True
     compression: bool = True
     slow_retrieval_threshold_ms: int = 2000
+    retrieval_retry: bool = True  # Auto-retry with BM25-dominant strategy on insufficient evidence
 
 
 class GenerationOutputConfig(BaseModel):
     streaming: bool = True
     max_tokens: int = 2048
-    temperature: float = 0.1
+    temperature: float = 0.0
     citation_style: str = "inline"  # inline, footnote
     confidence_signal: bool = True
     high_confidence_threshold: float = 0.8
     low_confidence_threshold: float = 0.5
     no_answer_penalty: float = 0.3
-    max_context_chars: int = 12000
+    max_context_chars: int = 16000
 
 
 class EvaluationConfig(BaseModel):
@@ -180,8 +182,45 @@ class QuantumRAGConfig(BaseSettings):
 
     @classmethod
     def default(cls, **overrides: Any) -> QuantumRAGConfig:
-        """Create config with defaults and optional overrides."""
-        return cls(**overrides)
+        """Create config with auto-detected provider and optional overrides.
+
+        This is an alias for ``auto()`` — the recommended way to create
+        a config. Detects available API keys and selects optimal models.
+        """
+        return cls.auto(**overrides)
+
+    @classmethod
+    def auto(cls, **overrides: Any) -> QuantumRAGConfig:
+        """Auto-detect provider from environment and configure accordingly.
+
+        Checks for API keys in order: OpenAI → Gemini → Anthropic → Ollama.
+        Selects the most cost-effective models for each detected provider.
+        This is the recommended way to create a config for quick-start usage.
+
+        Usage::
+
+            config = QuantumRAGConfig.auto()
+            # Or with overrides:
+            config = QuantumRAGConfig.auto(language="en", storage={"data_dir": "/data"})
+        """
+        import os
+
+        provider, gen_models, emb_model, emb_dims = _detect_provider(os.environ)
+
+        models_cfg = {
+            "embedding": {"provider": provider, "model": emb_model, "dimensions": emb_dims},
+            "generation": {
+                "simple": {"provider": provider, "model": gen_models[0]},
+                "medium": {"provider": provider, "model": gen_models[1]},
+                "complex": {"provider": provider, "model": gen_models[2]},
+            },
+            "hype": {"provider": provider, "model": gen_models[0]},
+        }
+
+        # Merge with user overrides (overrides win)
+        data: dict[str, Any] = {"models": models_cfg}
+        data.update(overrides)
+        return cls(**data)
 
     def to_yaml(self, path: str | Path) -> None:
         """Write config to YAML file."""
@@ -190,6 +229,49 @@ class QuantumRAGConfig(BaseSettings):
         data = self.model_dump(mode="json")
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+
+def _detect_provider(
+    env: dict[str, str],
+) -> tuple[str, tuple[str, str, str], str, int]:
+    """Detect the best available LLM provider from environment variables.
+
+    Returns:
+        (provider, (simple_model, medium_model, complex_model), embedding_model, embedding_dims)
+    """
+    if env.get("OPENAI_API_KEY"):
+        return (
+            "openai",
+            ("gpt-5.4-nano", "gpt-5.4-mini", "gpt-5.4-mini"),
+            "text-embedding-3-small",
+            1536,
+        )
+    if env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY"):
+        return (
+            "gemini",
+            (
+                "gemini-2.5-flash-lite-preview",
+                "gemini-2.5-flash-preview",
+                "gemini-2.5-flash-preview",
+            ),
+            "text-embedding-004",
+            768,
+        )
+    if env.get("ANTHROPIC_API_KEY"):
+        # Anthropic has no embedding model; pair with local embedding
+        return (
+            "anthropic",
+            ("claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-sonnet-4-6"),
+            "local:BAAI/bge-m3",
+            1024,
+        )
+    # Fallback: Ollama (local, no API key needed)
+    return (
+        "ollama",
+        ("llama3.2:3b", "llama3.2:3b", "llama3.2:3b"),
+        "local:BAAI/bge-m3",
+        1024,
+    )
 
 
 def generate_default_yaml() -> str:
@@ -243,7 +325,7 @@ models:
     #   api_key: "AIza..."            # null → GOOGLE_API_KEY 환경 변수 사용
 
   reranker:
-    provider: "flashrank"               # flashrank (free/CPU), bge (free/multilingual), cohere, jina
+    provider: "noop"                    # noop (disabled), flashrank (free/CPU), bge (free/multilingual), cohere, jina
 
   hype:                                 # HyPE question generation model
     provider: "openai"
@@ -254,35 +336,39 @@ models:
 
 # Ingest settings
 ingest:
+  mode: "full"                          # full (all enrichment), fast (skip HyPE/preamble), minimal (embed+BM25 only)
   chunking:
     strategy: "auto"                    # auto, semantic, fixed, custom
     chunk_size: 512                     # Token count
     overlap: 50                         # Overlap tokens
   quality_check: true                   # Parse quality verification
-  contextual_preamble: true              # LLM-generated context per chunk (Anthropic-style)
+  contextual_preamble: true             # LLM-generated context per chunk (Anthropic-style)
+  max_concurrency: 5                    # Max concurrent LLM calls (HyPE, preambles)
+  parse_concurrency: 4                  # Max concurrent document parsing threads
 
 # Retrieval settings
 retrieval:
-  top_k: 5
+  top_k: 10
   fusion_weights:                       # Triple Index weights
     original: 0.4
     hype: 0.35
     bm25: 0.25
-  fusion_candidate_multiplier: 3        # Candidates = top_k * multiplier
+  fusion_candidate_multiplier: 4        # Candidates = top_k * multiplier
   rerank: true
   compression: true                     # Context compression
+  retrieval_retry: true                 # Auto-retry with BM25-dominant strategy on insufficient evidence
 
 # Generation settings
 generation:
-  streaming: true
+  streaming: true                        # Note: streaming skips correction pipeline
   max_tokens: 2048
-  temperature: 0.1
+  temperature: 0.0
   citation_style: "inline"             # inline, footnote
   confidence_signal: true
   high_confidence_threshold: 0.8       # Score above this = STRONGLY_SUPPORTED
   low_confidence_threshold: 0.5        # Score above this = PARTIALLY_SUPPORTED
   no_answer_penalty: 0.3               # Multiplier for insufficient evidence check
-  max_context_chars: 8000              # Max characters in built context
+  max_context_chars: 16000             # Max characters in built context
 
 # Evaluation settings
 evaluation:
@@ -298,14 +384,14 @@ evaluation:
 # Storage settings
 storage:
   backend: "local"                      # local, server, cluster
-  vector_db: "lancedb"                  # lancedb, qdrant, pgvector
+  vector_db: "lancedb"                  # lancedb, chroma, faiss
   document_store: "sqlite"              # sqlite, postgresql
   data_dir: "./quantumrag_data"
 
 # Cost settings
 cost:
-  budget_monthly: null                  # Monthly budget cap (null = unlimited)
-  semantic_cache: false                 # Semantic cache (Phase 2)
+  budget_monthly: null                  # Monthly budget cap (null = unlimited) [planned]
+  semantic_cache: false                 # Semantic cache [planned]
   prompt_caching: true                  # Provider prompt caching
 
 # Korean-specific settings

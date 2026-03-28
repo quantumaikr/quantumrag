@@ -42,6 +42,7 @@ def record(name: str, status: str, detail: str = "") -> None:
 
 # ── OpenAI Tests ────────────────────────────────────────────────────────
 
+
 async def test_openai_generate() -> None:
     name = "OpenAI generate (gpt-5.4-nano)"
     if not os.environ.get("OPENAI_API_KEY"):
@@ -145,6 +146,7 @@ async def test_openai_embedding() -> None:
 
 # ── Gemini Tests ────────────────────────────────────────────────────────
 
+
 async def test_gemini_generate() -> None:
     name = "Gemini generate (gemini-3.1-flash-lite-preview)"
     if not os.environ.get("GOOGLE_API_KEY"):
@@ -247,6 +249,7 @@ async def test_gemini_embedding() -> None:
 
 # ── Engine Integration Test ─────────────────────────────────────────────
 
+
 async def test_engine_config_wiring() -> None:
     """Verify that Engine correctly wires config api_key/base_url to providers."""
     name = "Engine config → provider wiring"
@@ -348,6 +351,7 @@ async def test_engine_gemini_wiring() -> None:
 
 # ── Main ────────────────────────────────────────────────────────────────
 
+
 async def main() -> None:
     print("=" * 70)
     print("QuantumRAG — Real LLM API Verification")
@@ -356,8 +360,10 @@ async def main() -> None:
     has_openai = bool(os.environ.get("OPENAI_API_KEY"))
     has_gemini = bool(os.environ.get("GOOGLE_API_KEY"))
 
-    print(f"\n  API Keys: OpenAI={'SET' if has_openai else 'NOT SET'}, "
-          f"Gemini={'SET' if has_gemini else 'NOT SET'}\n")
+    print(
+        f"\n  API Keys: OpenAI={'SET' if has_openai else 'NOT SET'}, "
+        f"Gemini={'SET' if has_gemini else 'NOT SET'}\n"
+    )
 
     print("── OpenAI Provider ──")
     await test_openai_generate()

@@ -122,11 +122,11 @@ class CohereReranker:
             reranked: list[ScoredChunk] = []
             for result in response.results:
                 idx = result.index
-                reranked.append(
-                    ScoredChunk(chunk=chunks[idx].chunk, score=result.relevance_score)
-                )
+                reranked.append(ScoredChunk(chunk=chunks[idx].chunk, score=result.relevance_score))
 
-            logger.debug("cohere_reranked", query_len=len(query), input=len(chunks), output=len(reranked))
+            logger.debug(
+                "cohere_reranked", query_len=len(query), input=len(chunks), output=len(reranked)
+            )
             return reranked
         except Exception as e:
             logger.warning("cohere_reranking_failed", error=str(e))
@@ -191,7 +191,9 @@ class JinaReranker:
                     )
                 )
 
-            logger.debug("jina_reranked", query_len=len(query), input=len(chunks), output=len(reranked))
+            logger.debug(
+                "jina_reranked", query_len=len(query), input=len(chunks), output=len(reranked)
+            )
             return reranked
         except Exception as e:
             logger.warning("jina_reranking_failed", error=str(e))
@@ -249,7 +251,9 @@ class BGEReranker:
                 for idx, score in indexed[:top_k]
             ]
 
-            logger.debug("bge_reranked", query_len=len(query), input=len(chunks), output=len(reranked))
+            logger.debug(
+                "bge_reranked", query_len=len(query), input=len(chunks), output=len(reranked)
+            )
             return reranked
         except Exception as e:
             logger.warning("bge_reranking_failed", error=str(e))

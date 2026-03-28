@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from quantumrag._version import __version__
@@ -218,6 +218,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
                 chunking_strategy=req.chunking_strategy,
                 metadata=req.metadata,
                 recursive=req.recursive,
+                mode=req.mode,
             )
             return IngestResponse(
                 documents=result.documents,
@@ -263,7 +264,8 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.post("/v1/query/stream")
     async def query_stream_endpoint(
-        request: Request, req: QueryRequest,
+        request: Request,
+        req: QueryRequest,
     ) -> StreamingResponse:
         """Stream query results via SSE."""
         try:
@@ -303,8 +305,15 @@ def create_app(config_path: str | None = None) -> FastAPI:
                     # Handle both Document model objects and dicts
                     if hasattr(d, "id"):
                         doc_id = d.id
-                        title = getattr(d.metadata, "title", "") or "" if hasattr(d, "metadata") else ""
-                        source_type = getattr(d.metadata, "source_type", "file").value if hasattr(d, "metadata") and hasattr(getattr(d.metadata, "source_type", None), "value") else "file"
+                        title = (
+                            getattr(d.metadata, "title", "") or "" if hasattr(d, "metadata") else ""
+                        )
+                        source_type = (
+                            getattr(d.metadata, "source_type", "file").value
+                            if hasattr(d, "metadata")
+                            and hasattr(getattr(d.metadata, "source_type", None), "value")
+                            else "file"
+                        )
                     else:
                         doc_id = d.get("id", "")
                         title = d.get("title", "")
@@ -367,9 +376,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
             eng = _get_engine(request)
             result = eng.evaluate()
             metrics = [
-                EvalMetricResponse(
-                    name=m.name, score=m.score, details=m.details
-                )
+                EvalMetricResponse(name=m.name, score=m.score, details=m.details)
                 for m in result.metrics
             ]
             return EvaluateResponse(
@@ -404,6 +411,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
         """Ingest raw text content directly (for playground)."""
         content = req.get("content", "").strip()
         title = req.get("title", "Untitled")
+        mode = req.get("mode") or None
         if not content:
             raise HTTPException(status_code=400, detail="Content is empty")
         try:
@@ -417,7 +425,7 @@ def create_app(config_path: str | None = None) -> FastAPI:
                 f.write(content)
                 tmp_path = Path(f.name)
             try:
-                result = await eng.aingest(tmp_path, metadata={"title": title})
+                result = await eng.aingest(tmp_path, metadata={"title": title}, mode=mode)
             finally:
                 tmp_path.unlink(missing_ok=True)
             return IngestResponse(
@@ -432,7 +440,9 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     @app.post("/v1/ingest/upload", response_model=IngestResponse)
     async def ingest_upload_endpoint(
-        request: Request, file: UploadFile = File(...),
+        request: Request,
+        file: UploadFile = File(...),
+        mode: str | None = Form(default=None),
     ) -> IngestResponse:
         """Ingest an uploaded file (for playground)."""
         if not file.filename:
@@ -442,15 +452,15 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
             eng = _get_engine(request)
             suffix = Path(file.filename).suffix or ".txt"
-            with tempfile.NamedTemporaryFile(
-                suffix=suffix, delete=False, prefix="qrag_"
-            ) as f:
+            with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, prefix="qrag_") as f:
                 data = await file.read()
                 f.write(data)
                 tmp_path = Path(f.name)
             try:
                 result = await eng.aingest(
-                    tmp_path, metadata={"title": file.filename}
+                    tmp_path,
+                    metadata={"title": file.filename},
+                    mode=mode,
                 )
             finally:
                 tmp_path.unlink(missing_ok=True)

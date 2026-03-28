@@ -48,11 +48,7 @@ _DOMAIN_PATTERNS: dict[str, re.Pattern[str]] = {
 
 def detect_domains(text: str) -> list[str]:
     """Detect which domains are present in the text."""
-    return [
-        domain
-        for domain, pattern in _DOMAIN_PATTERNS.items()
-        if pattern.search(text)
-    ]
+    return [domain for domain, pattern in _DOMAIN_PATTERNS.items() if pattern.search(text)]
 
 
 # ── Security fact extraction ────────────────────────────────────────────────
@@ -111,10 +107,12 @@ def _extract_security_facts(text: str) -> list[dict[str, Any]]:
 
     # If we found severity but no specific IDs, still record
     if not issue_ids and norm_severities:
-        facts.append({
-            "type": "security_summary",
-            "severities": norm_severities,
-        })
+        facts.append(
+            {
+                "type": "security_summary",
+                "severities": norm_severities,
+            }
+        )
 
     return facts
 
@@ -144,69 +142,72 @@ def _extract_finance_facts(text: str) -> list[dict[str, Any]]:
         metric = m.group(1)
         value = m.group(2)
         unit = m.group(3) or ""
-        facts.append({
-            "type": "finance_metric",
-            "metric": metric,
-            "value": f"{value}{unit}",
-        })
+        facts.append(
+            {
+                "type": "finance_metric",
+                "metric": metric,
+                "value": f"{value}{unit}",
+            }
+        )
 
     # Extract fund allocation items if chunk has allocation section
     if _FUND_SECTION.search(text):
         allocations = _FUND_ALLOCATION.findall(text)
         for item_name, value, unit in allocations:
-            facts.append({
-                "type": "fund_allocation",
-                "item": item_name.strip(),
-                "value": f"{value}{unit}",
-                "context": "자금 용도",
-            })
+            facts.append(
+                {
+                    "type": "fund_allocation",
+                    "item": item_name.strip(),
+                    "value": f"{value}{unit}",
+                    "context": "자금 용도",
+                }
+            )
 
     return facts
 
 
 # ── HR fact extraction ──────────────────────────────────────────────────────
 
-_TEAM_PATTERN = re.compile(
-    r"([\w가-힣]+팀)\s*[:：|]?\s*"
-    r"(?:.*?인원\s*[:：]?\s*)?(\d+)\s*명"
-)
-_LEADER_PATTERN = re.compile(
-    r"([\w가-힣]+팀)\s*.*?팀장\s*[:：]?\s*([\w가-힣]{2,4})"
-)
+_TEAM_PATTERN = re.compile(r"([\w가-힣]+팀)\s*[:：|]?\s*" r"(?:.*?인원\s*[:：]?\s*)?(\d+)\s*명")
+_LEADER_PATTERN = re.compile(r"([\w가-힣]+팀)\s*.*?팀장\s*[:：]?\s*([\w가-힣]{2,4})")
 
 
 def _extract_hr_facts(text: str) -> list[dict[str, Any]]:
     facts: list[dict[str, Any]] = []
     for m in _TEAM_PATTERN.finditer(text):
-        facts.append({
-            "type": "team_info",
-            "team": m.group(1),
-            "headcount": int(m.group(2)),
-        })
+        facts.append(
+            {
+                "type": "team_info",
+                "team": m.group(1),
+                "headcount": int(m.group(2)),
+            }
+        )
     for m in _LEADER_PATTERN.finditer(text):
-        facts.append({
-            "type": "team_leader",
-            "team": m.group(1),
-            "leader": m.group(2),
-        })
+        facts.append(
+            {
+                "type": "team_leader",
+                "team": m.group(1),
+                "leader": m.group(2),
+            }
+        )
     return facts
 
 
 # ── Product fact extraction ─────────────────────────────────────────────────
 
-_VERSION_BLOCK = re.compile(
-    r"v?(\d+\.\d+(?:\.\d+)?)\s*\((\d{4}[-./]\d{1,2}[-./]\d{1,2})\)"
-)
+_VERSION_BLOCK = re.compile(r"v?(\d+\.\d+(?:\.\d+)?)\s*\((\d{4}[-./]\d{1,2}[-./]\d{1,2})\)")
 
 
 def _extract_product_facts(text: str) -> list[dict[str, Any]]:
     facts: list[dict[str, Any]] = []
     for m in _VERSION_BLOCK.finditer(text):
-        facts.append({
-            "type": "product_version",
-            "version": f"v{m.group(1)}",
-            "release_date": m.group(2),
-        })
+        facts.append(
+            {
+                "type": "product_version",
+                "version": f"v{m.group(1)}",
+                "release_date": m.group(2),
+            }
+        )
     return facts
 
 
@@ -229,9 +230,7 @@ def _extract_patent_facts(text: str) -> list[dict[str, Any]]:
             "entity": pat_id,
         }
         if inventors:
-            fact["inventors"] = [
-                inv.strip() for inv in inventors[0].split(",") if inv.strip()
-            ]
+            fact["inventors"] = [inv.strip() for inv in inventors[0].split(",") if inv.strip()]
         if statuses:
             fact["status"] = statuses[0].replace(" ", "")
         facts.append(fact)

@@ -18,6 +18,7 @@ from quantumrag.core.retrieve.retriever import Retriever
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_scored_chunks(n: int = 3) -> list[ScoredChunk]:
     """Create a list of dummy ScoredChunk objects."""
     chunks: list[ScoredChunk] = []

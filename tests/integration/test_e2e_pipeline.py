@@ -5,7 +5,6 @@ Uses mock LLM/Embedding providers to avoid external API dependencies.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -13,12 +12,12 @@ import pytest
 
 from quantumrag.core.config import QuantumRAGConfig
 from quantumrag.core.engine import Engine
-from quantumrag.core.models import Chunk, Confidence
-
+from quantumrag.core.models import Chunk
 
 # ---------------------------------------------------------------------------
 # Mock providers
 # ---------------------------------------------------------------------------
+
 
 def _mock_embedding_provider() -> MagicMock:
     """Create a mock embedding provider returning deterministic vectors."""

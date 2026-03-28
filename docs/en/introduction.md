@@ -1,6 +1,6 @@
 # Introducing QuantumRAG
 
-> Why we built a new RAG engine, and what makes it different.
+> Put documents in. Ask questions. Get cited answers.
 
 ---
 
@@ -22,7 +22,9 @@ Here's what breaks in production:
 
 ## The Design Philosophy
 
-QuantumRAG was built around a single insight: **the more you understand your documents at indexing time, the less work you need to do at query time.** We call this **Index-Heavy, Query-Light**.
+QuantumRAG's core promise is simple: **put documents in, ask questions, get accurate cited answers.**
+
+This is possible because of the Index-Heavy, Query-Light architecture: **the more you understand your documents at indexing time, the less work you need to do at query time.**
 
 Instead of treating documents as opaque text to be embedded, QuantumRAG builds a rich, multi-layered understanding of every document at ingest time:
 
@@ -135,6 +137,18 @@ These are not cherry-picked examples. The full test suite runs against the same 
 
 ---
 
+## Three Ways to Use It
+
+| | What you do | What happens |
+|---|-------------|-------------|
+| **Just use it** | `engine.ingest("./docs")` → `engine.query("...")` | Parser, chunker, index, routing — all auto-selected |
+| **Tune it** | Adjust fusion weights, pick models, set domain | Better results for your specific use case |
+| **Own it** | Custom parsers, chunkers, retrievers, generators | Every layer is replaceable via plugins |
+
+Zero configuration to first answer. Full control when you need it.
+
+---
+
 ## Who Is This For
 
 **Enterprise teams** building internal knowledge systems over Korean and English corporate documents — board minutes, audit reports, contracts, patent filings, product changelogs.
@@ -143,7 +157,7 @@ These are not cherry-picked examples. The full test suite runs against the same 
 
 **Teams** who want structured-data precision (entity lookups, attribute filtering) combined with the flexibility of semantic search, without building two separate systems.
 
-**Anyone** frustrated by the gap between RAG demo quality and production RAG quality.
+**Developers who are not RAG experts** — who don't have time to assemble LangChain chains or design LlamaIndex pipelines, and just want an engine that works when you put documents in.
 
 ---
 
@@ -162,6 +176,6 @@ result = engine.query("How does the Triple Index Fusion work?")
 print(result.answer)
 ```
 
-Three lines. No configuration required. It just works.
+Three lines. No configuration required. The rest is handled automatically.
 
 For deeper exploration, see the [full documentation](index.md).

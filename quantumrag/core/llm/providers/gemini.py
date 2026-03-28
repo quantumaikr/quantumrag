@@ -55,8 +55,7 @@ def _get_genai():
         from google import genai
     except ImportError as exc:
         raise GenerationError(
-            "google-genai package is not installed. "
-            "Install with: pip install 'google-genai>=1.0'",
+            "google-genai package is not installed. Install with: pip install 'google-genai>=1.0'",
             provider="gemini",
         ) from exc
     return genai
@@ -148,9 +147,7 @@ class GeminiLLMProvider:
             )
             text = resp.text or ""
             tokens_in = resp.usage_metadata.prompt_token_count if resp.usage_metadata else 0
-            tokens_out = (
-                resp.usage_metadata.candidates_token_count if resp.usage_metadata else 0
-            )
+            tokens_out = resp.usage_metadata.candidates_token_count if resp.usage_metadata else 0
             price_in, price_out = _PRICING.get(self._model, (0.0, 0.0))
             return LLMResponse(
                 text=text,

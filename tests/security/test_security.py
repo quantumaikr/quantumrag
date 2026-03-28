@@ -32,6 +32,7 @@ def secured_client(tmp_path: Path) -> TestClient:
     try:
         with patch("quantumrag.core.engine.Engine.__init__", return_value=None):
             from quantumrag.api.server import create_app
+
             app = create_app()
         app.state.engine = mock_engine
         yield TestClient(app)

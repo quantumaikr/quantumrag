@@ -264,15 +264,11 @@ class TestApiKeyAuth:
         assert resp.status_code == 401
 
     def test_request_with_valid_key(self, authed_client: TestClient):
-        resp = authed_client.get(
-            "/v1/status", headers={"X-API-Key": "test-secret-key"}
-        )
+        resp = authed_client.get("/v1/status", headers={"X-API-Key": "test-secret-key"})
         assert resp.status_code == 200
 
     def test_request_with_wrong_key(self, authed_client: TestClient):
-        resp = authed_client.get(
-            "/v1/status", headers={"X-API-Key": "wrong-key"}
-        )
+        resp = authed_client.get("/v1/status", headers={"X-API-Key": "wrong-key"})
         assert resp.status_code == 401
 
     def test_query_param_key_rejected(self, authed_client: TestClient):

@@ -68,7 +68,9 @@ class TestCLIHelp:
         assert result.exit_code == 0
 
 
-def _make_ingest_result(documents: int = 3, chunks: int = 15, elapsed: float = 1.5, errors: list[str] | None = None):
+def _make_ingest_result(
+    documents: int = 3, chunks: int = 15, elapsed: float = 1.5, errors: list[str] | None = None
+):
     """Create a mock IngestResult."""
     from quantumrag.core.engine import IngestResult
 
@@ -165,7 +167,9 @@ class TestCLIIngest:
         mock_engine.ingest.return_value = _make_ingest_result()
         mock_engine_cls.return_value = mock_engine
 
-        result = runner.invoke(app, ["ingest", str(test_file), "--metadata", "author=Alice", "--metadata", "dept=eng"])
+        result = runner.invoke(
+            app, ["ingest", str(test_file), "--metadata", "author=Alice", "--metadata", "dept=eng"]
+        )
         assert result.exit_code == 0
         call_kwargs = mock_engine.ingest.call_args[1]
         assert call_kwargs["metadata"] == {"author": "Alice", "dept": "eng"}

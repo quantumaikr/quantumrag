@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Chunk, Document
-from quantumrag.core.utils.text import split_sentences_with_fallback
+from quantumrag.core.utils.text import (
+    estimate_token_count,
+    split_preserving_blocks,
+    split_sentences_with_fallback,
+)
 
 logger = get_logger(__name__)
 
@@ -27,6 +31,10 @@ class FixedSizeChunker:
     def chunk(self, document: Document) -> list[Chunk]:
         """Split document into fixed-size chunks.
 
+        Pre-processes text to protect markdown tables as atomic blocks,
+        then splits remaining text into fixed-size chunks with overlap.
+        Uses Korean-aware token estimation for accurate size control.
+
         Args:
             document: Document to split.
 
@@ -37,81 +45,29 @@ class FixedSizeChunker:
         if not text:
             return []
 
-        sentences = split_sentences_with_fallback(text)
-        if not sentences:
-            return []
+        # Pre-split: protect tables and code blocks as atomic blocks
+        segments = split_preserving_blocks(text)
 
         chunks: list[Chunk] = []
-        current_words: list[str] = []
-        current_sentences: list[str] = []
         chunk_index = 0
 
-        for sentence in sentences:
-            sentence_words = sentence.split()
-            if not sentence_words:
-                continue
-
-            # If a single sentence exceeds chunk_size, split it by words
-            if len(sentence_words) > self._chunk_size:
-                # Flush current buffer first
-                if current_sentences:
-                    chunk_text = " ".join(current_sentences)
-                    chunks.append(
-                        Chunk(
-                            content=chunk_text,
-                            document_id=document.id,
-                            chunk_index=chunk_index,
-                        )
-                    )
-                    chunk_index += 1
-                    current_sentences = []
-                    current_words = []
-
-                # Split the long sentence into word-based sub-chunks
-                for i in range(0, len(sentence_words), self._chunk_size - self._overlap):
-                    sub_words = sentence_words[i : i + self._chunk_size]
-                    if sub_words:
-                        chunks.append(
-                            Chunk(
-                                content=" ".join(sub_words),
-                                document_id=document.id,
-                                chunk_index=chunk_index,
-                            )
-                        )
-                        chunk_index += 1
-                continue
-
-            # If adding this sentence exceeds chunk_size and we have content,
-            # finalize the current chunk
-            if current_words and len(current_words) + len(sentence_words) > self._chunk_size:
-                chunk_text = " ".join(current_sentences)
+        for segment_text, block_type in segments:
+            if block_type in ("table", "code"):
+                # Atomic blocks (tables, code) are emitted as-is, never split
                 chunks.append(
                     Chunk(
-                        content=chunk_text,
+                        content=segment_text,
                         document_id=document.id,
                         chunk_index=chunk_index,
                     )
                 )
                 chunk_index += 1
+                continue
 
-                # Compute overlap: take last N words worth of sentences
-                overlap_text = _compute_overlap(current_sentences, self._overlap)
-                current_sentences = [overlap_text] if overlap_text else []
-                current_words = overlap_text.split() if overlap_text else []
-
-            current_sentences.append(sentence)
-            current_words.extend(sentence_words)
-
-        # Final chunk
-        if current_sentences:
-            chunk_text = " ".join(current_sentences)
-            chunks.append(
-                Chunk(
-                    content=chunk_text,
-                    document_id=document.id,
-                    chunk_index=chunk_index,
-                )
-            )
+            # Normal text: sentence-based fixed-size chunking
+            sub_chunks = self._chunk_text_segment(segment_text, document.id, chunk_index)
+            chunks.extend(sub_chunks)
+            chunk_index += len(sub_chunks)
 
         logger.debug(
             "fixed_chunking_done",
@@ -120,6 +76,87 @@ class FixedSizeChunker:
             chunk_size=self._chunk_size,
             overlap=self._overlap,
         )
+
+        return chunks
+
+    def _chunk_text_segment(self, text: str, document_id: str, start_index: int) -> list[Chunk]:
+        """Chunk a non-table text segment into fixed-size pieces."""
+        sentences = split_sentences_with_fallback(text)
+        if not sentences:
+            return []
+
+        chunks: list[Chunk] = []
+        current_token_count = 0
+        current_sentences: list[str] = []
+        chunk_index = start_index
+
+        for sentence in sentences:
+            sentence_tokens = estimate_token_count(sentence)
+            if sentence_tokens == 0:
+                continue
+
+            # If a single sentence exceeds chunk_size, split it by words
+            if sentence_tokens > self._chunk_size:
+                # Flush current buffer first
+                if current_sentences:
+                    chunk_text = " ".join(current_sentences)
+                    chunks.append(
+                        Chunk(
+                            content=chunk_text,
+                            document_id=document_id,
+                            chunk_index=chunk_index,
+                        )
+                    )
+                    chunk_index += 1
+                    current_sentences = []
+                    current_token_count = 0
+
+                # Split the long sentence into word-based sub-chunks
+                sentence_words = sentence.split()
+                for i in range(0, len(sentence_words), self._chunk_size - self._overlap):
+                    sub_words = sentence_words[i : i + self._chunk_size]
+                    if sub_words:
+                        chunks.append(
+                            Chunk(
+                                content=" ".join(sub_words),
+                                document_id=document_id,
+                                chunk_index=chunk_index,
+                            )
+                        )
+                        chunk_index += 1
+                continue
+
+            # If adding this sentence exceeds chunk_size and we have content,
+            # finalize the current chunk
+            if current_sentences and current_token_count + sentence_tokens > self._chunk_size:
+                chunk_text = " ".join(current_sentences)
+                chunks.append(
+                    Chunk(
+                        content=chunk_text,
+                        document_id=document_id,
+                        chunk_index=chunk_index,
+                    )
+                )
+                chunk_index += 1
+
+                # Compute overlap: take last N words worth of sentences
+                overlap_text = _compute_overlap(current_sentences, self._overlap)
+                current_sentences = [overlap_text] if overlap_text else []
+                current_token_count = estimate_token_count(overlap_text) if overlap_text else 0
+
+            current_sentences.append(sentence)
+            current_token_count += sentence_tokens
+
+        # Final chunk
+        if current_sentences:
+            chunk_text = " ".join(current_sentences)
+            chunks.append(
+                Chunk(
+                    content=chunk_text,
+                    document_id=document_id,
+                    chunk_index=chunk_index,
+                )
+            )
 
         return chunks
 

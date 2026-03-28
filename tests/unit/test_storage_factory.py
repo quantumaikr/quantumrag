@@ -16,6 +16,7 @@ from quantumrag.core.storage.factory import StorageFactory
 def _has_lancedb() -> bool:
     try:
         import lancedb  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -24,6 +25,7 @@ def _has_lancedb() -> bool:
 def _has_tantivy() -> bool:
     try:
         import tantivy  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -115,16 +117,12 @@ class TestUnknownBackend:
 
 class TestDefaultBackends:
     def test_default_document_store_is_sqlite(self, tmp_path: Path):
-        store = StorageFactory.create_document_store(
-            backend="sqlite", db_path=tmp_path / "docs.db"
-        )
+        store = StorageFactory.create_document_store(backend="sqlite", db_path=tmp_path / "docs.db")
         from quantumrag.core.storage.backends.sqlite import SQLiteDocumentStore
 
         assert isinstance(store, SQLiteDocumentStore)
 
-    @pytest.mark.skipif(
-        not _has_lancedb(), reason="lancedb not installed"
-    )
+    @pytest.mark.skipif(not _has_lancedb(), reason="lancedb not installed")
     def test_default_vector_store_is_lancedb(self, tmp_path: Path):
         store = StorageFactory.create_vector_store(
             backend="lancedb", db_path=tmp_path / "vecs", table_name="t"
@@ -133,13 +131,9 @@ class TestDefaultBackends:
 
         assert isinstance(store, LanceDBVectorStore)
 
-    @pytest.mark.skipif(
-        not _has_tantivy(), reason="tantivy not installed"
-    )
+    @pytest.mark.skipif(not _has_tantivy(), reason="tantivy not installed")
     def test_default_bm25_store_is_tantivy(self, tmp_path: Path):
-        store = StorageFactory.create_bm25_store(
-            backend="tantivy", index_path=tmp_path / "idx"
-        )
+        store = StorageFactory.create_bm25_store(backend="tantivy", index_path=tmp_path / "idx")
         from quantumrag.core.storage.backends.bm25_store import TantivyBM25Store
 
         assert isinstance(store, TantivyBM25Store)
@@ -160,14 +154,10 @@ class TestReset:
 
     def test_reset_allows_reregistration_of_defaults(self, tmp_path: Path):
         # Trigger default registration
-        StorageFactory.create_document_store(
-            backend="sqlite", db_path=tmp_path / "a.db"
-        )
+        StorageFactory.create_document_store(backend="sqlite", db_path=tmp_path / "a.db")
         StorageFactory._reset()
         # Defaults should re-register lazily
-        store = StorageFactory.create_document_store(
-            backend="sqlite", db_path=tmp_path / "b.db"
-        )
+        store = StorageFactory.create_document_store(backend="sqlite", db_path=tmp_path / "b.db")
         from quantumrag.core.storage.backends.sqlite import SQLiteDocumentStore
 
         assert isinstance(store, SQLiteDocumentStore)

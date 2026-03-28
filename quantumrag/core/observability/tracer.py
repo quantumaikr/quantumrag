@@ -74,9 +74,7 @@ class TraceStore:
                 timestamp REAL NOT NULL
             )"""
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_traces_timestamp ON traces(timestamp)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_traces_timestamp ON traces(timestamp)")
         conn.commit()
         conn.close()
 
@@ -112,9 +110,7 @@ class TraceStore:
     def get(self, trace_id: str) -> TraceRecord | None:
         """Retrieve a trace by ID."""
         conn = sqlite3.connect(str(self._db_path))
-        row = conn.execute(
-            "SELECT * FROM traces WHERE trace_id = ?", (trace_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM traces WHERE trace_id = ?", (trace_id,)).fetchone()
         conn.close()
 
         if not row:
@@ -188,9 +184,7 @@ class TraceStore:
     def cleanup(self, older_than: float) -> int:
         """Remove traces older than the given timestamp."""
         conn = sqlite3.connect(str(self._db_path))
-        cursor = conn.execute(
-            "DELETE FROM traces WHERE timestamp < ?", (older_than,)
-        )
+        cursor = conn.execute("DELETE FROM traces WHERE timestamp < ?", (older_than,))
         count = cursor.rowcount
         conn.commit()
         conn.close()
@@ -268,9 +262,7 @@ class CostTracker:
             ),
             "budget_limit": self._budget_limit,
             "budget_remaining": (
-                self._budget_limit - self._total_cost
-                if self._budget_limit
-                else None
+                self._budget_limit - self._total_cost if self._budget_limit else None
             ),
         }
 
@@ -396,8 +388,6 @@ class BudgetManager:
                 timestamp REAL NOT NULL
             )"""
         )
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_budget_timestamp ON budget_records(timestamp)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_budget_timestamp ON budget_records(timestamp)")
         conn.commit()
         conn.close()

@@ -58,9 +58,7 @@ class TestLLMModelNotFoundError:
         assert isinstance(err, QuantumRAGError)
 
     def test_with_available_models(self) -> None:
-        err = LLMModelNotFoundError(
-            "openai", "gpt-99", available_models=["gpt-4o", "gpt-4o-mini"]
-        )
+        err = LLMModelNotFoundError("openai", "gpt-99", available_models=["gpt-4o", "gpt-4o-mini"])
         assert "gpt-4o" in err.suggestion
         assert err.available_models == ["gpt-4o", "gpt-4o-mini"]
 
@@ -71,18 +69,14 @@ class TestLLMModelNotFoundError:
 
 class TestLLMContextLengthError:
     def test_basic_creation(self) -> None:
-        err = LLMContextLengthError(
-            "openai", max_tokens=4096, requested_tokens=8000
-        )
+        err = LLMContextLengthError("openai", max_tokens=4096, requested_tokens=8000)
         assert err.provider == "openai"
         assert err.max_tokens == 4096
         assert err.requested_tokens == 8000
         assert isinstance(err, QuantumRAGError)
 
     def test_suggestion_content(self) -> None:
-        err = LLMContextLengthError(
-            "anthropic", max_tokens=100000, requested_tokens=200000
-        )
+        err = LLMContextLengthError("anthropic", max_tokens=100000, requested_tokens=200000)
         assert "200000" in err.suggestion
         assert "100000" in err.suggestion
 
@@ -142,9 +136,7 @@ class TestOpenAIErrorConversion:
 
     def test_authentication_error(self) -> None:
         mock_mod, exc = self._make_openai_error("AuthenticationError")
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -154,9 +146,7 @@ class TestOpenAIErrorConversion:
     def test_rate_limit_error(self) -> None:
         mock_mod, exc = self._make_openai_error("RateLimitError")
         exc.headers = {"retry-after": "30"}
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -164,9 +154,7 @@ class TestOpenAIErrorConversion:
 
     def test_not_found_error(self) -> None:
         mock_mod, exc = self._make_openai_error("NotFoundError")
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -176,9 +164,7 @@ class TestOpenAIErrorConversion:
         mock_mod, exc = self._make_openai_error(
             "BadRequestError", "maximum context length exceeded"
         )
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -186,9 +172,7 @@ class TestOpenAIErrorConversion:
 
     def test_bad_request_generic(self) -> None:
         mock_mod, exc = self._make_openai_error("BadRequestError", "invalid param")
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -196,9 +180,7 @@ class TestOpenAIErrorConversion:
 
     def test_generic_api_error(self) -> None:
         mock_mod, exc = self._make_openai_error("APIError", "server error")
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -213,9 +195,7 @@ class TestOpenAIErrorConversion:
         mock_mod.BadRequestError = type("BadRequestError", (mock_mod.APIError,), {})
 
         exc = ValueError("unrelated")
-        with patch(
-            "quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod
-        ):
+        with patch("quantumrag.core.llm.providers.openai._get_openai", return_value=mock_mod):
             from quantumrag.core.llm.providers.openai import _convert_openai_error
 
             result = _convert_openai_error(exc)
@@ -279,9 +259,7 @@ class TestAnthropicErrorConversion:
             assert isinstance(result, LLMModelNotFoundError)
 
     def test_bad_request_context_length(self) -> None:
-        mock_mod, exc = self._make_anthropic_error(
-            "BadRequestError", "too many tokens in request"
-        )
+        mock_mod, exc = self._make_anthropic_error("BadRequestError", "too many tokens in request")
         with patch(
             "quantumrag.core.llm.providers.anthropic._get_anthropic",
             return_value=mock_mod,
@@ -589,10 +567,7 @@ class TestHyPERetryLogic:
             llm_provider=mock_llm,
         )
 
-        chunks = [
-            Chunk(content=f"Chunk {i}", document_id="doc1", chunk_index=i)
-            for i in range(5)
-        ]
+        chunks = [Chunk(content=f"Chunk {i}", document_id="doc1", chunk_index=i) for i in range(5)]
 
         report = IndexingReport()
         with patch("asyncio.sleep", new_callable=AsyncMock):
@@ -635,17 +610,12 @@ class TestHyPERetryLogic:
             llm_provider=mock_llm,
         )
 
-        chunks = [
-            Chunk(content=f"Chunk {i}", document_id="doc1", chunk_index=i)
-            for i in range(5)
-        ]
+        chunks = [Chunk(content=f"Chunk {i}", document_id="doc1", chunk_index=i) for i in range(5)]
         report = IndexingReport()
 
         with (
             patch("asyncio.sleep", new_callable=AsyncMock),
-            patch(
-                "quantumrag.core.ingest.indexer.triple_index_builder.logger"
-            ) as mock_logger,
+            patch("quantumrag.core.ingest.indexer.triple_index_builder.logger") as mock_logger,
         ):
             await builder._build_hype_embeddings(chunks, report)
 

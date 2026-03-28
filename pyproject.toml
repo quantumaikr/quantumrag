@@ -32,6 +32,7 @@ dependencies = [
     "typer>=0.12",
     "rich>=13.0",
     "httpx>=0.27",
+    "pdfplumber>=0.11.9",
 ]
 
 [project.optional-dependencies]
@@ -57,12 +58,20 @@ gemini = [
 rerank = [
     "sentence-transformers>=3.0",
 ]
+chroma = [
+    "chromadb>=0.5",
+]
+faiss = [
+    "faiss-cpu>=1.8",
+]
 all = [
     "openai>=1.40",
     "anthropic>=0.34",
     "google-genai>=1.0",
     "lancedb>=0.12",
     "tantivy>=0.22",
+    "chromadb>=0.5",
+    "faiss-cpu>=1.8",
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
     "kiwipiepy>=0.18",
@@ -130,7 +139,7 @@ warn_return_any = true
 warn_unused_configs = true
 
 [[tool.mypy.overrides]]
-module = ["lancedb.*", "tantivy.*"]
+module = ["lancedb.*", "tantivy.*", "chromadb.*", "faiss.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -140,3 +149,18 @@ markers = [
     "integration: marks tests requiring external services",
     "benchmark: marks performance benchmark tests",
 ]
+
+[tool.coverage.run]
+source = ["quantumrag"]
+omit = ["quantumrag/__main__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__",
+    "raise NotImplementedError",
+    "\\.\\.\\.$$",
+]
+show_missing = true
+skip_empty = true

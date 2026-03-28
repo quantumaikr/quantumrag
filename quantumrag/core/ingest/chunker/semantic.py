@@ -16,7 +16,11 @@ from typing import Any
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Chunk, Document
 from quantumrag.core.pipeline.context import BoundaryType
-from quantumrag.core.utils.text import vocab_overlap
+from quantumrag.core.utils.text import (
+    estimate_token_count,
+    split_preserving_blocks,
+    text_similarity,
+)
 
 logger = get_logger(__name__)
 
@@ -58,6 +62,9 @@ class SemanticChunker:
     def chunk(self, document: Document) -> list[Chunk]:
         """Split document into semantically coherent chunks.
 
+        Pre-processes text to protect markdown tables as atomic blocks,
+        then applies semantic chunking to remaining text segments.
+
         Args:
             document: Document to split.
 
@@ -68,23 +75,45 @@ class SemanticChunker:
         if not text:
             return []
 
-        paragraphs = _split_paragraphs(text)
-        if not paragraphs:
-            return []
-
-        # Merge small paragraphs and split large ones, with topic-shift awareness
-        merged, boundary_types = self._merge_and_split(paragraphs)
+        # Pre-split: protect tables and code blocks as atomic blocks
+        segments = split_preserving_blocks(text)
 
         chunks: list[Chunk] = []
-        for i, chunk_text in enumerate(merged):
-            chunks.append(
-                Chunk(
-                    content=chunk_text,
-                    document_id=document.id,
-                    chunk_index=i,
-                    metadata={"boundary_type": boundary_types[i] if i < len(boundary_types) else BoundaryType.SIZE_LIMIT.value},
+        chunk_index = 0
+
+        for segment_text, block_type in segments:
+            if block_type in ("table", "code"):
+                chunks.append(
+                    Chunk(
+                        content=segment_text,
+                        document_id=document.id,
+                        chunk_index=chunk_index,
+                        metadata={"boundary_type": BoundaryType.STRUCTURAL.value},
+                    )
                 )
-            )
+                chunk_index += 1
+                continue
+
+            paragraphs = _split_paragraphs(segment_text)
+            if not paragraphs:
+                continue
+
+            merged, boundary_types = self._merge_and_split(paragraphs)
+
+            for i, chunk_text in enumerate(merged):
+                chunks.append(
+                    Chunk(
+                        content=chunk_text,
+                        document_id=document.id,
+                        chunk_index=chunk_index,
+                        metadata={
+                            "boundary_type": boundary_types[i]
+                            if i < len(boundary_types)
+                            else BoundaryType.SIZE_LIMIT.value
+                        },
+                    )
+                )
+                chunk_index += 1
 
         logger.debug(
             "semantic_chunking_done",
@@ -109,19 +138,19 @@ class SemanticChunker:
         result: list[str] = []
         boundary_types: list[str] = []
         current_parts: list[str] = []
-        current_word_count = 0
+        current_token_count = 0
 
         for para in paragraphs:
-            para_words = len(para.split())
+            para_tokens = estimate_token_count(para)
 
             # If a single paragraph exceeds max, split it
-            if para_words > self._max_size:
+            if para_tokens > self._max_size:
                 # Flush current buffer first
                 if current_parts:
                     result.append("\n\n".join(current_parts))
                     boundary_types.append(BoundaryType.PARAGRAPH.value)
                     current_parts = []
-                    current_word_count = 0
+                    current_token_count = 0
 
                 # Split the large paragraph by sentences
                 sub_chunks = self._split_large_paragraph(para)
@@ -130,26 +159,29 @@ class SemanticChunker:
                 continue
 
             # If adding this paragraph would exceed max, flush
-            if current_word_count + para_words > self._max_size and current_parts:
+            if current_token_count + para_tokens > self._max_size and current_parts:
                 result.append("\n\n".join(current_parts))
                 boundary_types.append(BoundaryType.SIZE_LIMIT.value)
                 current_parts = []
-                current_word_count = 0
+                current_token_count = 0
 
             # Topic-shift detection: if we have enough content and the next
-            # paragraph is topically different, start a new chunk
+            # paragraph is topically different, start a new chunk.
+            # Uses text_similarity (word Jaccard + char bigram) instead of
+            # plain vocab_overlap to handle Korean agglutination correctly
+            # (e.g., "프로젝트를" vs "프로젝트가" share bigrams but differ as words).
             if (
                 current_parts
-                and current_word_count >= self._min_size
-                and vocab_overlap(current_parts[-1], para) < self._topic_shift_threshold
+                and current_token_count >= self._min_size
+                and text_similarity(current_parts[-1], para) < self._topic_shift_threshold
             ):
                 result.append("\n\n".join(current_parts))
                 boundary_types.append(BoundaryType.TOPIC_SHIFT.value)
                 current_parts = []
-                current_word_count = 0
+                current_token_count = 0
 
             current_parts.append(para)
-            current_word_count += para_words
+            current_token_count += para_tokens
 
         # Flush remaining
         if current_parts:
@@ -174,16 +206,16 @@ class SemanticChunker:
 
         chunks = []
         current: list[str] = []
-        current_words = 0
+        current_tokens = 0
 
         for sentence in sentences:
-            words = len(sentence.split())
-            if current_words + words > self._max_size and current:
+            tokens = estimate_token_count(sentence)
+            if current_tokens + tokens > self._max_size and current:
                 chunks.append(" ".join(current))
                 current = []
-                current_words = 0
+                current_tokens = 0
             current.append(sentence)
-            current_words += words
+            current_tokens += tokens
 
         if current:
             chunks.append(" ".join(current))

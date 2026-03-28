@@ -71,9 +71,7 @@ _REWRITE_SYSTEM_PROMPT = (
 )
 
 _REWRITE_USER_TEMPLATE = (
-    "Conversation history:\n{history}\n\n"
-    "Follow-up query: {query}\n\n"
-    "Rewritten standalone query:"
+    "Conversation history:\n{history}\n\nFollow-up query: {query}\n\nRewritten standalone query:"
 )
 
 # Query decomposition patterns — questions with multiple parts
@@ -86,9 +84,7 @@ _MULTI_PART_SIGNALS = re.compile(
 )
 
 # Patterns to detect compound questions with comma/conjunction
-_COMPOUND_Q = re.compile(
-    r"(.+?(?:이고|이며|인가요|인가)\s*,?\s*)(.+\??)$"
-)
+_COMPOUND_Q = re.compile(r"(.+?(?:이고|이며|인가요|인가)\s*,?\s*)(.+\??)$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -169,12 +165,8 @@ class QueryRewriter:
         history: list[ConversationTurn],
     ) -> str:
         """Use an LLM to produce a standalone query."""
-        history_text = "\n".join(
-            f"{turn.role}: {turn.content}" for turn in history
-        )
-        user_prompt = _REWRITE_USER_TEMPLATE.format(
-            history=history_text, query=query
-        )
+        history_text = "\n".join(f"{turn.role}: {turn.content}" for turn in history)
+        user_prompt = _REWRITE_USER_TEMPLATE.format(history=history_text, query=query)
 
         response = await self.llm_provider.generate(
             user_prompt,
@@ -256,9 +248,7 @@ class QueryRewriter:
     def _needs_rewriting(self, query: str) -> bool:
         """Return True if the query contains pronoun/reference markers."""
         return bool(
-            _EN_PRONOUNS.search(query)
-            or _KO_DEMO_NOUN.search(query)
-            or _KO_PRONOUNS.search(query)
+            _EN_PRONOUNS.search(query) or _KO_DEMO_NOUN.search(query) or _KO_PRONOUNS.search(query)
         )
 
 
@@ -268,19 +258,47 @@ class QueryRewriter:
 
 # Known company names for entity classification
 _KNOWN_COMPANIES = {
-    "퀀텀소프트", "QuantumSoft", "퀀텀아이", "Upstage", "리턴제로", "ReturnZero",
-    "뤼튼", "Wrtn", "포티투마루", "42Maru", "삼성전자", "KB국민은행",
-    "네이버", "현대자동차", "소프트뱅크", "NTT", "미쓰비시",
+    "퀀텀소프트",
+    "QuantumSoft",
+    "퀀텀아이",
+    "Upstage",
+    "리턴제로",
+    "ReturnZero",
+    "뤼튼",
+    "Wrtn",
+    "포티투마루",
+    "42Maru",
+    "삼성전자",
+    "KB국민은행",
+    "네이버",
+    "현대자동차",
+    "소프트뱅크",
+    "NTT",
+    "미쓰비시",
 }
 
 _KNOWN_PRODUCTS = {
-    "QuantumRAG", "QuantumChat", "QuantumGuard", "QuantumAnalytics",
+    "QuantumRAG",
+    "QuantumChat",
+    "QuantumGuard",
+    "QuantumAnalytics",
 }
 
 _KNOWN_PERSONS = {
-    "김태현", "박서연", "이준호", "정민지", "최영수", "강지훈",
-    "김하은", "한소희", "오지현", "임수정", "윤재석", "조은서",
-    "박지영", "이서준",
+    "김태현",
+    "박서연",
+    "이준호",
+    "정민지",
+    "최영수",
+    "강지훈",
+    "김하은",
+    "한소희",
+    "오지현",
+    "임수정",
+    "윤재석",
+    "조은서",
+    "박지영",
+    "이서준",
 }
 
 
@@ -316,9 +334,13 @@ def _build_entity_memory(history: list[ConversationTurn]) -> list[TrackedEntity]
             # Extract **bold** entities
             for bold_match in re.finditer(r"\*\*([^*]{2,30})\*\*", content):
                 name = bold_match.group(1).strip()
-                if name not in seen_names and not re.match(r"^(신뢰도|답변|결론|요약|참고|출처|Confidence)", name):
+                if name not in seen_names and not re.match(
+                    r"^(신뢰도|답변|결론|요약|참고|출처|Confidence)", name
+                ):
                     etype = _classify_entity(name)
-                    entities.append(TrackedEntity(name=name, entity_type=etype, turn_index=turn_idx))
+                    entities.append(
+                        TrackedEntity(name=name, entity_type=etype, turn_index=turn_idx)
+                    )
                     seen_names.add(name)
 
             # Extract parenthesized names: "퀀텀아이 (Upstage)"
@@ -326,7 +348,9 @@ def _build_entity_memory(history: list[ConversationTurn]) -> list[TrackedEntity]
                 name = paren_match.group(1).strip()
                 if name not in seen_names:
                     etype = _classify_entity(name)
-                    entities.append(TrackedEntity(name=name, entity_type=etype, turn_index=turn_idx))
+                    entities.append(
+                        TrackedEntity(name=name, entity_type=etype, turn_index=turn_idx)
+                    )
                     seen_names.add(name)
 
         elif turn.role == "user":
@@ -336,7 +360,9 @@ def _build_entity_memory(history: list[ConversationTurn]) -> list[TrackedEntity]
             for known in all_known:
                 if known in content and known not in seen_names:
                     etype = _classify_entity(known)
-                    entities.append(TrackedEntity(name=known, entity_type=etype, turn_index=turn_idx))
+                    entities.append(
+                        TrackedEntity(name=known, entity_type=etype, turn_index=turn_idx)
+                    )
                     seen_names.add(known)
 
             # Extract topic words from "about X" / "regarding X" patterns
@@ -344,16 +370,24 @@ def _build_entity_memory(history: list[ConversationTurn]) -> list[TrackedEntity]
             for topic_match in re.finditer(r"(?:about|regarding|of)\s+(\w[\w\s.#+]*\w)", content):
                 candidate = topic_match.group(1).strip()
                 # Take the first meaningful word(s) — stop at common conjunctions/verbs
-                candidate = re.split(r"\s+(?:and|or|is|are|was|were|in|on|for|with)\b", candidate)[0].strip()
+                candidate = re.split(r"\s+(?:and|or|is|are|was|were|in|on|for|with)\b", candidate)[
+                    0
+                ].strip()
                 if candidate and candidate not in seen_names and len(candidate) >= 2:
-                    entities.append(TrackedEntity(name=candidate, entity_type="concept", turn_index=turn_idx))
+                    entities.append(
+                        TrackedEntity(name=candidate, entity_type="concept", turn_index=turn_idx)
+                    )
                     seen_names.add(candidate)
 
             # Korean: extract quoted or topic-marked nouns ("~에 대해", "~을 알려줘")
-            for ko_topic in re.finditer(r"([\w가-힣]{2,20})(?:에\s*대해|을\s*|를\s*|이란|이라는)", content):
+            for ko_topic in re.finditer(
+                r"([\w가-힣]{2,20})(?:에\s*대해|을\s*|를\s*|이란|이라는)", content
+            ):
                 name = ko_topic.group(1).strip()
                 if name not in seen_names and len(name) >= 2:
-                    entities.append(TrackedEntity(name=name, entity_type="concept", turn_index=turn_idx))
+                    entities.append(
+                        TrackedEntity(name=name, entity_type="concept", turn_index=turn_idx)
+                    )
                     seen_names.add(name)
 
     return entities
@@ -370,6 +404,7 @@ def _find_entity_by_type(entities: list[TrackedEntity], entity_type: str) -> Tra
 # ──────────────────────────────────────────────────────────────────────
 # Query Decomposition
 # ──────────────────────────────────────────────────────────────────────
+
 
 def decompose_query(query: str) -> list[str]:
     """Decompose a complex multi-part query into independent sub-queries.
@@ -396,6 +431,12 @@ def decompose_query(query: str) -> list[str]:
     if not query:
         return [query]
 
+    # Pattern -1: Cross-document validation — "A의 X와 B의 X가 일치하나요?"
+    # FDO Fix P5: Split into separate retrieval per document source
+    cross_doc = _decompose_cross_validation(query)
+    if cross_doc:
+        return cross_doc
+
     # Pattern 0: Comparative queries — "A 대비/비교 B의 X"
     # These need multi-perspective retrieval to capture both sides
     comparative = _decompose_comparative(query)
@@ -404,8 +445,9 @@ def decompose_query(query: str) -> list[str]:
 
     # Pattern 1: Korean compound with "이고/이며" conjunction
     # e.g., "A는 어디이고, B는 얼마인가요?"
+    # Note: "이고/이며" must be followed by a comma or space + more content
     m = re.match(
-        r"(.+?(?:은|는|이|가)\s+.+?(?:이고|이며|인가요|이고요))\s*,?\s*(.+\??)$",
+        r"(.+?(?:은|는|이|가)\s+.+?(?:이고|이며|이고요))\s*,?\s*(.+\??)$",
         query,
     )
     if m:
@@ -437,19 +479,90 @@ def decompose_query(query: str) -> list[str]:
         if len(part1) > 10 and len(part2) > 10:
             return [part1, part2]
 
+    # Pattern 3: Multi-hop conditional — "X가 성공/실패하면 총 Y는?"
+    # Need to decompose into: (1) current Y baseline, (2) X details
+    multi_hop = _decompose_multi_hop(query)
+    if multi_hop:
+        return multi_hop
+
     return [query]
+
+
+# Multi-hop conditional patterns
+# "X이/가 성공/실패하면 (총/누적) Y은/는 ...?"
+_MULTI_HOP_CONDITIONAL = re.compile(
+    r"(.+?)(?:이|가)\s*(?:성공|실패|성사|전환|추가|도입)하면\s+"
+    r"(?:총\s+|누적\s+|현재\s+)?(.+?)(?:은|는|이|가|에)\s+(.+)",
+    re.UNICODE,
+)
+
+# "N건이 모두 성사되면 Y?"
+_MULTI_HOP_AGGREGATE = re.compile(
+    r"(.+?)(?:이|가)\s*(?:모두\s+)?(?:성사|성공|완료)(?:되면|하면)\s+(.+)"
+)
+
+# "X하면 현재 Y로 ...?" (failure-based conditional)
+_MULTI_HOP_FAILURE = re.compile(
+    r"(.+?)(?:이|가)\s*(?:실패|중단|포기)하면\s+(?:현재\s+)?(.+?)(?:로|으로)\s+(.+)"
+)
+
+
+def _decompose_multi_hop(query: str) -> list[str] | None:
+    """Decompose multi-hop conditional queries.
+
+    "Series C 200억원이 성공하면 총 누적 투자액은 얼마인가요?"
+    → ["현재 누적 투자액은 얼마인가요?", "Series C 금액은 얼마인가요?", original]
+
+    "일본 PoC 3건이 모두 성사되면 ARR에 어떤 영향이 있나요?"
+    → ["현재 ARR은 얼마인가요?", "일본 PoC 3건의 각각의 세부 규모는?", original]
+
+    "Series C가 실패하면 현재 런웨이로 언제까지 운영 가능한가요?"
+    → ["현재 런웨이는 얼마인가요?", "Series C 준비 상황은?", original]
+    """
+    # Pattern: "X가 실패하면 현재 Y로 ...?"
+    m = _MULTI_HOP_FAILURE.search(query)
+    if m:
+        subject = m.group(1).strip()
+        target = m.group(2).strip()
+        baseline_q = f"현재 {target}는 얼마인가요?"
+        detail_q = f"{subject} 준비 상황은?"
+        return [baseline_q, detail_q, query]
+
+    # Pattern: "X가 성공/성사하면 (총/누적) Y는?"
+    m = _MULTI_HOP_CONDITIONAL.search(query)
+    if m:
+        subject = m.group(1).strip()
+        target = m.group(2).strip()
+        # Generate baseline query + detail query
+        baseline_q = f"현재 {target}은 얼마인가요?"
+        detail_q = f"{subject}의 금액은 얼마인가요?"
+        return [baseline_q, detail_q, query]
+
+    # Pattern: "N건이 모두 성사되면 Y는?"
+    m = _MULTI_HOP_AGGREGATE.search(query)
+    if m:
+        subject = m.group(1).strip()
+        rest = m.group(2).strip()
+        # Extract target concept before particles
+        for particle in ["에", "은", "는", "이", "가"]:
+            if particle in rest:
+                target = rest.split(particle)[0]
+                break
+        else:
+            target = rest
+        baseline_q = f"현재 {target}은 얼마인가요?"
+        detail_q = f"{subject}의 각각의 세부 규모는?"
+        return [baseline_q, detail_q, query]
+
+    return None
 
 
 # Comparative query patterns
 _COMPARATIVE_PATTERNS = [
     # "A 대비 B의 X는?" or "A와 비교해서 B의 X"
-    re.compile(
-        r"(.+?)\s*(?:대비|와\s*비교|에\s*비해|보다)\s+(.+?)(?:의|에서의?)\s+(.+)"
-    ),
+    re.compile(r"(.+?)\s*(?:대비|와\s*비교|에\s*비해|보다)\s+(.+?)(?:의|에서의?)\s+(.+)"),
     # "A vs B X" or "A와 B 비교"
-    re.compile(
-        r"(.+?)\s*(?:vs\.?|versus)\s+(.+?)(?:의|에서의?)\s+(.+)"
-    ),
+    re.compile(r"(.+?)\s*(?:vs\.?|versus)\s+(.+?)(?:의|에서의?)\s+(.+)"),
 ]
 
 
@@ -473,6 +586,57 @@ def _decompose_comparative(query: str) -> list[str] | None:
                 entity_a=entity_a,
                 entity_b=entity_b,
                 aspect=aspect,
+            )
+            return sub_queries
+    return None
+
+
+# ── FDO Fix P5: Cross-document validation decomposition ──────────────────
+
+# "A의 X와 B의 X가 일치하나요?" patterns
+_CROSS_VALIDATION_PATTERNS = [
+    # "회의록의 채용 계획과 로드맵의 채용 계획이 일치하나요?"
+    re.compile(
+        r"(.+?)(?:의|에서의?)\s+(.+?)(?:와|과)\s+(.+?)(?:의|에서의?)\s+(.+?)(?:이|가)\s*(?:일치|같|동일|다른가|차이)"
+    ),
+    # "A와 B의 X가 같은가요?"
+    re.compile(
+        r"(.+?)(?:와|과)\s+(.+?)(?:의|에서의?)\s+(.+?)(?:이|가)\s*(?:일치|같|동일|다른가|차이)"
+    ),
+]
+
+
+def _decompose_cross_validation(query: str) -> list[str] | None:
+    """Decompose cross-document validation into per-source sub-queries.
+
+    "회의록의 채용 계획과 로드맵의 채용 계획이 일치하나요?"
+    → ["회의록의 채용 계획은?", "로드맵의 채용 계획은?", original]
+    """
+    for pattern in _CROSS_VALIDATION_PATTERNS:
+        m = pattern.search(query)
+        if m:
+            groups = m.groups()
+            if len(groups) == 4:
+                source_a, topic_a, source_b, topic_b = groups
+                sub_queries = [
+                    f"{source_a}의 {topic_a}은?",
+                    f"{source_b}의 {topic_b}은?",
+                    query,
+                ]
+            elif len(groups) == 3:
+                source_a, source_b, topic = groups
+                sub_queries = [
+                    f"{source_a}의 {topic}은?",
+                    f"{source_b}의 {topic}은?",
+                    query,
+                ]
+            else:
+                continue
+
+            logger.info(
+                "cross_validation_decomposition",
+                original=query,
+                sub_queries=sub_queries,
             )
             return sub_queries
     return None

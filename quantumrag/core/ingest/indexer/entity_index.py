@@ -14,7 +14,6 @@ Index types:
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any
 
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Chunk
@@ -150,9 +149,7 @@ class EntityIndex:
         doc_id = self._chunk_to_doc.get(chunk_id)
         if not doc_id:
             return set()
-        return {
-            cid for cid, did in self._chunk_to_doc.items() if did == doc_id
-        }
+        return {cid for cid, did in self._chunk_to_doc.items() if did == doc_id}
 
     @property
     def size(self) -> int:

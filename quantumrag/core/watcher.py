@@ -14,12 +14,25 @@ from quantumrag.core.logging import get_logger
 logger = get_logger("quantumrag.watcher")
 
 # Same extensions as in the incremental indexer
-SUPPORTED_EXTENSIONS: frozenset[str] = frozenset({
-    ".txt", ".md", ".pdf", ".docx", ".doc",
-    ".xlsx", ".xls", ".pptx", ".ppt",
-    ".html", ".htm", ".csv", ".json",
-    ".hwp", ".hwpx",
-})
+SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".txt",
+        ".md",
+        ".pdf",
+        ".docx",
+        ".doc",
+        ".xlsx",
+        ".xls",
+        ".pptx",
+        ".ppt",
+        ".html",
+        ".htm",
+        ".csv",
+        ".json",
+        ".hwp",
+        ".hwpx",
+    }
+)
 
 OnChangeCallback = Callable[
     [list[Path], list[Path], list[Path]],
@@ -122,9 +135,7 @@ class _WatchdogBackend:
         self._handler = _Handler(self)
 
     def start(self) -> None:
-        self._observer.schedule(
-            self._handler, str(self._directory), recursive=self._recursive
-        )
+        self._observer.schedule(self._handler, str(self._directory), recursive=self._recursive)
         self._observer.start()
 
     def stop(self) -> None:

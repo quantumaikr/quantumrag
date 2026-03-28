@@ -36,7 +36,7 @@ async def main():
     result = await processor.run(job)
 
     # Print results
-    print(f"\nBatch complete!")
+    print("\nBatch complete!")
     print(f"  Status: {result.status.value}")
     print(f"  Success: {result.success_count}/{result.total}")
     print(f"  Errors: {result.error_count}")

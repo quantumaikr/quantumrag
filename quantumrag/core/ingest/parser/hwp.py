@@ -10,6 +10,7 @@ from pathlib import Path
 from quantumrag.core.errors import ParseError
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Document, DocumentMetadata, SourceType
+from quantumrag.core.utils.text import normalize_extracted_text
 
 logger = get_logger(__name__)
 
@@ -71,7 +72,7 @@ class HWPParser:
                             error=str(e),
                         )
 
-                content = "\n\n".join(text_parts)
+                content = normalize_extracted_text("\n\n".join(text_parts))
 
                 if not content.strip():
                     raise ParseError(
@@ -103,13 +104,54 @@ class HWPParser:
             ) from e
 
     def _extract_text_from_xml(self, xml_data: bytes) -> str:
-        """Extract text content from HWPX XML data."""
+        """Extract text content from HWPX XML data.
+
+        HWPX uses <hp:p> for paragraphs and <hp:t> for text runs.
+        We join text runs within a paragraph (no separator) and
+        separate paragraphs with newlines to preserve structure
+        while avoiding excessive fragmentation.
+        """
         try:
             root = ET.fromstring(xml_data)
         except ET.ParseError:
             return ""
 
-        # Extract all text nodes recursively
+        # Build namespace map from the root element
+        ns: dict[str, str] = {}
+        for prefix, uri in [
+            ("hp", "http://www.hancom.co.kr/hwpml/2011/paragraph"),
+            ("hp10", "http://www.hancom.co.kr/hwpml/2016/paragraph"),
+            ("hs", "http://www.hancom.co.kr/hwpml/2011/section"),
+        ]:
+            ns[prefix] = uri
+
+        # Try paragraph-aware extraction first
+        paragraphs: list[str] = []
+        p_tags = root.findall(f".//{{{ns['hp']}}}p")
+        if not p_tags:
+            # Fallback: try without namespace
+            p_tags = [e for e in root.iter() if e.tag.endswith("}p") or e.tag == "p"]
+
+        if p_tags:
+            for p_elem in p_tags:
+                # Collect all <hp:t> text runs within this paragraph
+                runs: list[str] = []
+                for elem in p_elem.iter():
+                    tag = elem.tag.split("}")[-1] if "}" in elem.tag else elem.tag
+                    if tag == "t":
+                        # Text run — append text content directly
+                        if elem.text:
+                            runs.append(elem.text)
+                    elif tag == "tab":
+                        # Tab character — use space
+                        runs.append(" ")
+                para_text = "".join(runs).strip()
+                if para_text:
+                    paragraphs.append(para_text)
+
+            return "\n".join(paragraphs)
+
+        # Final fallback: extract all text nodes recursively
         texts: list[str] = []
         for elem in root.iter():
             if elem.text and elem.text.strip():
@@ -182,7 +224,7 @@ class HWPParser:
         except Exception as e:
             logger.warning("hwp_extraction_error", error=str(e))
 
-        content = "\n\n".join(texts)
+        content = normalize_extracted_text("\n\n".join(texts))
 
         if not content.strip():
             raise ParseError(

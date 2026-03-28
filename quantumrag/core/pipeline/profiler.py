@@ -35,76 +35,203 @@ logger = get_logger("quantumrag.profiler")
 _DOMAIN_VOCABULARIES: dict[DomainType, set[str]] = {
     DomainType.LEGAL: {
         # Korean legal
-        "조", "항", "호", "별첨", "계약", "당사자", "갑", "을", "위약금",
-        "손해배상", "해지", "해제", "약정", "준거법", "관할", "소송", "판례",
-        "법률", "규정", "조항", "의무", "권리", "시행령", "고시",
+        "조",
+        "항",
+        "호",
+        "별첨",
+        "계약",
+        "당사자",
+        "갑",
+        "을",
+        "위약금",
+        "손해배상",
+        "해지",
+        "해제",
+        "약정",
+        "준거법",
+        "관할",
+        "소송",
+        "판례",
+        "법률",
+        "규정",
+        "조항",
+        "의무",
+        "권리",
+        "시행령",
+        "고시",
         # English legal
-        "clause", "article", "agreement", "liability", "indemnify",
-        "jurisdiction", "arbitration", "breach", "warranty", "termination",
-        "pursuant", "notwithstanding", "herein", "thereof", "whereas",
+        "clause",
+        "article",
+        "agreement",
+        "liability",
+        "indemnify",
+        "jurisdiction",
+        "arbitration",
+        "breach",
+        "warranty",
+        "termination",
+        "pursuant",
+        "notwithstanding",
+        "herein",
+        "thereof",
+        "whereas",
     },
     DomainType.FINANCIAL: {
         # Korean financial
-        "매출", "영업이익", "당기순이익", "자산", "부채", "자본", "배당",
-        "투자", "수익률", "이자", "예산", "비용", "결산", "재무제표",
-        "손익계산서", "대차대조표", "현금흐름", "전년대비", "성장률",
-        "CAGR", "ROI", "ROE", "EBITDA", "시가총액", "PER", "PBR",
+        "매출",
+        "영업이익",
+        "당기순이익",
+        "자산",
+        "부채",
+        "자본",
+        "배당",
+        "투자",
+        "수익률",
+        "이자",
+        "예산",
+        "비용",
+        "결산",
+        "재무제표",
+        "손익계산서",
+        "대차대조표",
+        "현금흐름",
+        "전년대비",
+        "성장률",
+        "CAGR",
+        "ROI",
+        "ROE",
+        "EBITDA",
+        "시가총액",
+        "PER",
+        "PBR",
         # English financial
-        "revenue", "profit", "margin", "asset", "dividend", "fiscal",
-        "quarterly", "annual", "budget", "capex", "opex", "amortization",
+        "revenue",
+        "profit",
+        "margin",
+        "asset",
+        "dividend",
+        "fiscal",
+        "quarterly",
+        "annual",
+        "budget",
+        "capex",
+        "opex",
+        "amortization",
     },
     DomainType.MEDICAL: {
         # Korean medical
-        "환자", "진단", "치료", "투여", "부작용", "증상", "처방",
-        "임상", "시험", "효능", "약물", "수술", "검사", "병력",
+        "환자",
+        "진단",
+        "치료",
+        "투여",
+        "부작용",
+        "증상",
+        "처방",
+        "임상",
+        "시험",
+        "효능",
+        "약물",
+        "수술",
+        "검사",
+        "병력",
         # English medical
-        "patient", "diagnosis", "treatment", "dosage", "symptom",
-        "clinical", "trial", "efficacy", "adverse", "contraindication",
-        "prognosis", "pathology", "pharmaceutical",
+        "patient",
+        "diagnosis",
+        "treatment",
+        "dosage",
+        "symptom",
+        "clinical",
+        "trial",
+        "efficacy",
+        "adverse",
+        "contraindication",
+        "prognosis",
+        "pathology",
+        "pharmaceutical",
     },
     DomainType.TECHNICAL: {
         # Technical terms
-        "API", "SDK", "배포", "서버", "데이터베이스", "아키텍처",
-        "인프라", "컨테이너", "마이크로서비스", "CI/CD", "파이프라인",
-        "쿠버네티스", "도커",
-        "function", "class", "module", "deploy", "endpoint", "cluster",
-        "container", "kubernetes", "docker", "terraform", "nginx",
-        "repository", "commit", "branch", "merge",
+        "API",
+        "SDK",
+        "배포",
+        "서버",
+        "데이터베이스",
+        "아키텍처",
+        "인프라",
+        "컨테이너",
+        "마이크로서비스",
+        "CI/CD",
+        "파이프라인",
+        "쿠버네티스",
+        "도커",
+        "function",
+        "class",
+        "module",
+        "deploy",
+        "endpoint",
+        "cluster",
+        "container",
+        "kubernetes",
+        "docker",
+        "terraform",
+        "nginx",
+        "repository",
+        "commit",
+        "branch",
+        "merge",
     },
     DomainType.SUPPORT: {
         # Korean support
-        "문의", "답변", "상담", "고객", "접수", "처리", "요청",
-        "환불", "교환", "반품", "AS", "배송", "결제",
-        "FAQ", "Q&A",
+        "문의",
+        "답변",
+        "상담",
+        "고객",
+        "접수",
+        "처리",
+        "요청",
+        "환불",
+        "교환",
+        "반품",
+        "AS",
+        "배송",
+        "결제",
+        "FAQ",
+        "Q&A",
         # English support
-        "ticket", "request", "resolution", "escalation", "SLA",
-        "customer", "refund", "inquiry",
+        "ticket",
+        "request",
+        "resolution",
+        "escalation",
+        "SLA",
+        "customer",
+        "refund",
+        "inquiry",
     },
 }
 
 # Structure detection patterns
 _TABLE_PATTERNS = [
-    re.compile(r"\|.*\|.*\|", re.MULTILINE),          # Markdown tables
-    re.compile(r"<table[\s>]", re.IGNORECASE),          # HTML tables
-    re.compile(r"\t.*\t", re.MULTILINE),               # Tab-delimited
+    re.compile(r"\|.*\|.*\|", re.MULTILINE),  # Markdown tables
+    re.compile(r"<table[\s>]", re.IGNORECASE),  # HTML tables
+    re.compile(r"\t.*\t", re.MULTILINE),  # Tab-delimited
 ]
 
 _CODE_PATTERNS = [
-    re.compile(r"```[\s\S]*?```"),                     # Fenced code blocks
-    re.compile(r"<code[\s>]", re.IGNORECASE),          # HTML code
-    re.compile(r"^\s{4,}\S", re.MULTILINE),            # Indented code
+    re.compile(r"```[\s\S]*?```"),  # Fenced code blocks
+    re.compile(r"<code[\s>]", re.IGNORECASE),  # HTML code
+    re.compile(r"^\s{4,}\S", re.MULTILINE),  # Indented code
     re.compile(r"(?:def |class |import |from |function |const |let |var )\w"),
 ]
 
 _LIST_PATTERNS = [
-    re.compile(r"^\s*[-*•]\s+", re.MULTILINE),        # Unordered lists
-    re.compile(r"^\s*\d+[.)]\s+", re.MULTILINE),      # Ordered lists
-    re.compile(r"^\s*[가-힣]\.\s+", re.MULTILINE),    # Korean ordered lists
+    re.compile(r"^\s*[-*•]\s+", re.MULTILINE),  # Unordered lists
+    re.compile(r"^\s*\d+[.)]\s+", re.MULTILINE),  # Ordered lists
+    re.compile(r"^\s*[가-힣]\.\s+", re.MULTILINE),  # Korean ordered lists
 ]
 
 _HEADING_PATTERNS = [
-    re.compile(r"^#{1,6}\s+", re.MULTILINE),           # Markdown headings
-    re.compile(r"<h[1-6][\s>]", re.IGNORECASE),        # HTML headings
+    re.compile(r"^#{1,6}\s+", re.MULTILINE),  # Markdown headings
+    re.compile(r"<h[1-6][\s>]", re.IGNORECASE),  # HTML headings
 ]
 
 # Legal structure patterns
@@ -150,16 +277,13 @@ class DocumentProfiler:
             table_count=self._count_tables(content),
             list_count=self._count_lists(content),
             code_block_count=self._count_code_blocks(content),
-
             # Content analysis
             information_type=self._detect_information_type(content),
             avg_sentence_length=self._avg_sentence_length(content),
             vocabulary_richness=self._vocabulary_richness(content),
-
             # Language
             primary_language=self._detect_primary_language(content),
             language_mix=self._detect_language_mix(content),
-
             # Density
             information_density=self._information_density(content),
             numeric_density=self._numeric_density(content),

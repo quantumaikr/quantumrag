@@ -15,7 +15,6 @@ Expansion types:
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from quantumrag.core.logging import get_logger
 
@@ -40,8 +39,7 @@ _SEVERITY_LABELS_KO = {4: "심각", 3: "높음", 2: "중간", 1: "낮음"}
 _SEVERITY_LABELS_EN = {4: "Critical", 3: "High", 2: "Medium", 1: "Low"}
 
 _SEVERITY_PATTERN = re.compile(
-    r"\b(Critical|High|Medium|Low)\b|"
-    r"(심각|높음|중간|보통|낮음)",
+    r"\b(Critical|High|Medium|Low)\b|" r"(심각|높음|중간|보통|낮음)",
     re.IGNORECASE,
 )
 
@@ -113,9 +111,7 @@ def _expand_temporal(text: str) -> list[str]:
 
 # ── Amount normalization ────────────────────────────────────────────────────
 
-_AMOUNT_PATTERN = re.compile(
-    r"(\d+(?:\.\d+)?)\s*(억|천만|백만|만)\s*(?:원|달러|엔)?"
-)
+_AMOUNT_PATTERN = re.compile(r"(\d+(?:\.\d+)?)\s*(억|천만|백만|만)\s*(?:원|달러|엔)?")
 
 
 def _expand_amount(text: str) -> list[str]:
@@ -187,6 +183,7 @@ def _expand_version(text: str) -> list[str]:
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
+
 
 def generate_derived_terms(content: str) -> str:
     """Generate all derived/synonym terms for a chunk's content.

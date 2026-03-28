@@ -176,22 +176,26 @@ class Evaluator:
                 # Collect context from source excerpts
                 context = " ".join(s.excerpt for s in query_result.sources if s.excerpt)
 
-                results.append({
-                    "answer": query_result.answer,
-                    "retrieved_ids": retrieved_ids,
-                    "context": context,
-                    "latency": latency,
-                    "confidence": query_result.confidence.value,
-                })
+                results.append(
+                    {
+                        "answer": query_result.answer,
+                        "retrieved_ids": retrieved_ids,
+                        "context": context,
+                        "latency": latency,
+                        "confidence": query_result.confidence.value,
+                    }
+                )
             except Exception as e:
                 latency = time.perf_counter() - t0
-                results.append({
-                    "answer": f"Error: {e}",
-                    "retrieved_ids": [],
-                    "context": "",
-                    "latency": latency,
-                    "confidence": "error",
-                })
+                results.append(
+                    {
+                        "answer": f"Error: {e}",
+                        "retrieved_ids": [],
+                        "context": "",
+                        "latency": latency,
+                        "confidence": "error",
+                    }
+                )
 
         return results
 
@@ -206,17 +210,21 @@ class Evaluator:
         recall_scores: list[float] = []
         for qa, result in zip(qa_pairs, results):
             if qa.source_chunk_id:
-                score = recall_metric.compute(
-                    result["retrieved_ids"], [qa.source_chunk_id], k=5
-                )
+                score = recall_metric.compute(result["retrieved_ids"], [qa.source_chunk_id], k=5)
                 recall_scores.append(score)
         if recall_scores:
             avg_recall = sum(recall_scores) / len(recall_scores)
-            metrics.append(EvalMetric(
-                name="retrieval_recall@5",
-                score=round(avg_recall, 4),
-                details={"target": 0.8, "passed": avg_recall >= 0.8, "samples": len(recall_scores)},
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="retrieval_recall@5",
+                    score=round(avg_recall, 4),
+                    details={
+                        "target": 0.8,
+                        "passed": avg_recall >= 0.8,
+                        "samples": len(recall_scores),
+                    },
+                )
+            )
 
         # Faithfulness
         faithfulness_metric = Faithfulness()
@@ -227,11 +235,17 @@ class Evaluator:
                 faith_scores.append(score)
         if faith_scores:
             avg_faith = sum(faith_scores) / len(faith_scores)
-            metrics.append(EvalMetric(
-                name="faithfulness",
-                score=round(avg_faith, 4),
-                details={"target": 0.7, "passed": avg_faith >= 0.7, "samples": len(faith_scores)},
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="faithfulness",
+                    score=round(avg_faith, 4),
+                    details={
+                        "target": 0.7,
+                        "passed": avg_faith >= 0.7,
+                        "samples": len(faith_scores),
+                    },
+                )
+            )
 
         # Answer Relevancy
         relevancy_metric = AnswerRelevancy()
@@ -241,11 +255,13 @@ class Evaluator:
             rel_scores.append(score)
         if rel_scores:
             avg_rel = sum(rel_scores) / len(rel_scores)
-            metrics.append(EvalMetric(
-                name="answer_relevancy",
-                score=round(avg_rel, 4),
-                details={"target": 0.6, "passed": avg_rel >= 0.6, "samples": len(rel_scores)},
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="answer_relevancy",
+                    score=round(avg_rel, 4),
+                    details={"target": 0.6, "passed": avg_rel >= 0.6, "samples": len(rel_scores)},
+                )
+            )
 
         # Completeness
         completeness_metric = Completeness()
@@ -258,11 +274,13 @@ class Evaluator:
                 comp_scores.append(score)
         if comp_scores:
             avg_comp = sum(comp_scores) / len(comp_scores)
-            metrics.append(EvalMetric(
-                name="completeness",
-                score=round(avg_comp, 4),
-                details={"target": 0.6, "passed": avg_comp >= 0.6, "samples": len(comp_scores)},
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="completeness",
+                    score=round(avg_comp, 4),
+                    details={"target": 0.6, "passed": avg_comp >= 0.6, "samples": len(comp_scores)},
+                )
+            )
 
         # Context Precision
         ctx_precision_metric = ContextPrecision()
@@ -277,15 +295,17 @@ class Evaluator:
                 ctx_prec_scores.append(score)
         if ctx_prec_scores:
             avg_ctx_prec = sum(ctx_prec_scores) / len(ctx_prec_scores)
-            metrics.append(EvalMetric(
-                name="context_precision",
-                score=round(avg_ctx_prec, 4),
-                details={
-                    "target": 0.7,
-                    "passed": avg_ctx_prec >= 0.7,
-                    "samples": len(ctx_prec_scores),
-                },
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="context_precision",
+                    score=round(avg_ctx_prec, 4),
+                    details={
+                        "target": 0.7,
+                        "passed": avg_ctx_prec >= 0.7,
+                        "samples": len(ctx_prec_scores),
+                    },
+                )
+            )
 
         # Token F1
         f1_scores: list[float] = []
@@ -294,27 +314,31 @@ class Evaluator:
             f1_scores.append(score)
         if f1_scores:
             avg_f1 = sum(f1_scores) / len(f1_scores)
-            metrics.append(EvalMetric(
-                name="token_f1",
-                score=round(avg_f1, 4),
-                details={"target": 0.5, "passed": avg_f1 >= 0.5, "samples": len(f1_scores)},
-            ))
+            metrics.append(
+                EvalMetric(
+                    name="token_f1",
+                    score=round(avg_f1, 4),
+                    details={"target": 0.5, "passed": avg_f1 >= 0.5, "samples": len(f1_scores)},
+                )
+            )
 
         # Latency
         latencies = [r["latency"] for r in results]
         latency_metric = LatencyMetric()
         latency_stats = latency_metric.compute(latencies)
-        metrics.append(EvalMetric(
-            name="latency",
-            score=round(latency_stats["p50"], 4),
-            details={
-                "p50": latency_stats["p50"],
-                "p95": latency_stats["p95"],
-                "p99": latency_stats["p99"],
-                "target_p95": 5.0,
-                "passed": latency_stats["p95"] <= 5.0,
-            },
-        ))
+        metrics.append(
+            EvalMetric(
+                name="latency",
+                score=round(latency_stats["p50"], 4),
+                details={
+                    "p50": latency_stats["p50"],
+                    "p95": latency_stats["p95"],
+                    "p99": latency_stats["p99"],
+                    "target_p95": 5.0,
+                    "passed": latency_stats["p95"] <= 5.0,
+                },
+            )
+        )
 
         return metrics
 
@@ -391,10 +415,12 @@ def _load_benchmark(path: str | Path) -> list[QAPair]:
     pairs: list[QAPair] = []
     items = data if isinstance(data, list) else data.get("pairs", [])
     for item in items:
-        pairs.append(QAPair(
-            question=item["question"],
-            expected_answer=item["expected_answer"],
-            source_chunk_id=item.get("source_chunk_id"),
-            metadata=item.get("metadata", {}),
-        ))
+        pairs.append(
+            QAPair(
+                question=item["question"],
+                expected_answer=item["expected_answer"],
+                source_chunk_id=item.get("source_chunk_id"),
+                metadata=item.get("metadata", {}),
+            )
+        )
     return pairs

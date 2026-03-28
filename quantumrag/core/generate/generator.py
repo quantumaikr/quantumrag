@@ -24,20 +24,18 @@ Rules:
 4. Be concise and accurate
 5. At the end, rate your confidence: STRONGLY_SUPPORTED, PARTIALLY_SUPPORTED, or INSUFFICIENT_EVIDENCE"""
 
-_SYSTEM_PROMPT_KO = """당신은 제공된 컨텍스트를 기반으로 질문에 답변하는 도우미입니다.
+_SYSTEM_PROMPT_KO = """당신은 제공된 컨텍스트를 기반으로 질문에 답변하는 전문 도우미입니다.
 
-규칙:
-1. 제공된 컨텍스트의 정보만 사용하여 답변하세요
+핵심 원칙:
+1. 컨텍스트에 있는 정보만 사용하세요. 없으면 INSUFFICIENT_EVIDENCE로 답하세요
 2. 각 주장에 [1], [2] 등으로 출처를 인용하세요
-3. 컨텍스트에 충분한 정보가 없으면 명확히 말하세요
-4. 간결하고 정확하게 답변하세요
-5. 마지막에 신뢰도를 평가하세요: STRONGLY_SUPPORTED, PARTIALLY_SUPPORTED, INSUFFICIENT_EVIDENCE
-6. 모든 출처의 정보를 빠짐없이 검토하세요. 확정/진행중/계획 등 모든 상태의 정보를 포함하세요
-7. 수량/금액/규모 질문에는 모든 관련 항목을 나열한 후 답변하세요
-8. 서로 다른 출처의 수치가 다르면 (예: 런웨이, 비용) 각각의 수치와 출처를 모두 제시하세요
-9. 조건부 질문("~하면", "~할 경우")에는 컨텍스트의 데이터를 근거로 논리적으로 추론하세요
-10. 계산이 필요한 질문에는 계산 과정을 단계적으로 보여주세요
-11. 경쟁사나 외부 회사에 대한 질문일 때, 자사(퀀텀소프트) 정보를 해당 회사의 정보로 혼동하지 마세요. 경쟁사의 특정 직책/인물 정보가 컨텍스트에 없으면 INSUFFICIENT_EVIDENCE로 답하세요"""
+3. 모든 출처를 빠짐없이 검토하세요. 상태(확정/진행중/계획)와 무관하게 모든 항목을 포함하세요
+4. 수치/계산이 필요하면 관련 항목을 먼저 나열한 후 단계적으로 계산하세요
+5. 여러 조건이 있으면 각 항목이 모든 조건을 충족하는지 개별 검증하세요
+6. 비교/최상급 질문에는 후보를 모두 나열하고 비교한 후 답하세요
+7. 서로 다른 출처의 수치가 다르면 각각의 수치와 출처를 모두 제시하세요
+8. 특정 회사/조직에 대한 질문일 때 다른 회사의 정보를 혼동하지 마세요
+9. 마지막에 신뢰도를 평가하세요: STRONGLY_SUPPORTED, PARTIALLY_SUPPORTED, INSUFFICIENT_EVIDENCE"""
 
 _CONTEXT_TEMPLATE = """Context:
 {context}
@@ -100,7 +98,9 @@ class Generator:
         trace_steps: list[TraceStep] = []
 
         # Check if we have enough evidence
-        if not chunks or (chunks and chunks[0].score < self._confidence_threshold * self._no_answer_penalty):
+        if not chunks or (
+            chunks and chunks[0].score < self._confidence_threshold * self._no_answer_penalty
+        ):
             return self._insufficient_evidence(query, sources, trace_steps)
 
         # Build context
@@ -184,6 +184,11 @@ class Generator:
         loss from chunk boundary splits (e.g., "확정 PoC" and "진행 중" in
         separate chunks).
 
+        Fact-Aware Context Injection: when a chunk has structured facts
+        (extracted at ingest time by fact_extractor), those verified facts
+        are injected BEFORE the raw text so the LLM sees authoritative
+        structured data first, reducing hallucination risk.
+
         Uses score-proportional budget: high-scoring chunks get full content,
         low-scoring chunks get truncated.
         """
@@ -208,13 +213,20 @@ class Generator:
             if sc.chunk.metadata.get("page"):
                 header += f" (p.{sc.chunk.metadata['page']})"
 
+            # Fact-Aware Context Injection: present verified structured data
+            # before raw text to anchor LLM reasoning on extracted facts
+            fact_block = _format_fact_block(sc.chunk.metadata.get("facts"))
+
             content = _normalize_status_headers(sc.chunk.content)
             # Proportional truncation: low-scoring chunks get less space
             score_ratio = sc.score / max_score if max_score > 0 else 0.5
             if score_ratio < 0.5 and len(content) > 300:
                 content = content[:300] + "..."
 
-            part = f"{header}\n{content}"
+            if fact_block:
+                part = f"{header}\n{fact_block}\n{content}"
+            else:
+                part = f"{header}\n{content}"
             if parts and total_chars + len(part) > budget:
                 remaining = budget - total_chars - len(header) - 10
                 if remaining > 100:
@@ -294,6 +306,52 @@ class Generator:
         return _INSUFFICIENT_TEMPLATE_EN.format(n_docs=n_docs)
 
 
+def _format_fact_block(facts: list[dict[str, Any]] | None) -> str:
+    """Format structured facts into a verified-data block for context injection.
+
+    Returns an empty string if no facts are present or all facts are trivial.
+    The block uses a distinctive header so the LLM can distinguish verified
+    structured data from raw text.
+    """
+    if not facts:
+        return ""
+
+    lines: list[str] = []
+    for f in facts:
+        ft = f.get("type", "")
+        if ft == "customer_contract":
+            line = f"  - 고객: {f['customer']} | 등급: {f.get('tier', 'N/A')}"
+            if f.get("deployment"):
+                line += f" | 배포: {f['deployment']}"
+            lines.append(line)
+        elif ft == "finance_metric":
+            lines.append(f"  - {f['metric']}: {f['value']}")
+        elif ft == "fund_allocation":
+            ctx = f.get("context", "")
+            lines.append(f"  - {f['item']}: {f['value']}원" + (f" ({ctx})" if ctx else ""))
+        elif ft == "security_issue":
+            sev = f.get("severity", "N/A")
+            status = f.get("status", "N/A")
+            lines.append(f"  - {f['entity']}: 심각도={sev}, 상태={status}")
+        elif ft == "team_info":
+            lines.append(f"  - {f['team']}: {f['headcount']}명")
+        elif ft == "team_leader":
+            lines.append(f"  - {f['team']} 팀장: {f['leader']}")
+        elif ft == "patent":
+            status = f.get("status", "N/A")
+            inv = ", ".join(f.get("inventors", [])) or "N/A"
+            lines.append(f"  - {f['entity']}: 상태={status}, 발명자={inv}")
+        elif ft == "product_version":
+            lines.append(f"  - {f['version']} ({f.get('release_date', 'N/A')})")
+        elif ft == "security_summary":
+            sevs = ", ".join(f.get("severities", []))
+            lines.append(f"  - 보안 심각도: {sevs}")
+
+    if not lines:
+        return ""
+    return "[검증된 데이터 — 이 정보만이 이 출처에서 확인된 사실입니다]\n" + "\n".join(lines)
+
+
 def _merge_adjacent_chunks(chunks: list[ScoredChunk]) -> list[ScoredChunk]:
     """Merge consecutive chunks from the same document section.
 
@@ -312,6 +370,7 @@ def _merge_adjacent_chunks(chunks: list[ScoredChunk]) -> list[ScoredChunk]:
 
     # Group by document_id
     from collections import defaultdict
+
     doc_groups: dict[str, list[ScoredChunk]] = defaultdict(list)
     for sc in chunks:
         doc_id = getattr(sc.chunk, "document_id", "") or sc.chunk.metadata.get("document_id", "")
@@ -358,6 +417,7 @@ def _merge_adjacent_chunks(chunks: list[ScoredChunk]) -> list[ScoredChunk]:
             combined_content = "\n\n".join(s.chunk.content for s in all_to_merge)
             # Create a merged chunk using the first chunk's metadata
             from quantumrag.core.models import Chunk
+
             merged_chunk = Chunk(
                 content=combined_content,
                 document_id=doc_id,
@@ -452,5 +512,3 @@ def _normalize_status_headers(content: str) -> str:
             result_lines.append(line)
 
     return "\n".join(result_lines)
-
-

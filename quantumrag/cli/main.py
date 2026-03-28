@@ -28,10 +28,15 @@ def version_callback(value: bool) -> None:
 
 
 def _load_config(config: Path | None) -> QuantumRAGConfig:
-    """Load config from path or use defaults."""
+    """Load config from path, or auto-detect from environment."""
     if config and config.exists():
         return QuantumRAGConfig.from_yaml(config)
-    return QuantumRAGConfig.default()
+    # Auto-detect YAML in current directory
+    auto_yaml = Path("quantumrag.yaml")
+    if auto_yaml.exists():
+        return QuantumRAGConfig.from_yaml(auto_yaml)
+    # Auto-detect provider from env
+    return QuantumRAGConfig.auto()
 
 
 def _parse_metadata(metadata: list[str] | None) -> dict[str, Any] | None:
@@ -68,25 +73,53 @@ def init(
     ),
 ) -> None:
     """Initialize a QuantumRAG project with default configuration."""
+    import os
+
+    from quantumrag.core.config import _detect_provider
+
     if config.exists():
         console.print(f"[yellow]Config file already exists: {config}[/yellow]")
         overwrite = typer.confirm("Overwrite?", default=False)
         if not overwrite:
             raise typer.Abort()
 
+    # Auto-detect provider and show status
+    provider, gen_models, emb_model, emb_dims = _detect_provider(os.environ)
+    provider_icons = {
+        "openai": "OpenAI",
+        "gemini": "Google Gemini",
+        "anthropic": "Anthropic",
+        "ollama": "Ollama (local)",
+    }
+    provider_label = provider_icons.get(provider, provider)
+
     config.write_text(generate_default_yaml(), encoding="utf-8")
     console.print(f"[green]Created config: {config}[/green]")
-    console.print("Edit the config file and run [bold]quantumrag ingest <path>[/bold] to start.")
+    console.print(f"  [dim]Detected provider:[/dim] [bold]{provider_label}[/bold]")
+    console.print(f"  [dim]Embedding:[/dim] {emb_model} ({emb_dims}d)")
+    console.print(f"  [dim]Generation:[/dim] {gen_models[0]} / {gen_models[1]}")
+    console.print()
+    console.print("Run [bold]quantumrag ingest <path>[/bold] to start.")
 
 
 @app.command()
 def ingest(
     path: str = typer.Argument(..., help="Path to file or directory to ingest."),
     config: Path | None = typer.Option(None, "--config", "-c", help="Config file path."),
-    recursive: bool = typer.Option(True, "--recursive/--no-recursive", help="Recurse into directories."),
-    strategy: str | None = typer.Option(None, "--strategy", "-s", help="Chunking strategy override."),
-    metadata: list[str] | None = typer.Option(None, "--metadata", "-m", help="Metadata key=value pairs."),
-    watch: bool = typer.Option(False, "--watch", "-w", help="Watch directory for changes after initial ingest."),
+    recursive: bool = typer.Option(
+        True, "--recursive/--no-recursive", help="Recurse into directories."
+    ),
+    strategy: str | None = typer.Option(
+        None, "--strategy", "-s", help="Chunking strategy override."
+    ),
+    metadata: list[str] | None = typer.Option(
+        None, "--metadata", "-m", help="Metadata key=value pairs."
+    ),
+    watch: bool = typer.Option(
+        False, "--watch", "-w", help="Watch directory for changes after initial ingest."
+    ),
+    mode: str = typer.Option("full", "--mode", help="Ingest mode: full, fast, or minimal."),
+    fast: bool = typer.Option(False, "--fast", help="Shortcut for --mode fast."),
 ) -> None:
     """Ingest documents from a file or directory."""
     from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -96,6 +129,8 @@ def ingest(
         console.print(f"[red]Error: Path not found: {target}[/red]")
         raise typer.Exit(code=1)
 
+    ingest_mode = "fast" if fast else mode
+
     parsed_metadata = _parse_metadata(metadata)
     cfg = _load_config(config)
 
@@ -104,17 +139,19 @@ def ingest(
 
         engine = Engine(config=cfg)
 
+        mode_label = f" ({ingest_mode})" if ingest_mode != "full" else ""
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
             console=console,
         ) as progress:
-            progress.add_task(description=f"Ingesting {target.name}...", total=None)
+            progress.add_task(description=f"Ingesting {target.name}{mode_label}...", total=None)
             result = engine.ingest(
                 target,
                 chunking_strategy=strategy,
                 metadata=parsed_metadata,
                 recursive=recursive,
+                mode=ingest_mode,
             )
 
         # Show result summary
@@ -135,7 +172,9 @@ def ingest(
                 console.print(f"  [red]- {err}[/red]")
 
         if result.documents == 0:
-            console.print("\n[yellow]No documents were ingested. Check that the path contains supported files.[/yellow]")
+            console.print(
+                "\n[yellow]No documents were ingested. Check that the path contains supported files.[/yellow]"
+            )
         else:
             console.print(f"\n[green]Successfully ingested {result.documents} document(s).[/green]")
 
@@ -144,7 +183,9 @@ def ingest(
             if not target.is_dir():
                 console.print("[red]--watch requires a directory path, not a file.[/red]")
                 raise typer.Exit(code=1)
-            _run_watcher(target, engine, strategy=strategy, metadata=parsed_metadata, recursive=recursive)
+            _run_watcher(
+                target, engine, strategy=strategy, metadata=parsed_metadata, recursive=recursive
+            )
 
     except Exception as e:
         console.print(f"[red]Error during ingestion: {e}[/red]")
@@ -165,7 +206,9 @@ def _run_watcher(
     from quantumrag.core.watcher import FileWatcher
 
     async def on_change(
-        added: list[Path], modified: list[Path], deleted: list[Path],
+        added: list[Path],
+        modified: list[Path],
+        deleted: list[Path],
     ) -> None:
         if added:
             console.print(f"[cyan]New files detected: {[str(p) for p in added]}[/cyan]")
@@ -191,7 +234,9 @@ def _run_watcher(
 
         # Deletion handling is logged; actual index cleanup depends on engine capability
         for file_path in deleted:
-            console.print(f"  [dim]Noted deletion: {file_path.name} (cleanup depends on storage backend)[/dim]")
+            console.print(
+                f"  [dim]Noted deletion: {file_path.name} (cleanup depends on storage backend)[/dim]"
+            )
 
     async def _run() -> None:
         watcher = FileWatcher(directory, on_change, recursive=recursive)
@@ -287,6 +332,93 @@ def query(
 
 
 @app.command()
+def chat(
+    config: Path | None = typer.Option(None, "--config", "-c", help="Config file path."),
+    top_k: int | None = typer.Option(None, "--top-k", "-k", help="Number of results."),
+    verbose: bool = typer.Option(False, "--verbose", help="Show processing trace."),
+) -> None:
+    """Interactive multi-turn chat with the knowledge base."""
+    from rich.markdown import Markdown
+
+    cfg = _load_config(config)
+
+    try:
+        from quantumrag.core.engine import Engine
+
+        engine = Engine(config=cfg)
+        info = engine.status()
+        console.print(
+            f"[bold green]QuantumRAG Chat[/bold green] — "
+            f"{info.get('documents', 0)} docs, {info.get('chunks', 0)} chunks"
+        )
+        console.print("[dim]Type 'exit' or Ctrl+C to quit.[/dim]\n")
+
+        history: list[dict[str, str]] = []
+
+        while True:
+            try:
+                question = console.input("[bold cyan]You:[/bold cyan] ").strip()
+            except (EOFError, KeyboardInterrupt):
+                console.print("\n[dim]Bye![/dim]")
+                break
+
+            if not question or question.lower() in ("exit", "quit", "q"):
+                console.print("[dim]Bye![/dim]")
+                break
+
+            try:
+                result = engine.query(
+                    question,
+                    top_k=top_k,
+                    conversation_history=history or None,
+                )
+
+                # Display answer
+                console.print()
+                console.print(Markdown(result.answer))
+                console.print()
+
+                # Confidence badge
+                colors = {
+                    "strongly_supported": "green",
+                    "partially_supported": "yellow",
+                    "insufficient_evidence": "red",
+                }
+                color = colors.get(result.confidence.value, "white")
+                cost_info = ""
+                if "token_usage" in result.metadata:
+                    tokens = result.metadata["token_usage"].get("total_tokens", 0)
+                    cost = result.metadata["token_usage"].get("total_estimated_cost", 0)
+                    cost_info = f" | {tokens} tokens, ${cost:.4f}"
+                console.print(
+                    f"[dim][{color}]{result.confidence.value}[/{color}]{cost_info}[/dim]\n"
+                )
+
+                # Trace
+                if verbose and result.trace:
+                    for step in result.trace:
+                        console.print(
+                            f"  [dim]{step.step}: {step.result} ({step.latency_ms:.0f}ms)[/dim]"
+                        )
+                    console.print()
+
+                # Update history
+                history.append({"role": "user", "content": question})
+                history.append({"role": "assistant", "content": result.answer})
+
+                # Keep history manageable (last 10 turns)
+                if len(history) > 20:
+                    history = history[-20:]
+
+            except Exception as e:
+                console.print(f"[red]Error: {e}[/red]\n")
+
+    except Exception as e:
+        console.print(f"[red]Failed to start chat: {e}[/red]")
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def status(
     config: Path | None = typer.Option(None, "--config", "-c", help="Config file path."),
 ) -> None:
@@ -328,7 +460,9 @@ def cost(
     db_path = data_dir / "budget.db"
 
     if not db_path.exists():
-        console.print("[yellow]No cost data found. Queries must be run first to track costs.[/yellow]")
+        console.print(
+            "[yellow]No cost data found. Queries must be run first to track costs.[/yellow]"
+        )
         console.print(f"[dim]Expected database at: {db_path}[/dim]")
         raise typer.Exit()
 
@@ -346,8 +480,12 @@ def cost(
     table.add_column("Limit", justify="right")
     table.add_column("Remaining", justify="right")
 
-    daily_limit_str = f"${summary['daily_limit']:.4f}" if summary["daily_limit"] is not None else "unlimited"
-    monthly_limit_str = f"${summary['monthly_limit']:.4f}" if summary["monthly_limit"] is not None else "unlimited"
+    daily_limit_str = (
+        f"${summary['daily_limit']:.4f}" if summary["daily_limit"] is not None else "unlimited"
+    )
+    monthly_limit_str = (
+        f"${summary['monthly_limit']:.4f}" if summary["monthly_limit"] is not None else "unlimited"
+    )
     daily_remaining_str = (
         f"${summary['daily_remaining']:.4f}" if summary["daily_remaining"] is not None else "-"
     )
@@ -411,6 +549,102 @@ def serve(
 
         fastapi_app = create_app(config_path=config_path)
         uvicorn.run(fastapi_app, host=host, port=port)
+
+
+@app.command()
+def autotune(
+    target: str = typer.Argument(
+        "retrieval", help="What to optimize: retrieval, generation, or all."
+    ),
+    config: Path | None = typer.Option(None, "--config", "-c", help="Config file path."),
+    trials: int = typer.Option(30, "--trials", "-n", help="Number of optimization trials."),
+    checklist: Path | None = typer.Option(None, "--checklist", help="Custom checklist YAML file."),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output directory for results."
+    ),
+    apply: bool = typer.Option(False, "--apply", help="Apply best params to config file."),
+) -> None:
+    """Auto-tune parameters using Bayesian optimization."""
+    try:
+        import optuna  # noqa: F401
+    except ImportError:
+        console.print(
+            "[red]optuna is required for autotune. Install with: pip install optuna[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    cfg = _load_config(config)
+
+    console.print(f"[bold]AutoTune: optimizing {target} parameters[/bold]")
+    console.print(f"  Trials: {trials}")
+
+    try:
+        from quantumrag.core.autotune.checklist import Checklist
+        from quantumrag.core.autotune.scorer import create_scenario_scorer
+        from quantumrag.core.autotune.tuner import AutoTuner
+        from quantumrag.core.engine import Engine
+
+        # Load checklist
+        if checklist and checklist.exists():
+            cl = Checklist.from_yaml(checklist)
+            console.print(f"  Checklist: {checklist}")
+        else:
+            cl = Checklist.default()
+            console.print("  Checklist: default (6 criteria)")
+
+        console.print(f"  Criteria: {len(cl.criteria)}")
+        for c in cl.criteria:
+            console.print(
+                f"    - {c.id}: {c.description} (target={c.target}, weight={c.weight:.0%})"
+            )
+
+        engine = Engine(config=cfg)
+        scorer = create_scenario_scorer(sample_size=9)
+
+        tuner = AutoTuner(engine, checklist=cl, scorer=scorer)
+        console.print("\n[bold green]Starting optimization...[/bold green]\n")
+
+        result = tuner.run(
+            n_trials=trials,
+            target=target,
+            output_dir=str(output) if output else None,
+        )
+
+        # Show results
+        console.print("\n[bold green]Optimization complete![/bold green]")
+        console.print(f"\n  Best score: [bold]{result.best_score:.4f}[/bold]")
+        console.print(f"  Trials: {result.n_trials}")
+        console.print(f"  Time: {result.elapsed_seconds:.0f}s")
+
+        # Best params table
+        table = Table(title="Best Parameters", show_header=True)
+        table.add_column("Parameter", style="bold")
+        table.add_column("Value", justify="right")
+        for k, v in result.best_params.items():
+            table.add_row(k, f"{v:.4f}" if isinstance(v, float) else str(v))
+        console.print(table)
+
+        # Checklist results
+        console.print(
+            f"\n[bold]Checklist: {result.best_checklist.passed_count}/{result.best_checklist.total_count} passed[/bold]"
+        )
+        for cr in result.best_checklist.criteria_results:
+            icon = "[green]PASS[/green]" if cr.passed else "[red]FAIL[/red]"
+            console.print(
+                f"  {icon} {cr.criterion.id}: {cr.value:.4f} (target: {cr.criterion.target})"
+            )
+
+        # Apply to config
+        if apply and config and config.exists():
+            tuner.export_config(result, config)
+            console.print(f"\n[green]Best parameters applied to {config}[/green]")
+
+        if output:
+            console.print(f"\n[dim]Results saved to {output}[/dim]")
+
+    except Exception as e:
+        console.print(f"[red]AutoTune error: {e}[/red]")
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

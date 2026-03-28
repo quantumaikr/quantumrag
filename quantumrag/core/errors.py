@@ -119,11 +119,7 @@ class LLMRateLimitError(QuantumRAGError):
         self.provider = provider
         self.retry_after_seconds = retry_after_seconds
         if not suggestion:
-            retry_hint = (
-                f" Retry after {retry_after_seconds:.0f}s."
-                if retry_after_seconds
-                else ""
-            )
+            retry_hint = f" Retry after {retry_after_seconds:.0f}s." if retry_after_seconds else ""
             suggestion = (
                 f"{provider} rate limit exceeded.{retry_hint} "
                 f"Consider adding a delay between requests or upgrading your plan."
@@ -154,9 +150,7 @@ class LLMModelNotFoundError(QuantumRAGError):
                 if self.available_models
                 else ""
             )
-            suggestion = (
-                f"Model '{model}' was not found on {provider}.{models_hint}"
-            )
+            suggestion = f"Model '{model}' was not found on {provider}.{models_hint}"
         super().__init__(
             f"[{provider}] Model '{model}' not found",
             suggestion=suggestion,
@@ -201,9 +195,7 @@ class LLMProviderError(QuantumRAGError):
         self.provider = provider
         self.original_error = original_error
         if not suggestion:
-            suggestion = (
-                f"An unexpected error occurred with {provider}: {original_error}"
-            )
+            suggestion = f"An unexpected error occurred with {provider}: {original_error}"
         super().__init__(
             f"[{provider}] Provider error: {original_error}",
             suggestion=suggestion,

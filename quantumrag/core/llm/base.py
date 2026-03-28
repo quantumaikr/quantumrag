@@ -173,7 +173,10 @@ def _is_retryable(exc: BaseException) -> bool:
     # httpx-level transport errors
     exc_name = type(exc).__name__
     if exc_name in {
-        "ConnectError", "ReadTimeout", "ConnectTimeout", "RemoteProtocolError",
+        "ConnectError",
+        "ReadTimeout",
+        "ConnectTimeout",
+        "RemoteProtocolError",
         "APIConnectionError",  # openai SDK connection error
     }:
         return True

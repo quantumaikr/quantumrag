@@ -13,17 +13,26 @@ import re
 # ---------------------------------------------------------------------------
 
 # Sentence endings: standard punctuation + Korean verb endings
+# Covers: 습니다/입니다/겠습니다/됩니다 (formal), 어요/해요/세요/나요 (polite),
+#          다/죠/네/까 (plain/question), and standard . ! ? 。
 _SENTENCE_SPLIT = re.compile(
     r"(?<=[.!?。])\s+"
-    r"|(?<=[다요])\.\s+"
-    r"|(?<=니다)\s+"
-    r"|(?<=어요)\s+"
-    r"|(?<=해요)\s+"
-    r"|(?<=죠\.)\s+"
+    r"|(?<=습니다)\s+"  # 했습니다, 입니다, 됩니다, 겠습니다
+    r"|(?<=어요)\s+"  # 했어요, 있어요
+    r"|(?<=해요)\s+"  # 그래요, 좋아해요
+    r"|(?<=세요)\s+"  # 하세요, 주세요
+    r"|(?<=나요)\s+"  # 되나요, 있나요 (question)
+    r"|(?<=거든요)\s+"  # 그렇거든요 (explanation)
+    r"|(?<=[다요까죠네])\.\s+"  # 다. 요. 까. 죠. 네.
+    r"|(?<=[다요까죠네])\s*\n"  # sentence-ending + newline (no period)
 )
 
 # Fallback sentence boundary for chunkers
-_SENTENCE_END = re.compile(r"[.!?。]\s+|[.!?。]$|(?<=[다요까])[.]\s*")
+_SENTENCE_END = re.compile(
+    r"[.!?。]\s+|[.!?。]$"
+    r"|(?<=습니다)[.)\s]"  # formal endings
+    r"|(?<=[다요까죠네])[.]\s*"  # plain endings with period
+)
 
 # Word tokenization
 _WORD_RE = re.compile(r"\w+")
@@ -38,9 +47,7 @@ _KOREAN_THRESHOLD = 0.2
 _TABLE_MD_RE = re.compile(r"\|.*\|.*\|")
 _TABLE_HTML_RE = re.compile(r"<table[\s>]", re.IGNORECASE)
 _CODE_FENCE_RE = re.compile(r"```")
-_CODE_INDENT_RE = re.compile(
-    r"^\s{4,}(?:def |class |import |from |if |for )", re.MULTILINE
-)
+_CODE_INDENT_RE = re.compile(r"^\s{4,}(?:def |class |import |from |if |for )", re.MULTILINE)
 _LIST_UNORDERED_RE = re.compile(r"^\s*[-*•]\s+", re.MULTILINE)
 _LIST_ORDERED_RE = re.compile(r"^\s*\d+[.)]\s+", re.MULTILINE)
 _DIGIT_RE = re.compile(r"\d")
@@ -53,14 +60,67 @@ _MID_SENTENCE_START_RE = re.compile(
 )
 
 # Legal structure
-_LEGAL_CLAUSE_RE = re.compile(
-    r"제\s*\d+\s*[조항]|Article\s+\d+", re.IGNORECASE
+_LEGAL_CLAUSE_RE = re.compile(r"제\s*\d+\s*[조항]|Article\s+\d+", re.IGNORECASE)
+
+
+# ---------------------------------------------------------------------------
+# PDF / Document Text Normalization
+# ---------------------------------------------------------------------------
+
+# Unicode bidirectional control characters that pollute PDF-extracted text.
+# These include LTR/RTL overrides, embeddings, and pop-formatting marks.
+_BIDI_CONTROL_RE = re.compile(
+    r"[\u200e\u200f"  # LRM, RLM
+    r"\u202a-\u202e"  # LRE, RLE, PDF, LRO, RLO
+    r"\u2066-\u2069"  # LRI, RLI, FSI, PDI
+    r"\u200b-\u200d"  # ZWSP, ZWNJ, ZWJ
+    r"\ufeff"  # BOM / ZWNBSP
+    r"]"
 )
+
+# Line breaks that were introduced by bidi-mark removal, leaving
+# orphaned newlines between words that were originally on the same line.
+_ORPHAN_NEWLINE_RE = re.compile(
+    r"(?<=[a-zA-Z,;:\-\u3131-\u318f\uac00-\ud7af])\n(?=[a-zA-Z\u3131-\u318f\uac00-\ud7af])"
+)
+
+# Excessive whitespace (3+ newlines → 2)
+_EXCESSIVE_NEWLINE_RE = re.compile(r"\n{3,}")
+
+
+def normalize_extracted_text(text: str) -> str:
+    """Normalize text extracted from PDFs and other document formats.
+
+    Removes bidi control characters, rejoins lines split by bidi marks,
+    and collapses excessive whitespace. This is critical for embedding
+    quality — bidi marks cause tokenizers to split words incorrectly.
+
+    Args:
+        text: Raw extracted text (may contain bidi marks, orphan newlines).
+
+    Returns:
+        Cleaned text suitable for chunking and embedding.
+    """
+    if not text:
+        return text
+
+    # Step 1: Strip bidi control characters
+    cleaned = _BIDI_CONTROL_RE.sub("", text)
+
+    # Step 2: Rejoin lines that were split by bidi mark removal.
+    # "5,000\n image-caption" → "5,000 image-caption"
+    cleaned = _ORPHAN_NEWLINE_RE.sub(" ", cleaned)
+
+    # Step 3: Collapse excessive blank lines
+    cleaned = _EXCESSIVE_NEWLINE_RE.sub("\n\n", cleaned)
+
+    return cleaned.strip()
 
 
 # ---------------------------------------------------------------------------
 # Sentence Splitting
 # ---------------------------------------------------------------------------
+
 
 def split_sentences(text: str) -> list[str]:
     """Split text into sentences handling both English and Korean.
@@ -95,6 +155,7 @@ def split_sentences_with_fallback(text: str) -> list[str]:
 # Tokenization
 # ---------------------------------------------------------------------------
 
+
 def tokenize(text: str) -> list[str]:
     """Simple word tokenization using word-character boundaries.
 
@@ -109,14 +170,62 @@ def tokenize_set(text: str) -> set[str]:
 
 
 # Stop words for relevance scoring (English-focused)
-_STOP_WORDS: frozenset[str] = frozenset({
-    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-    "have", "has", "had", "do", "does", "did", "will", "would", "could",
-    "should", "may", "might", "shall", "can", "to", "of", "in", "for",
-    "on", "with", "at", "by", "from", "as", "into", "through", "during",
-    "before", "after", "and", "but", "or", "nor", "not", "so", "yet",
-    "it", "its", "this", "that", "these", "those",
-})
+_STOP_WORDS: frozenset[str] = frozenset(
+    {
+        "the",
+        "a",
+        "an",
+        "is",
+        "are",
+        "was",
+        "were",
+        "be",
+        "been",
+        "being",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "to",
+        "of",
+        "in",
+        "for",
+        "on",
+        "with",
+        "at",
+        "by",
+        "from",
+        "as",
+        "into",
+        "through",
+        "during",
+        "before",
+        "after",
+        "and",
+        "but",
+        "or",
+        "nor",
+        "not",
+        "so",
+        "yet",
+        "it",
+        "its",
+        "this",
+        "that",
+        "these",
+        "those",
+    }
+)
 
 
 def tokenize_filtered(text: str) -> set[str]:
@@ -131,6 +240,7 @@ def tokenize_filtered(text: str) -> set[str]:
 # ---------------------------------------------------------------------------
 # Text Similarity
 # ---------------------------------------------------------------------------
+
 
 def vocab_overlap(text_a: str, text_b: str) -> float:
     """Word-level Jaccard similarity between two texts."""
@@ -151,7 +261,7 @@ def char_bigrams(text: str) -> set[str]:
     cleaned = re.sub(r"\s+", "", text.lower())
     if len(cleaned) < 2:
         return set()
-    return {cleaned[i: i + 2] for i in range(len(cleaned) - 1)}
+    return {cleaned[i : i + 2] for i in range(len(cleaned) - 1)}
 
 
 def text_similarity(text_a: str, text_b: str) -> float:
@@ -179,6 +289,7 @@ def text_similarity(text_a: str, text_b: str) -> float:
 # Language Detection
 # ---------------------------------------------------------------------------
 
+
 def detect_korean(text: str, threshold: float = _KOREAN_THRESHOLD) -> bool:
     """Detect if text is primarily Korean.
 
@@ -203,6 +314,7 @@ def has_korean(text: str) -> bool:
 # ---------------------------------------------------------------------------
 # Content Detection Helpers
 # ---------------------------------------------------------------------------
+
 
 def has_table(content: str) -> bool:
     """Detect tables (Markdown or HTML) in content."""
@@ -245,3 +357,158 @@ def starts_mid_sentence(text: str) -> bool:
     if stripped[0].islower():
         return True
     return bool(_MID_SENTENCE_START_RE.match(stripped))
+
+
+# ---------------------------------------------------------------------------
+# Table Block Detection (for pre-chunking table protection)
+# ---------------------------------------------------------------------------
+
+# Matches a complete markdown table block: header + separator + data rows
+_TABLE_BLOCK_RE = re.compile(
+    r"(?:^|\n)"  # start of line
+    r"(\|[^\n]+\|\s*\n"  # header row
+    r"\|[\s:|-]+\|\s*\n"  # separator row
+    r"(?:\|[^\n]+\|\s*\n?)*)",  # data rows
+    re.MULTILINE,
+)
+
+
+def split_preserving_tables(text: str) -> list[tuple[str, bool]]:
+    """Split text into segments, keeping markdown tables as atomic blocks.
+
+    Returns a list of (text_segment, is_table) tuples. Table blocks are
+    never split across segments so chunkers can treat them as atomic units.
+    """
+    matches = list(_TABLE_BLOCK_RE.finditer(text))
+    if not matches:
+        return [(text, False)]
+
+    segments: list[tuple[str, bool]] = []
+    last_end = 0
+
+    for m in matches:
+        # Text before this table
+        before = text[last_end : m.start()]
+        if before.strip():
+            segments.append((before, False))
+        # The table itself
+        segments.append((m.group(1).strip(), True))
+        last_end = m.end()
+
+    # Text after the last table
+    after = text[last_end:]
+    if after.strip():
+        segments.append((after, False))
+
+    return segments
+
+
+# ---------------------------------------------------------------------------
+# Code Block Detection (for pre-chunking code block protection)
+# ---------------------------------------------------------------------------
+
+# Matches a complete fenced code block: ```lang ... ```
+_CODE_BLOCK_RE = re.compile(
+    r"(?:^|\n)"  # start of line
+    r"(```[^\n]*\n"  # opening fence (with optional language)
+    r"[\s\S]*?"  # code content (non-greedy)
+    r"```)\s*",  # closing fence
+    re.MULTILINE,
+)
+
+
+def split_preserving_code_blocks(text: str) -> list[tuple[str, bool]]:
+    """Split text into segments, keeping fenced code blocks as atomic blocks.
+
+    Returns a list of (text_segment, is_code_block) tuples. Code blocks are
+    never split across segments so chunkers can treat them as atomic units.
+    """
+    matches = list(_CODE_BLOCK_RE.finditer(text))
+    if not matches:
+        return [(text, False)]
+
+    segments: list[tuple[str, bool]] = []
+    last_end = 0
+
+    for m in matches:
+        # Text before this code block
+        before = text[last_end : m.start()]
+        if before.strip():
+            segments.append((before, False))
+        # The code block itself
+        segments.append((m.group(1).strip(), True))
+        last_end = m.end()
+
+    # Text after the last code block
+    after = text[last_end:]
+    if after.strip():
+        segments.append((after, False))
+
+    return segments
+
+
+# Short code blocks (≤ this many lines) are merged with adjacent text
+# instead of being emitted as separate atomic chunks, so they retain
+# surrounding context (e.g., section headings, explanatory prose).
+_SHORT_CODE_BLOCK_LINES = 6
+
+
+def split_preserving_blocks(text: str) -> list[tuple[str, str]]:
+    """Split text preserving both tables and code blocks as atomic units.
+
+    Returns a list of (text_segment, block_type) tuples where block_type
+    is 'table', 'code', or 'text'.
+
+    Short code blocks (≤ 6 lines) are kept as 'text' so they stay merged
+    with their surrounding prose — this preserves section-heading context
+    for snippets like a 3-line Variance example.
+    """
+    result: list[tuple[str, str]] = []
+
+    # First pass: protect code blocks
+    code_segments = split_preserving_code_blocks(text)
+
+    for segment, is_code in code_segments:
+        if is_code:
+            # Short code blocks → merge with surrounding text
+            code_lines = segment.strip().split("\n")
+            # Subtract the ``` fences themselves
+            content_lines = len(code_lines) - 2 if len(code_lines) > 2 else 0
+            if content_lines <= _SHORT_CODE_BLOCK_LINES:
+                result.append((segment, "text"))
+            else:
+                result.append((segment, "code"))
+        else:
+            # Second pass: protect tables within non-code text
+            table_segments = split_preserving_tables(segment)
+            for tseg, is_table in table_segments:
+                if is_table:
+                    result.append((tseg, "table"))
+                else:
+                    result.append((tseg, "text"))
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Korean-Aware Token Size Estimation
+# ---------------------------------------------------------------------------
+
+
+def estimate_token_count(text: str) -> int:
+    """Estimate token count for embedding models, aware of Korean text.
+
+    For English, word count ≈ token count (1.3x multiplier).
+    For Korean, each character can be 1-3 tokens for typical embedding
+    models, and a Korean "word" (space-delimited) averages ~2-4 tokens.
+
+    This uses a blended heuristic: word_count + (korean_char_count * 0.7).
+    """
+    words = text.split()
+    word_count = len(words)
+    ko_char_count = len(_KOREAN_CHAR_RE.findall(text))
+    if ko_char_count == 0:
+        return word_count
+    # Korean chars contribute ~0.7 extra tokens each beyond the word count
+    # (since word_count already counts Korean words, we add a supplement)
+    return word_count + int(ko_char_count * 0.7)

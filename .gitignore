@@ -30,8 +30,15 @@ htmlcov/
 # QuantumRAG data
 quantumrag_data/
 test_scenario_data/
+.scale_test_*/
+**/.rag_data/
+**/.sources_hash
+datasets/.combined/
 *.db
 *.lance/
+
+# FDO cache (removed module, but cache may persist)
+tests/.fdo_cache/
 
 # Config with secrets (*.example 파일은 추적됨)
 .env

@@ -95,9 +95,8 @@ class QueryRouter:
         medium_signals = 0
 
         # Check for complex indicators (word match for English, substring for Korean)
-        has_complex_keyword = (
-            words & _COMPLEX_INDICATORS
-            or _contains_any(query_lower, _COMPLEX_INDICATORS)
+        has_complex_keyword = words & _COMPLEX_INDICATORS or _contains_any(
+            query_lower, _COMPLEX_INDICATORS
         )
         has_multi_question = _is_multi_question(query)
         has_conditional = bool(_CONDITIONAL_RE.search(query_lower))
@@ -109,9 +108,8 @@ class QueryRouter:
         if has_conditional:
             complex_signals += 1
 
-        has_medium_keyword = (
-            words & _MEDIUM_INDICATORS
-            or _contains_any(query_lower, _MEDIUM_INDICATORS)
+        has_medium_keyword = words & _MEDIUM_INDICATORS or _contains_any(
+            query_lower, _MEDIUM_INDICATORS
         )
         has_long_query = len(query) > 100
         has_temporal = bool(_TEMPORAL_AGGREGATION_RE.search(query_lower))

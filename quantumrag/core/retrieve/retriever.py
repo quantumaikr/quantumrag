@@ -12,10 +12,15 @@ from typing import Any
 
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Source, TraceStep
-from quantumrag.core.pipeline.context import PipelineContext
-from quantumrag.core.pipeline.signals import chunk_needs_expansion, chunk_should_skip_compression
+from quantumrag.core.pipeline.context import InformationType, PipelineContext
+from quantumrag.core.pipeline.signals import (
+    chunk_needs_expansion,
+    chunk_should_skip_compression,
+    read_chunk_signal,
+)
 from quantumrag.core.retrieve.compressor import Compressor, ExtractiveCompressor, NoopCompressor
 from quantumrag.core.retrieve.fusion import FusionRetriever, ScoredChunk
+from quantumrag.core.retrieve.query_classifier import detect_query_type
 from quantumrag.core.retrieve.reranker import NoopReranker, Reranker
 
 logger = get_logger("quantumrag.retriever")
@@ -39,8 +44,12 @@ def _share_parent_section(chunk_a: Any, chunk_b: Any) -> bool:
             return True
 
     # Fallback: same document and close chunk index
-    doc_a = chunk_a.metadata.get("document_id", chunk_a.document_id if hasattr(chunk_a, "document_id") else "")
-    doc_b = chunk_b.metadata.get("document_id", chunk_b.document_id if hasattr(chunk_b, "document_id") else "")
+    doc_a = chunk_a.metadata.get(
+        "document_id", chunk_a.document_id if hasattr(chunk_a, "document_id") else ""
+    )
+    doc_b = chunk_b.metadata.get(
+        "document_id", chunk_b.document_id if hasattr(chunk_b, "document_id") else ""
+    )
     if doc_a and doc_a == doc_b:
         idx_a = chunk_a.metadata.get("chunk_index", -1)
         idx_b = chunk_b.metadata.get("chunk_index", -1)
@@ -115,21 +124,50 @@ class Retriever:
             if hints.skip_compression:
                 skip_compression = True
 
-        # Step 1: Fusion search (Pass 1)
+        # Step 0.5: Detect query type for adaptive fusion weights
+        query_type, adaptive_weights = detect_query_type(query)
+
+        # Step 1: Fusion search (Pass 1) with query-aware weights
         t0 = time.perf_counter()
         candidates = await self._fusion.search(
             query,
             top_k=effective_top_k * self._fusion_candidate_multiplier,
             filters=filters,
+            weights=adaptive_weights,
         )
         search_ms = (time.perf_counter() - t0) * 1000
         trace_steps.append(
             TraceStep(
                 step="fusion_search",
-                result=f"{len(candidates)} candidates",
+                result=f"{len(candidates)} candidates (query_type={query_type})",
                 latency_ms=search_ms,
+                details={"query_type": query_type, "fusion_weights": adaptive_weights},
             )
         )
+        logger.debug(
+            "adaptive_fusion_weights",
+            query_type=query_type,
+            weights=adaptive_weights,
+        )
+
+        # Step 1.1: Signal-aware score boost
+        # Boost TABULAR chunks for term_specific queries (numeric/value queries)
+        # and chunks with high numeric density for value-asking queries
+        if query_type == "term_specific" and candidates:
+            boosted = 0
+            for sc in candidates:
+                signal = read_chunk_signal(sc.chunk)
+                if signal is None:
+                    continue
+                if signal.information_type == InformationType.TABULAR:
+                    sc.score *= 1.15
+                    boosted += 1
+                elif signal.numeric_density > 0.3:
+                    sc.score *= 1.10
+                    boosted += 1
+            if boosted:
+                candidates.sort(key=lambda x: x.score, reverse=True)
+                logger.debug("signal_score_boost", query_type=query_type, boosted=boosted)
 
         # Step 1.5: Sibling Expansion (Pass 2)
         # Signal-aware: also expand chunks whose signal says they need context
@@ -139,8 +177,7 @@ class Retriever:
         if not expand_needed and candidates:
             # Check if any top chunk signals that it needs context
             expand_needed = any(
-                chunk_needs_expansion(sc.chunk)
-                for sc in candidates[:effective_top_k]
+                chunk_needs_expansion(sc.chunk) for sc in candidates[:effective_top_k]
             )
 
         if expand_needed and candidates:
@@ -259,9 +296,7 @@ class Retriever:
             trace=trace_steps,
         )
 
-    async def _expand_siblings(
-        self, chunks: list[ScoredChunk], top_k: int
-    ) -> list[ScoredChunk]:
+    async def _expand_siblings(self, chunks: list[ScoredChunk], top_k: int) -> list[ScoredChunk]:
         """2nd pass: expand with sibling/adjacent chunks from same document sections.
 
         For each retrieved chunk, fetch all chunks from the same document and
@@ -275,7 +310,11 @@ class Retriever:
         # Group chunks by document_id to minimize DB calls
         doc_ids: set[str] = set()
         for sc in chunks[:top_k]:  # Only expand top-k, not all candidates
-            doc_id = sc.chunk.document_id if hasattr(sc.chunk, "document_id") else sc.chunk.metadata.get("document_id", "")
+            doc_id = (
+                sc.chunk.document_id
+                if hasattr(sc.chunk, "document_id")
+                else sc.chunk.metadata.get("document_id", "")
+            )
             if doc_id:
                 doc_ids.add(doc_id)
 
@@ -291,7 +330,11 @@ class Retriever:
 
             # Find sibling chunks for each retrieved chunk from this document
             for sc in chunks[:top_k]:
-                sc_doc_id = sc.chunk.document_id if hasattr(sc.chunk, "document_id") else sc.chunk.metadata.get("document_id", "")
+                sc_doc_id = (
+                    sc.chunk.document_id
+                    if hasattr(sc.chunk, "document_id")
+                    else sc.chunk.metadata.get("document_id", "")
+                )
                 if sc_doc_id != doc_id:
                     continue
 
@@ -300,10 +343,12 @@ class Retriever:
                         continue
                     if _share_parent_section(sc.chunk, sibling):
                         # Inherit a discounted score from the parent chunk
-                        expanded.append(ScoredChunk(
-                            chunk=sibling,
-                            score=sc.score * 0.75,
-                        ))
+                        expanded.append(
+                            ScoredChunk(
+                                chunk=sibling,
+                                score=sc.score * 0.75,
+                            )
+                        )
                         seen_ids.add(sibling.id)
 
         # Re-sort by score and limit

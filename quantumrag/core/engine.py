@@ -46,12 +46,15 @@ def _run_sync(coro: Coroutine[Any, Any, _T]) -> _T:
     with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
         return pool.submit(asyncio.run, coro).result()
 
+
 logger = get_logger("quantumrag.engine")
 
 # Patterns that need broader retrieval to capture all relevant items
 _BROAD_RETRIEVAL_PATTERNS = [
     # Superlative + financial terms
-    re.compile(r"(?:가장|제일|최대|최소|최고|최저)\s*.{0,10}(?:계약|규모|금액|매출|비용|PoC|투자|예산|팀)"),
+    re.compile(
+        r"(?:가장|제일|최대|최소|최고|최저)\s*.{0,10}(?:계약|규모|금액|매출|비용|PoC|투자|예산|팀)"
+    ),
     re.compile(r"(?:계약|규모|금액|매출|비용|PoC|투자).{0,10}(?:가장|제일|최대|최소)"),
     # Cross-verification queries — need multiple sources to compare
     re.compile(r"(?:일치|다른|차이|불일치|동일|같은가|다른가)"),
@@ -65,14 +68,41 @@ _BROAD_RETRIEVAL_PATTERNS = [
     re.compile(r"(?:상반기|하반기|분기|월\s*이후|월\s*이전|년\s*(?:이후|이전|사이))"),
     # Severity/grade filtering — need all items at or above threshold
     re.compile(r"(?:등급|레벨|수준)\s*.{0,6}(?:이상|이하|초과|미만)"),
-    # Enumeration — "모두 나열" needs broad coverage but not Map-Reduce
-    re.compile(r"(?:모두|전부|모든).*나열"),
+    # Enumeration — "모두 나열/열거/알려" needs broad coverage but not Map-Reduce
+    re.compile(r"(?:모두|전부|모든).*(?:나열|열거|알려|말해)"),
+    # Explicit listing requests — "나열하세요", "열거하세요"
+    re.compile(r"(?:나열|열거)\s*(?:하세요|해주세요|해\s*줘)"),
+    # Counterfactual/conditional with specific numbers — need source data
+    re.compile(r"(?:실패|성사|성공|전환).*(?:하면|할\s*경우|시)"),
 ]
 
 
 def _needs_broad_retrieval(query: str) -> bool:
     """Detect if a query needs broader retrieval for comparison/cross-check."""
     return any(p.search(query) for p in _BROAD_RETRIEVAL_PATTERNS)
+
+
+# FDO Fix P3: Input sanitization patterns
+_MALICIOUS_INPUT_PATTERNS = [
+    re.compile(r"(?i)SELECT\s+.+\s+FROM\s+"),
+    re.compile(r"(?i)DROP\s+TABLE"),
+    re.compile(r"(?i)INSERT\s+INTO"),
+    re.compile(r"(?i)DELETE\s+FROM"),
+    re.compile(r"(?i)UPDATE\s+.+\s+SET"),
+    re.compile(r"(?i)UNION\s+SELECT"),
+    re.compile(r"<script[^>]*>", re.IGNORECASE),
+    re.compile(r"javascript:", re.IGNORECASE),
+    re.compile(r"(?i)(?:ignore|disregard)\s+(?:previous|above|all)\s+(?:instructions|prompts)"),
+    re.compile(r";\s*(?:DROP|DELETE|INSERT|UPDATE)\s", re.IGNORECASE),
+    # Korean prompt injection patterns
+    re.compile(r"(?:이전|위의?|모든)\s*(?:지시|명령|프롬프트|지침)를?\s*(?:무시|잊어|취소)"),
+    re.compile(r"시스템\s*프롬프트를?\s*(?:출력|보여|알려)"),
+]
+
+
+def _is_malicious_input(query: str) -> bool:
+    """Detect SQL injection, XSS, prompt injection attempts."""
+    return any(p.search(query) for p in _MALICIOUS_INPUT_PATTERNS)
 
 
 class Engine:
@@ -92,13 +122,13 @@ class Engine:
         generation_model: str | None = None,
         data_dir: str | None = None,
     ) -> None:
-        # Load config
+        # Load config — auto-detect provider when no config given
         if isinstance(config, QuantumRAGConfig):
             self._config = config
         elif isinstance(config, (str, Path)):
             self._config = QuantumRAGConfig.from_yaml(config)
         else:
-            self._config = QuantumRAGConfig.default()
+            self._config = QuantumRAGConfig.auto()
 
         # Apply overrides
         if embedding_model:
@@ -116,6 +146,7 @@ class Engine:
         # Chunk Constellation Graph — built at ingest time, used at query time
         self._chunk_graph: Any = None
         self._entity_index: Any = None
+        self._fact_index: Any = None  # Fact-First RAG: structured fact index
 
         # Document profiles — built at ingest time, used at query time
         self._document_profiles: dict[str, DocumentProfile] = {}
@@ -284,8 +315,16 @@ class Engine:
         metadata: dict[str, Any] | None = None,
         recursive: bool = True,
         enable_hype: bool = True,
+        mode: str | None = None,
     ) -> IngestResult:
-        """Ingest documents from a file, directory, or URL."""
+        """Ingest documents from a file, directory, or URL.
+
+        Args:
+            mode: Override ingest mode ("full", "fast", "minimal").
+                  - full: all enrichment (HyPE, preambles, facts, quality, multi-res)
+                  - fast: skip HyPE and preambles (quick indexing, still good retrieval)
+                  - minimal: parse + chunk + embed + BM25 only (fastest)
+        """
         return _run_sync(
             self.aingest(
                 path,
@@ -293,6 +332,7 @@ class Engine:
                 metadata=metadata,
                 recursive=recursive,
                 enable_hype=enable_hype,
+                mode=mode,
             )
         )
 
@@ -304,59 +344,78 @@ class Engine:
         metadata: dict[str, Any] | None = None,
         recursive: bool = True,
         enable_hype: bool = True,
+        mode: str | None = None,
     ) -> IngestResult:
-        """Async version of ingest."""
+        """Async version of ingest.
+
+        Modes:
+            full:    All enrichment (HyPE, preambles, facts, quality, multi-res, entity index, chunk graph)
+            fast:    Skip HyPE and contextual preambles (quick indexing, still good retrieval via embedding+BM25)
+            minimal: Parse + chunk + embed + BM25 only (fastest possible, no LLM calls)
+        """
         self._ensure_initialized()
         t0 = time.perf_counter()
+
+        ingest_mode = mode or self._config.ingest.mode
+        if ingest_mode not in ("full", "fast", "minimal"):
+            from quantumrag.core.errors import ConfigError
+
+            raise ConfigError(
+                f"Unknown ingest mode: {ingest_mode!r}. Must be 'full', 'fast', or 'minimal'."
+            )
+
+        # Resolve mode flags
+        do_hype = enable_hype and ingest_mode == "full"
+        do_preamble = self._config.ingest.contextual_preamble and ingest_mode == "full"
+        do_facts = ingest_mode in ("full", "fast")
+        do_quality = self._config.ingest.quality_check and ingest_mode in ("full", "fast")
+        do_multi_res = ingest_mode in ("full", "fast")
+        do_entity_index = ingest_mode in ("full", "fast")
+        do_chunk_graph = ingest_mode == "full"
+        max_concurrency = self._config.ingest.max_concurrency
+        parse_concurrency = self._config.ingest.parse_concurrency
+
+        logger.info("ingest_start", mode=ingest_mode, path=str(path))
+
+        # --- Pre-flight validation: catch fatal errors early ---
+        errors: list[str] = []
+        try:
+            self._get_embedding_provider()
+        except Exception as e:
+            from quantumrag.core.errors import ConfigError
+
+            raise ConfigError(f"Embedding provider initialization failed: {e}") from e
+
+        if do_hype:
+            try:
+                self._get_llm_provider(QueryComplexity.SIMPLE)
+            except Exception as e:
+                logger.warning("preflight_llm_unavailable", error=str(e))
+                errors.append(f"LLM provider unavailable — disabling HyPE and preambles: {e}")
+                do_hype = False
+                do_preamble = False
 
         path = Path(path) if not isinstance(path, Path) else path
         doc_store = self._get_document_store()
 
-        # Parse documents
-        from quantumrag.core.ingest.parser.base import create_default_registry
+        # --- Phase 1: Parse documents (parallel) ---
+        documents = await self._parse_documents(
+            path,
+            registry=None,
+            metadata=metadata,
+            recursive=recursive,
+            errors=errors,
+            parse_concurrency=parse_concurrency,
+        )
 
-        registry = create_default_registry()
-        documents = []
-        errors: list[str] = []
+        # Denoise parsed text (post-parse, pre-chunk cleaning)
+        from quantumrag.core.ingest.denoiser import TextDenoiser
 
-        if path.is_file():
-            try:
-                parser = registry.get_parser(path.suffix)
-            except Exception as e:
-                errors.append(f"{path.name}: {e}")
-                logger.warning("no_parser", path=str(path), error=str(e))
-                parser = None
-            if parser:
-                try:
-                    doc = await asyncio.to_thread(parser.parse, path)
-                    if metadata:
-                        doc.metadata.custom.update(metadata)
-                    if not doc.content.strip():
-                        errors.append(f"{path.name}: No text content extracted")
-                        logger.warning("empty_content", path=str(path))
-                    else:
-                        documents.append(doc)
-                except Exception as e:
-                    errors.append(f"{path.name}: {e}")
-                    logger.warning("parse_failed", path=str(path), error=str(e))
-        elif path.is_dir():
-            for file_path in sorted(path.rglob("*") if recursive else path.glob("*")):
-                if file_path.is_file() and registry.has_parser(file_path.suffix):
-                    try:
-                        parser = registry.get_parser(file_path.suffix)
-                        doc = await asyncio.to_thread(parser.parse, file_path)
-                        if metadata:
-                            doc.metadata.custom.update(metadata)
-                        if not doc.content.strip():
-                            errors.append(f"{file_path.name}: No text content extracted")
-                            logger.warning("empty_content", path=str(file_path))
-                        else:
-                            documents.append(doc)
-                    except Exception as e:
-                        errors.append(f"{file_path.name}: {e}")
-                        logger.warning("parse_failed", path=str(file_path), error=str(e))
+        denoiser = TextDenoiser()
+        for doc in documents:
+            doc.content = denoiser.denoise(doc.content)
 
-        # Store documents and chunk
+        # --- Phase 2: Chunk, enrich, index per document ---
         from quantumrag.core.ingest.chunker.auto import AutoChunker
 
         override = chunking_strategy or self._config.ingest.chunking.strategy
@@ -366,10 +425,12 @@ class Engine:
             override=override if override != "auto" else None,
         )
 
-        # Profile documents for pipeline signal system
         from quantumrag.core.pipeline.profiler import DocumentProfiler
+
         profiler = DocumentProfiler()
 
+        # --- Phase 2: Chunk + enrich per document, accumulate all chunks ---
+        all_chunks: list[Any] = []
         total_chunks = 0
         for doc in documents:
             await doc_store.add_document(doc)
@@ -384,100 +445,126 @@ class Engine:
 
             chunks = chunker.chunk(doc, document_profile=doc_profile)
 
+            # Coherence gate: merge chunks with poor boundary quality
+            try:
+                from quantumrag.core.ingest.chunker.coherence import ChunkCoherenceGate
+
+                coherence_gate = ChunkCoherenceGate()
+                chunks = coherence_gate.refine(chunks)
+            except Exception as e:
+                logger.warning("coherence_gate_failed", error=str(e))
+
             # Contextual Retrieval: LLM-generated preambles (Anthropic-style)
-            if self._config.ingest.contextual_preamble and enable_hype:
+            if do_preamble:
                 try:
                     from quantumrag.core.ingest.chunker.context import generate_contextual_preambles
 
                     preamble_llm = self._get_llm_provider(QueryComplexity.SIMPLE)
                     chunks = await generate_contextual_preambles(
-                        chunks, doc, preamble_llm,
+                        chunks,
+                        doc,
+                        preamble_llm,
+                        max_concurrency=max_concurrency,
                     )
                 except Exception as e:
                     logger.warning("contextual_preamble_failed", error=str(e))
 
             # Structured fact extraction — enrich chunks with domain-specific facts
-            try:
-                from quantumrag.core.ingest.indexer.fact_extractor import extract_facts_for_chunks
-                chunks = extract_facts_for_chunks(chunks)
-            except Exception as e:
-                logger.warning("fact_extraction_failed", error=str(e))
+            if do_facts:
+                try:
+                    from quantumrag.core.ingest.indexer.fact_extractor import (
+                        extract_facts_for_chunks,
+                    )
+
+                    chunks = extract_facts_for_chunks(chunks)
+                except Exception as e:
+                    logger.warning("fact_extraction_failed", error=str(e))
 
             # Chunk quality filtering — remove broken/boilerplate chunks
-            if self._config.ingest.quality_check:
+            if do_quality:
                 from quantumrag.core.ingest.quality import ChunkQualityChecker
 
                 quality_checker = ChunkQualityChecker()
                 chunks = quality_checker.filter_chunks(chunks)
 
             # Multi-resolution index: create document & section summary chunks
-            # (after quality filtering to avoid filtering out synthetic summaries)
-            try:
-                from quantumrag.core.ingest.indexer.multi_resolution import (
-                    build_multi_resolution_chunks,
-                )
-                summary_chunks = build_multi_resolution_chunks(chunks, doc)
-                if summary_chunks:
-                    chunks.extend(summary_chunks)
-            except Exception as e:
-                logger.warning("multi_resolution_failed", error=str(e))
+            if do_multi_res:
+                try:
+                    from quantumrag.core.ingest.indexer.multi_resolution import (
+                        build_multi_resolution_chunks,
+                    )
+
+                    summary_chunks = build_multi_resolution_chunks(chunks, doc)
+                    if summary_chunks:
+                        chunks.extend(summary_chunks)
+                except Exception as e:
+                    logger.warning("multi_resolution_failed", error=str(e))
 
             await doc_store.add_chunks(chunks)
             total_chunks += len(chunks)
+            all_chunks.extend(chunks)
 
-            # Build Triple Index
+        # --- Phase 3: Cross-document indexing (single batch) ---
+
+        # Build Triple Index — one batch call across ALL documents
+        if all_chunks:
             try:
                 embedding_provider = self._get_embedding_provider()
                 from quantumrag.core.ingest.indexer.triple_index_builder import TripleIndexBuilder
 
                 hype_llm = None
-                if enable_hype:
+                if do_hype:
                     with contextlib.suppress(Exception):
                         hype_llm = self._get_llm_provider(QueryComplexity.SIMPLE)
 
                 builder = TripleIndexBuilder(
                     vector_store=self._get_vector_store("original"),
-                    hype_vector_store=self._get_vector_store("hype") if enable_hype else None,
+                    hype_vector_store=self._get_vector_store("hype") if do_hype else None,
                     bm25_store=self._get_bm25_store(),
                     embedding_provider=embedding_provider,
-                    llm_provider=hype_llm if enable_hype else None,
-                    hype_questions_per_chunk=self._config.models.hype.questions_per_chunk if enable_hype else 0,
+                    llm_provider=hype_llm if do_hype else None,
+                    hype_questions_per_chunk=self._config.models.hype.questions_per_chunk
+                    if do_hype
+                    else 0,
+                    max_concurrency=max_concurrency,
                 )
-                await builder.build(chunks)
+                await builder.build(all_chunks)
             except Exception as e:
                 logger.warning("indexing_partial_failure", error=str(e))
 
-        # Build Entity Reverse Index — enables complete recall for entity queries
-        try:
-            all_chunks_for_entity = []
-            for doc in documents:
-                doc_chunks_list = await doc_store.get_chunks(doc.id)
-                all_chunks_for_entity.extend(doc_chunks_list)
-            if all_chunks_for_entity:
+        # Build Entity Reverse Index — uses in-memory chunks, no re-fetch
+        if do_entity_index and all_chunks:
+            try:
                 from quantumrag.core.ingest.indexer.entity_index import EntityIndex
+
                 self._entity_index = EntityIndex()
-                self._entity_index.build(all_chunks_for_entity)
-        except Exception as e:
-            logger.warning("entity_index_build_failed", error=str(e))
+                self._entity_index.build(all_chunks)
+            except Exception as e:
+                logger.warning("entity_index_build_failed", error=str(e))
 
-        # Build Chunk Constellation Graph — the revolutionary O(1) relationship index
-        try:
-            all_chunks_for_graph = []
-            for doc in documents:
-                doc_chunks_list = await doc_store.get_chunks(doc.id)
-                all_chunks_for_graph.extend(doc_chunks_list)
+        # Build Fact Index — structured fact store for Fact-First retrieval
+        if do_facts and all_chunks:
+            try:
+                from quantumrag.core.retrieve.fact_index import FactIndex
 
-            if all_chunks_for_graph:
+                self._fact_index = FactIndex()
+                self._fact_index.build_from_chunks(all_chunks)
+            except Exception as e:
+                logger.warning("fact_index_build_failed", error=str(e))
+
+        # Build Chunk Constellation Graph — uses in-memory chunks, no re-fetch
+        if do_chunk_graph and all_chunks:
+            try:
                 from quantumrag.core.ingest.indexer.chunk_graph import build_chunk_graph
 
-                self._chunk_graph = build_chunk_graph(all_chunks_for_graph)
+                self._chunk_graph = build_chunk_graph(all_chunks)
                 logger.info(
                     "chunk_graph_ready",
                     nodes=self._chunk_graph.node_count,
                     edges=self._chunk_graph.edge_count,
                 )
-        except Exception as e:
-            logger.warning("chunk_graph_build_failed", error=str(e))
+            except Exception as e:
+                logger.warning("chunk_graph_build_failed", error=str(e))
 
         elapsed = time.perf_counter() - t0
         result = IngestResult(
@@ -488,11 +575,81 @@ class Engine:
         )
         logger.info(
             "ingest_complete",
+            mode=ingest_mode,
             documents=result.documents,
             chunks=result.chunks,
             elapsed=f"{elapsed:.1f}s",
         )
         return result
+
+    async def _parse_documents(
+        self,
+        path: Path,
+        *,
+        registry: Any | None = None,
+        metadata: dict[str, Any] | None = None,
+        recursive: bool = True,
+        errors: list[str],
+        parse_concurrency: int = 4,
+    ) -> list[Any]:
+        """Parse documents with parallel I/O for directories."""
+        from quantumrag.core.ingest.parser.base import create_default_registry
+
+        if registry is None:
+            registry = create_default_registry()
+
+        documents: list[Any] = []
+
+        if path.is_file():
+            doc = await self._parse_single_file(path, registry, metadata, errors)
+            if doc is not None:
+                documents.append(doc)
+        elif path.is_dir():
+            files = sorted(
+                f
+                for f in (path.rglob("*") if recursive else path.glob("*"))
+                if f.is_file() and registry.has_parser(f.suffix)
+            )
+            # Parse files concurrently with bounded parallelism
+            semaphore = asyncio.Semaphore(parse_concurrency)
+
+            async def _parse_one(fp: Path) -> Any | None:
+                async with semaphore:
+                    return await self._parse_single_file(fp, registry, metadata, errors)
+
+            results = await asyncio.gather(*[_parse_one(f) for f in files])
+            documents = [doc for doc in results if doc is not None]
+
+        return documents
+
+    async def _parse_single_file(
+        self,
+        file_path: Path,
+        registry: Any,
+        metadata: dict[str, Any] | None,
+        errors: list[str],
+    ) -> Any | None:
+        """Parse a single file, returning Document or None on failure."""
+        try:
+            parser = registry.get_parser(file_path.suffix)
+        except Exception as e:
+            errors.append(f"{file_path.name}: {e}")
+            logger.warning("no_parser", path=str(file_path), error=str(e))
+            return None
+
+        try:
+            doc = await asyncio.to_thread(parser.parse, file_path)
+            if metadata:
+                doc.metadata.custom.update(metadata)
+            if not doc.content.strip():
+                errors.append(f"{file_path.name}: No text content extracted")
+                logger.warning("empty_content", path=str(file_path))
+                return None
+            return doc
+        except Exception as e:
+            errors.append(f"{file_path.name}: {e}")
+            logger.warning("parse_failed", path=str(file_path), error=str(e))
+            return None
 
     def query(
         self,
@@ -531,9 +688,28 @@ class Engine:
         # Early return for empty queries
         if not query or not query.strip():
             return QueryResult(
-                answer="질문을 입력해주세요." if self._config.language == "ko" else "Please enter a question.",
+                answer="질문을 입력해주세요."
+                if self._config.language == "ko"
+                else "Please enter a question.",
                 confidence=Confidence.INSUFFICIENT_EVIDENCE,
                 trace=trace,
+            )
+
+        # FDO Fix P3: Input sanitization — reject SQL/XSS/injection attempts
+        if _is_malicious_input(query):
+            logger.warning("malicious_input_detected", query=query[:80])
+            return QueryResult(
+                answer="유효하지 않은 입력입니다. 문서에 대한 질문을 입력해주세요."
+                if self._config.language == "ko"
+                else "Invalid input detected. Please enter a question about your documents.",
+                confidence=Confidence.INSUFFICIENT_EVIDENCE,
+                trace=[
+                    TraceStep(
+                        step="input_sanitization",
+                        result="malicious input rejected",
+                        latency_ms=0,
+                    )
+                ],
             )
 
         # Step 0: Rewrite query if conversation history is provided
@@ -648,7 +824,9 @@ class Engine:
         try:
             from quantumrag.core.pipeline.signals import build_query_signal
 
-            active_profiles = list(self._document_profiles.values()) if self._document_profiles else None
+            active_profiles = (
+                list(self._document_profiles.values()) if self._document_profiles else None
+            )
             query_signal = build_query_signal(
                 query=query,
                 complexity=classification.complexity.value,
@@ -661,7 +839,12 @@ class Engine:
             pipeline_ctx.active_domain = query_signal.domain
             pipeline_ctx.active_language = query_signal.language
             pipeline_ctx.merge_retrieval_hints(query_signal.retrieval_hints)
-            pipeline_ctx.log_signal("engine", "query_signal", domain=query_signal.domain.value, intent=query_signal.intent.value)
+            pipeline_ctx.log_signal(
+                "engine",
+                "query_signal",
+                domain=query_signal.domain.value,
+                intent=query_signal.intent.value,
+            )
 
             trace.append(
                 TraceStep(
@@ -703,6 +886,15 @@ class Engine:
         elif classification.complexity == QueryComplexity.COMPLEX:
             top_k = max(top_k, 8)
 
+        # Boost top_k for large document collections (PDF-heavy, many chunks)
+        if self._document_profiles:
+            has_deep_docs = any(
+                p.heading_depth >= 2 or p.paragraph_count > 30
+                for p in self._document_profiles.values()
+            )
+            if has_deep_docs:
+                top_k = max(top_k, 15)
+
         # Step 2: Retrieve (with sub-query fusion if decomposed)
         try:
             if len(sub_queries) > 1:
@@ -724,14 +916,15 @@ class Engine:
                             retrieval_result.chunks.append(sc)
                             seen_ids.add(sc.chunk.id)
                     retrieval_result.sources.extend(
-                        s for s in sr.sources if s.chunk_id not in {
-                            src.chunk_id for src in retrieval_result.sources
-                        }
+                        s
+                        for s in sr.sources
+                        if s.chunk_id not in {src.chunk_id for src in retrieval_result.sources}
                     )
                     retrieval_result.trace.extend(sr.trace)
                 # Re-sort by score, deduplicate, and trim
                 retrieval_result.chunks.sort(key=lambda sc: sc.score, reverse=True)
                 from quantumrag.core.retrieve.diversity import deduplicate_chunks
+
                 retrieval_result.chunks = deduplicate_chunks(retrieval_result.chunks)
                 retrieval_result.chunks = retrieval_result.chunks[: top_k * 2]
             else:
@@ -753,6 +946,7 @@ class Engine:
         if self._entity_index and retrieval_result.chunks:
             try:
                 from quantumrag.core.retrieve.entity_detector import detect_entity_query
+
                 entity_query = detect_entity_query(query)
                 if entity_query and entity_query.has_constraints:
                     entity_chunk_ids = self._entity_index.lookup_combined(
@@ -763,7 +957,9 @@ class Engine:
                     # Also inject fund allocation chunks if query asks about fund usage
                     if entity_query.fund_allocation:
                         fund_ids = self._entity_index.lookup("type:fund_allocation")
-                        entity_chunk_ids = entity_chunk_ids | fund_ids if entity_chunk_ids else fund_ids
+                        entity_chunk_ids = (
+                            entity_chunk_ids | fund_ids if entity_chunk_ids else fund_ids
+                        )
                     if entity_chunk_ids:
                         # Inject missing chunks OR replace compressed versions
                         seen_ids = {sc.chunk.id for sc in retrieval_result.chunks}
@@ -776,6 +972,7 @@ class Engine:
                             doc_store = self._get_document_store()
                             full_chunks = await doc_store.get_chunks_batch(list(all_needed_ids))
                             from quantumrag.core.retrieve.fusion import ScoredChunk
+
                             # Replace compressed versions with full versions
                             if replace_ids:
                                 for i, sc in enumerate(retrieval_result.chunks):
@@ -790,11 +987,13 @@ class Engine:
                                     retrieval_result.chunks.append(
                                         ScoredChunk(chunk=chunk, score=0.8)
                                     )
-                            trace.append(TraceStep(
-                                step="entity_injection",
-                                result=f"injected {len(missing_ids)} new, replaced {len(replace_ids)} compressed",
-                                latency_ms=0,
-                            ))
+                            trace.append(
+                                TraceStep(
+                                    step="entity_injection",
+                                    result=f"injected {len(missing_ids)} new, replaced {len(replace_ids)} compressed",
+                                    latency_ms=0,
+                                )
+                            )
             except Exception as e:
                 logger.debug("entity_injection_skipped", error=str(e))
 
@@ -832,6 +1031,76 @@ class Engine:
                 logger.warning("map_reduce_failed_fallback", error=str(e))
                 # Fall through to standard generation
 
+        # Step 2.7: Fact-First Injection — query the fact index directly
+        # For structured queries (filtering, enumeration), inject verified facts
+        # into a synthetic high-priority chunk so the LLM sees authoritative data.
+        if self._fact_index and self._fact_index.total_facts > 0 and retrieval_result.chunks:
+            try:
+                from quantumrag.core.ingest.indexer.fact_extractor import detect_domains
+
+                q_domains = detect_domains(query)
+                fact_context = ""
+
+                if "contract" in q_domains:
+                    # Customer/contract queries: inject full customer list
+                    customer_facts = self._fact_index.get_all_of_type("customer_contract")
+                    if customer_facts:
+                        fact_context = self._fact_index.format_facts_as_context(
+                            customer_facts, label="검증된 고객 데이터 (전체 목록)"
+                        )
+
+                elif "finance" in q_domains:
+                    finance_facts = self._fact_index.get_all_of_type("finance_metric")
+                    fund_facts = self._fact_index.get_all_of_type("fund_allocation")
+                    all_finance = finance_facts + fund_facts
+                    if all_finance:
+                        fact_context = self._fact_index.format_facts_as_context(
+                            all_finance, label="검증된 재무 데이터"
+                        )
+
+                elif "security" in q_domains:
+                    sec_facts = self._fact_index.get_all_of_type("security_issue")
+                    if sec_facts:
+                        fact_context = self._fact_index.format_facts_as_context(
+                            sec_facts, label="검증된 보안 이슈 데이터"
+                        )
+
+                elif "hr" in q_domains:
+                    hr_facts = self._fact_index.get_all_of_type(
+                        "team_info"
+                    ) + self._fact_index.get_all_of_type("team_leader")
+                    if hr_facts:
+                        fact_context = self._fact_index.format_facts_as_context(
+                            hr_facts, label="검증된 조직 데이터"
+                        )
+
+                # Inject as a high-priority synthetic chunk at the front
+                if fact_context:
+                    from quantumrag.core.models import Chunk as FactChunk
+                    from quantumrag.core.retrieve.fusion import ScoredChunk as FactSC
+
+                    fact_chunk = FactChunk(
+                        content=fact_context,
+                        document_id="__fact_index__",
+                        chunk_index=0,
+                        metadata={"title": "Fact Index", "section": "구조화 데이터"},
+                    )
+                    # Score higher than all text chunks to appear first in context
+                    top_score = retrieval_result.chunks[0].score if retrieval_result.chunks else 1.0
+                    retrieval_result.chunks.insert(
+                        0, FactSC(chunk=fact_chunk, score=top_score * 1.1)
+                    )
+                    trace.append(
+                        TraceStep(
+                            step="fact_first_injection",
+                            result=f"injected {len(fact_context)} chars of verified facts",
+                            latency_ms=0,
+                            details={"domains": q_domains},
+                        )
+                    )
+            except Exception as e:
+                logger.debug("fact_first_injection_skipped", error=str(e))
+
         # Step 3: Generate
         try:
             llm = self._get_llm_provider(classification.complexity)
@@ -853,48 +1122,32 @@ class Engine:
             # Merge traces
             result.trace = trace + result.trace
 
-            # Step 4: Self-Corrective RAG — detect insufficient answers and retry
-            from quantumrag.core.generate.self_correct import (
-                answer_is_insufficient,
-                extract_missing_focus,
+            # Step 4: Post-generation correction pipeline
+            # Modular chain: Retrieval Retry → Self-Correct → Fact Verify → Completeness
+            from quantumrag.core.pipeline.postprocess import (
+                CorrectionContext,
+                CorrectionPipeline,
             )
 
-            if (
-                result.confidence == Confidence.INSUFFICIENT_EVIDENCE
-                and answer_is_insufficient(result.answer)
-                and retrieval_result.chunks  # We did have some chunks
-                and not use_map_reduce  # Don't double-retry after map-reduce
-            ):
-                try:
-                    logger.info("self_correct_triggered", query=query)
-                    t_sc = time.perf_counter()
+            correction_ctx = CorrectionContext(
+                query=query,
+                result=result,
+                chunks=retrieval_result.chunks,
+                sources=retrieval_result.sources,
+                classification=classification,
+                top_k=top_k,
+                filters=filters,
+                rerank=rerank,
+                pipeline_ctx=pipeline_ctx,
+                generator=generator,
+                retriever=self._make_retriever_adapter(classification, pipeline_ctx),
+                trace=trace,
+                use_map_reduce=use_map_reduce,
+                config=self._config,
+            )
 
-                    # Try focused re-query if we can extract what's missing
-                    retry_query = extract_missing_focus(query, result.answer) or query
-
-                    retry_result = await self._do_retrieval(
-                        retry_query, classification, top_k * 2, filters, rerank, pipeline_ctx
-                    )
-                    # Merge original + retry chunks, dedup
-                    seen = {sc.chunk.id for sc in retrieval_result.chunks}
-                    for sc in retry_result.chunks:
-                        if sc.chunk.id not in seen:
-                            retrieval_result.chunks.append(sc)
-                            seen.add(sc.chunk.id)
-                    retrieval_result.chunks.sort(key=lambda x: x.score, reverse=True)
-                    # Re-generate with expanded context
-                    result = await generator.generate(
-                        query, retrieval_result.chunks, retrieval_result.sources + retry_result.sources
-                    )
-                    sc_ms = (time.perf_counter() - t_sc) * 1000
-                    result.trace = trace + [TraceStep(
-                        step="self_correct",
-                        result=f"re-retrieved with {len(retrieval_result.chunks)} chunks",
-                        latency_ms=sc_ms,
-                        details={"retry_query": retry_query},
-                    )] + result.trace
-                except Exception:
-                    pass  # Gracefully fall through with original result
+            correction_ctx = await CorrectionPipeline().run(correction_ctx)
+            result = correction_ctx.result
 
             total_ms = (time.perf_counter() - t0) * 1000
             result.metadata["total_latency_ms"] = total_ms
@@ -917,7 +1170,12 @@ class Engine:
         filters: dict[str, Any] | None = None,
         top_k: int | None = None,
     ) -> AsyncIterator[str]:
-        """Stream query results token by token."""
+        """Stream query results token by token.
+
+        Note: Streaming skips the post-generation correction pipeline
+        (retrieval retry, self-correct, fact verification, completeness).
+        For maximum accuracy, use ``query()`` instead.
+        """
         self._ensure_initialized()
         classification = self._router.classify(query)
         top_k = top_k or self._config.retrieval.top_k
@@ -930,6 +1188,16 @@ class Engine:
         generator = Generator(llm_provider=llm, language=self._config.language)
         async for token in generator.generate_stream(query, retrieval_result.chunks):
             yield token
+
+    def _make_retriever_adapter(
+        self, classification: QueryClassification, pipeline_ctx: Any
+    ) -> Any:
+        """Create a retriever adapter that satisfies the PostProcessor protocol.
+
+        Wraps _do_retrieval and _do_retrieval_retry into the simple
+        interface expected by CorrectionContext.
+        """
+        return _EngineRetrieverAdapter(self)
 
     def _get_fusion_retriever(self) -> Any:
         """Get or create cached FusionRetriever — avoids per-query recreation."""
@@ -958,7 +1226,9 @@ class Engine:
             cfg = self._config.models.reranker
             kwargs: dict[str, Any] = {}
             if cfg.model:
-                kwargs["model_name" if cfg.provider in ("flashrank", "bge") else "model"] = cfg.model
+                kwargs["model_name" if cfg.provider in ("flashrank", "bge") else "model"] = (
+                    cfg.model
+                )
             self._components["reranker"] = create_reranker(cfg.provider, **kwargs)
         return self._components["reranker"]
 
@@ -987,6 +1257,7 @@ class Engine:
             reranker=reranker,
             enable_rerank=not skip_rerank,
             enable_compression=not skip_compression,
+            compression_ratio=0.7,  # Keep 70% of content (was 50%)
             fusion_candidate_multiplier=self._config.retrieval.fusion_candidate_multiplier,
             document_store=self._get_document_store(),
             enable_sibling_expansion=self._chunk_graph is None,  # Only if no graph
@@ -1005,6 +1276,15 @@ class Engine:
         if self._chunk_graph and result.chunks:
             from quantumrag.core.retrieve.constellation import expand_with_constellation
 
+            # Query-aware expansion: detect domains for score boosting
+            query_domains: list[str] | None = None
+            try:
+                from quantumrag.core.ingest.indexer.fact_extractor import detect_domains
+
+                query_domains = detect_domains(query) or None
+            except Exception:
+                pass
+
             t_const = time.perf_counter()
             result.chunks = await expand_with_constellation(
                 result.chunks,
@@ -1012,14 +1292,100 @@ class Engine:
                 self._get_document_store(),
                 top_k=top_k,
                 max_expansion=top_k + 5,  # Generous expansion to catch siblings
+                query_domains=query_domains,
             )
             const_ms = (time.perf_counter() - t_const) * 1000
             from quantumrag.core.models import TraceStep
-            result.trace.append(TraceStep(
-                step="constellation_expansion",
-                result=f"{len(result.chunks)} chunks after graph expansion",
-                latency_ms=const_ms,
-            ))
+
+            result.trace.append(
+                TraceStep(
+                    step="constellation_expansion",
+                    result=f"{len(result.chunks)} chunks after graph expansion",
+                    latency_ms=const_ms,
+                    details={"query_domains": query_domains} if query_domains else {},
+                )
+            )
+
+        return result
+
+    async def _do_retrieval_retry(
+        self,
+        query: str,
+        classification: QueryClassification,
+        top_k: int,
+        filters: dict[str, Any] | None = None,
+        rerank: bool | None = None,
+        pipeline_context: PipelineContext | None = None,
+    ) -> Any:
+        """Execute retrieval with BM25-dominant fusion weights and no compression.
+
+        Used as a retry strategy when the first attempt yields insufficient evidence.
+        """
+        from quantumrag.core.retrieve.fusion import FusionRetriever
+        from quantumrag.core.retrieve.retriever import Retriever
+
+        # Build a BM25-dominant fusion retriever (not cached — retry-specific weights)
+        retry_fusion = FusionRetriever(
+            vector_store=self._get_vector_store("original"),
+            hype_vector_store=self._get_vector_store("hype"),
+            bm25_store=self._get_bm25_store(),
+            embedding_provider=self._get_embedding_provider(),
+            document_store=self._get_document_store(),
+            weights={"original": 0.15, "hype": 0.15, "bm25": 0.70},
+        )
+
+        use_rerank = rerank if rerank is not None else self._config.retrieval.rerank
+        skip_rerank = classification.complexity == QueryComplexity.SIMPLE or not use_rerank
+        reranker = self._get_reranker() if not skip_rerank else None
+
+        retriever = Retriever(
+            fusion_retriever=retry_fusion,
+            reranker=reranker,
+            enable_rerank=not skip_rerank,
+            enable_compression=False,  # Skip compression — pass full chunks
+            fusion_candidate_multiplier=self._config.retrieval.fusion_candidate_multiplier,
+            document_store=self._get_document_store(),
+            enable_sibling_expansion=self._chunk_graph is None,
+        )
+
+        result = await retriever.retrieve(
+            query,
+            top_k=top_k,
+            filters=filters,
+            skip_rerank=skip_rerank,
+            skip_compression=True,  # Pass full chunks to LLM
+            pipeline_context=pipeline_context,
+        )
+
+        # Constellation Expansion (same as _do_retrieval, with query-aware domains)
+        if self._chunk_graph and result.chunks:
+            from quantumrag.core.retrieve.constellation import expand_with_constellation
+
+            query_domains: list[str] | None = None
+            try:
+                from quantumrag.core.ingest.indexer.fact_extractor import detect_domains
+
+                query_domains = detect_domains(query) or None
+            except Exception:
+                pass
+
+            t_const = time.perf_counter()
+            result.chunks = await expand_with_constellation(
+                result.chunks,
+                self._chunk_graph,
+                self._get_document_store(),
+                top_k=top_k,
+                max_expansion=top_k + 5,
+                query_domains=query_domains,
+            )
+            const_ms = (time.perf_counter() - t_const) * 1000
+            result.trace.append(
+                TraceStep(
+                    step="constellation_expansion",
+                    result=f"{len(result.chunks)} chunks after graph expansion",
+                    latency_ms=const_ms,
+                )
+            )
 
         return result
 
@@ -1045,6 +1411,25 @@ class Engine:
 
         evaluator = Evaluator(engine=self)
         return _run_sync(evaluator.evaluate(**kwargs))
+
+
+class _EngineRetrieverAdapter:
+    """Adapter bridging Engine retrieval methods to the PostProcessor protocol."""
+
+    def __init__(self, engine: Engine) -> None:
+        self._engine = engine
+
+    async def retrieve(self, query, classification, top_k, filters, rerank, pipeline_ctx):
+        return await self._engine._do_retrieval(
+            query, classification, top_k, filters, rerank, pipeline_ctx
+        )
+
+    async def retrieve_bm25_dominant(
+        self, query, classification, top_k, filters, rerank, pipeline_ctx
+    ):
+        return await self._engine._do_retrieval_retry(
+            query, classification, top_k, filters, rerank, pipeline_ctx
+        )
 
 
 class IngestResult:

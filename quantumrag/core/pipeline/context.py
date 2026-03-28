@@ -23,28 +23,29 @@ from pydantic import BaseModel, Field
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class InformationType(str, Enum):
     """The dominant information type within a chunk or document."""
 
-    NARRATIVE = "narrative"       # Prose, paragraphs, flowing text
-    TABULAR = "tabular"          # Tables, key-value pairs, structured data
+    NARRATIVE = "narrative"  # Prose, paragraphs, flowing text
+    TABULAR = "tabular"  # Tables, key-value pairs, structured data
     ENUMERATION = "enumeration"  # Lists, bullet points, numbered items
-    CODE = "code"                # Source code, config files, CLI output
-    MIXED = "mixed"              # Combination of the above
-    LEGAL = "legal"              # Clauses, articles, statutory language
+    CODE = "code"  # Source code, config files, CLI output
+    MIXED = "mixed"  # Combination of the above
+    LEGAL = "legal"  # Clauses, articles, statutory language
     CONVERSATIONAL = "conversational"  # Dialog, Q&A, chat logs
 
 
 class BoundaryType(str, Enum):
     """Why a chunk boundary was placed here."""
 
-    TOPIC_SHIFT = "topic_shift"       # Vocabulary overlap dropped
-    SIZE_LIMIT = "size_limit"         # Hit max chunk size
-    STRUCTURAL = "structural"         # Heading / section boundary
-    SENTENCE = "sentence"             # Sentence-level split (fallback)
-    PARAGRAPH = "paragraph"           # Paragraph boundary
-    TABLE = "table"                   # Table unit boundary
-    MANUAL = "manual"                 # Explicit user-defined boundary
+    TOPIC_SHIFT = "topic_shift"  # Vocabulary overlap dropped
+    SIZE_LIMIT = "size_limit"  # Hit max chunk size
+    STRUCTURAL = "structural"  # Heading / section boundary
+    SENTENCE = "sentence"  # Sentence-level split (fallback)
+    PARAGRAPH = "paragraph"  # Paragraph boundary
+    TABLE = "table"  # Table unit boundary
+    MANUAL = "manual"  # Explicit user-defined boundary
 
 
 class DomainType(str, Enum):
@@ -55,26 +56,27 @@ class DomainType(str, Enum):
     FINANCIAL = "financial"
     MEDICAL = "medical"
     TECHNICAL = "technical"
-    SUPPORT = "support"           # Customer support / FAQ
-    ACADEMIC = "academic"         # Research papers, theses
+    SUPPORT = "support"  # Customer support / FAQ
+    ACADEMIC = "academic"  # Research papers, theses
 
 
 class QueryIntent(str, Enum):
     """Fine-grained query intent classification."""
 
-    FACTUAL = "factual"               # Simple fact lookup
-    COMPARATIVE = "comparative"       # Compare two or more items
-    PROCEDURAL = "procedural"         # How-to, step-by-step
-    AGGREGATION = "aggregation"       # Count, sum, list all
-    ANALYTICAL = "analytical"         # Why, reason, cause-effect
-    CONDITIONAL = "conditional"       # What-if, hypothetical
-    TEMPORAL = "temporal"             # Time-based, chronological
-    VERIFICATION = "verification"     # Fact-check, confirm/deny
+    FACTUAL = "factual"  # Simple fact lookup
+    COMPARATIVE = "comparative"  # Compare two or more items
+    PROCEDURAL = "procedural"  # How-to, step-by-step
+    AGGREGATION = "aggregation"  # Count, sum, list all
+    ANALYTICAL = "analytical"  # Why, reason, cause-effect
+    CONDITIONAL = "conditional"  # What-if, hypothetical
+    TEMPORAL = "temporal"  # Time-based, chronological
+    VERIFICATION = "verification"  # Fact-check, confirm/deny
 
 
 # ---------------------------------------------------------------------------
 # Document Profile — produced at ingest time
 # ---------------------------------------------------------------------------
+
 
 class DocumentProfile(BaseModel):
     """Structural and semantic profile of a document.
@@ -88,10 +90,10 @@ class DocumentProfile(BaseModel):
 
     # Structure
     structure_type: str = "flat"  # hierarchical, flat, tabular, mixed
-    heading_depth: int = 0        # Max heading level found (0 = no headings)
+    heading_depth: int = 0  # Max heading level found (0 = no headings)
     paragraph_count: int = 0
     table_count: int = 0
-    list_count: int = 0           # Bullet/numbered lists
+    list_count: int = 0  # Bullet/numbered lists
     code_block_count: int = 0
 
     # Content characteristics
@@ -110,7 +112,7 @@ class DocumentProfile(BaseModel):
 
     # Density metrics
     information_density: float = 0.0  # Non-whitespace ratio
-    numeric_density: float = 0.0      # Ratio of tokens that are numbers
+    numeric_density: float = 0.0  # Ratio of tokens that are numbers
 
     # Recommended strategies (hints, not mandates)
     recommended_chunking: str = "auto"
@@ -134,6 +136,7 @@ class DocumentProfile(BaseModel):
 # Chunk Signal — produced per chunk by chunkers
 # ---------------------------------------------------------------------------
 
+
 class ChunkSignal(BaseModel):
     """Per-chunk signal metadata produced by chunkers.
 
@@ -144,20 +147,20 @@ class ChunkSignal(BaseModel):
     """
 
     # Chunk quality signals
-    completeness: float = 1.0         # 0.0 = fragment, 1.0 = self-contained
+    completeness: float = 1.0  # 0.0 = fragment, 1.0 = self-contained
     boundary_type: BoundaryType = BoundaryType.SIZE_LIMIT
     information_type: InformationType = InformationType.NARRATIVE
 
     # Relationship signals
-    requires_context: bool = False     # Needs adjacent chunks for full meaning
-    continues_previous: bool = False   # Starts mid-thought from previous chunk
-    has_continuation: bool = False     # Continues into next chunk
+    requires_context: bool = False  # Needs adjacent chunks for full meaning
+    continues_previous: bool = False  # Starts mid-thought from previous chunk
+    has_continuation: bool = False  # Continues into next chunk
 
     # Content signals
     has_table: bool = False
     has_code: bool = False
     has_list: bool = False
-    numeric_density: float = 0.0      # Ratio of numeric tokens
+    numeric_density: float = 0.0  # Ratio of numeric tokens
 
     # Domain from parent document
     domain: DomainType = DomainType.GENERAL
@@ -205,6 +208,7 @@ class ChunkSignal(BaseModel):
 # Retrieval Hints — strategy recommendations for the retriever
 # ---------------------------------------------------------------------------
 
+
 class RetrievalHints(BaseModel):
     """Strategy hints that influence retrieval behavior.
 
@@ -213,18 +217,19 @@ class RetrievalHints(BaseModel):
     """
 
     fusion_weights: dict[str, float] | None = None  # Override default weights
-    top_k_multiplier: float = 1.0       # Scale the base top_k
-    skip_compression: bool = False      # Don't compress (e.g., legal docs)
-    skip_rerank: bool = False           # Skip reranking (e.g., simple queries)
-    prefer_bm25: bool = False           # Keyword-exact matching priority
-    prefer_semantic: bool = False       # Embedding similarity priority
+    top_k_multiplier: float = 1.0  # Scale the base top_k
+    skip_compression: bool = False  # Don't compress (e.g., legal docs)
+    skip_rerank: bool = False  # Skip reranking (e.g., simple queries)
+    prefer_bm25: bool = False  # Keyword-exact matching priority
+    prefer_semantic: bool = False  # Embedding similarity priority
     force_sibling_expansion: bool = False  # Always expand siblings
-    force_map_reduce: bool = False      # Use map-reduce pipeline
+    force_map_reduce: bool = False  # Use map-reduce pipeline
 
 
 # ---------------------------------------------------------------------------
 # Query Signal — enriched query classification
 # ---------------------------------------------------------------------------
+
 
 class QuerySignal(BaseModel):
     """Enriched query classification with domain awareness.
@@ -234,7 +239,7 @@ class QuerySignal(BaseModel):
     """
 
     # Basic classification (compatible with existing QueryClassification)
-    complexity: str = "simple"          # simple, medium, complex
+    complexity: str = "simple"  # simple, medium, complex
     confidence: float = 0.9
     needs_retrieval: bool = True
 
@@ -251,7 +256,7 @@ class QuerySignal(BaseModel):
     retrieval_hints: RetrievalHints = Field(default_factory=RetrievalHints)
 
     # Generation hints
-    output_format: str = "prose"       # prose, table, list, step_by_step
+    output_format: str = "prose"  # prose, table, list, step_by_step
     requires_calculation: bool = False
     requires_comparison: bool = False
 
@@ -259,6 +264,7 @@ class QuerySignal(BaseModel):
 # ---------------------------------------------------------------------------
 # Pipeline Context — the shared bus flowing through all stages
 # ---------------------------------------------------------------------------
+
 
 class PipelineContext(BaseModel):
     """Shared context that flows through the entire RAG pipeline.
@@ -292,12 +298,14 @@ class PipelineContext(BaseModel):
 
     def log_signal(self, stage: str, signal_type: str, **data: Any) -> None:
         """Record a signal emission for tracing."""
-        self.signal_log.append({
-            "stage": stage,
-            "type": signal_type,
-            "timestamp": time.time(),
-            **data,
-        })
+        self.signal_log.append(
+            {
+                "stage": stage,
+                "type": signal_type,
+                "timestamp": time.time(),
+                **data,
+            }
+        )
 
     def merge_retrieval_hints(self, hints: RetrievalHints) -> None:
         """Merge additional hints into the accumulated retrieval hints.
