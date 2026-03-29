@@ -1154,7 +1154,15 @@ class Engine:
 
             # Step 4: Post-generation correction pipeline
             # Modular chain: Retrieval Retry → Self-Correct → Fact Verify → Completeness
-            if skip_correction:
+            # Skip correction for simple queries with confident answers — they don't
+            # benefit from retry/self-correct and the extra LLM call adds 20-40s latency.
+            elapsed_pre_correction = time.perf_counter() - t0
+            auto_skip = (
+                classification.complexity == QueryComplexity.SIMPLE
+                and result.confidence != Confidence.INSUFFICIENT_EVIDENCE
+            ) or elapsed_pre_correction > query_deadline_s
+
+            if skip_correction or auto_skip:
                 total_ms = (time.perf_counter() - t0) * 1000
                 result.metadata["total_latency_ms"] = total_ms
                 result.metadata["path"] = classification.complexity.value
