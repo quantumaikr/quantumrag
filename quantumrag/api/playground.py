@@ -626,18 +626,24 @@ if (topKSlider) {
 // ===================== Markdown Renderer =====================
 function renderMarkdown(text) {
   let md = text.replace(/\\r\\n/g, '\\n');
-  md = md.replace(/```(\\w*)\\n([\\s\\S]*?)```/g, (_, lang, code) => {
+
+  // Extract fenced code blocks FIRST — handle ```lang\\n...``` and ```lang ...```
+  // Also handle ``` with optional space before newline, or no newline at all
+  const codeBlocks = [];
+  md = md.replace(/```(\\w*)[^\\S\\n]*\\n([\\s\\S]*?)```/g, (_, lang, code) => {
+    const placeholder = '%%CODEBLOCK_' + codeBlocks.length + '%%';
     const escaped = escHtml(code.trimEnd());
     const langLabel = lang ? `<span style="position:absolute;top:6px;right:10px;font-size:10px;color:var(--muted);text-transform:uppercase">${lang}</span>` : '';
-    return `<pre style="position:relative">${langLabel}<code>${escaped}</code></pre>`;
+    codeBlocks.push(`<pre style="position:relative">${langLabel}<code>${escaped}</code></pre>`);
+    return placeholder;
   });
+  // Also catch inline-style code blocks: `code here` that span single backtick lines
+  // (already handled by renderInline)
+
   const blocks = [];
   let current = '';
-  let inPre = false;
   for (const line of md.split('\\n')) {
-    if (line.includes('<pre')) inPre = true;
-    if (line.includes('</pre>')) inPre = false;
-    if (!inPre && line.trim() === '' && current.trim()) {
+    if (line.trim() === '' && current.trim()) {
       blocks.push(current);
       current = '';
     } else {
@@ -645,10 +651,22 @@ function renderMarkdown(text) {
     }
   }
   if (current.trim()) blocks.push(current);
-  return blocks.map(block => renderBlock(block.trim())).join('');
+
+  let result = blocks.map(block => renderBlock(block.trim())).join('');
+
+  // Restore code blocks from placeholders
+  for (let i = 0; i < codeBlocks.length; i++) {
+    result = result.replace('%%CODEBLOCK_' + i + '%%', codeBlocks[i]);
+    // Also handle if placeholder got wrapped in <p> tags
+    result = result.replace('<p>%%CODEBLOCK_' + i + '%%</p>', codeBlocks[i]);
+  }
+
+  return result;
 }
 
 function renderBlock(block) {
+  // Code block placeholders pass through untouched
+  if (block.startsWith('%%CODEBLOCK_')) return block;
   if (block.startsWith('<pre')) return block;
   const headingMatch = block.match(/^(#{1,4})\\s+(.+)$/m);
   if (headingMatch && block.split('\\n').length === 1) {
