@@ -659,6 +659,7 @@ class Engine:
         top_k: int | None = None,
         rerank: bool | None = None,
         conversation_history: list[Any] | None = None,
+        skip_correction: bool = False,
     ) -> QueryResult:
         """Query the knowledge base."""
         return _run_sync(
@@ -668,6 +669,7 @@ class Engine:
                 top_k=top_k,
                 rerank=rerank,
                 conversation_history=conversation_history,
+                skip_correction=skip_correction,
             )
         )
 
@@ -679,8 +681,14 @@ class Engine:
         top_k: int | None = None,
         rerank: bool | None = None,
         conversation_history: list[Any] | None = None,
+        skip_correction: bool = False,
     ) -> QueryResult:
-        """Async query the knowledge base."""
+        """Async query the knowledge base.
+
+        Args:
+            skip_correction: Skip post-generation correction pipeline.
+                Faster but may reduce accuracy on complex queries.
+        """
         self._ensure_initialized()
         t0 = time.perf_counter()
         trace: list[TraceStep] = []
@@ -1132,6 +1140,13 @@ class Engine:
 
             # Step 4: Post-generation correction pipeline
             # Modular chain: Retrieval Retry → Self-Correct → Fact Verify → Completeness
+            if skip_correction:
+                total_ms = (time.perf_counter() - t0) * 1000
+                result.metadata["total_latency_ms"] = total_ms
+                result.metadata["path"] = classification.complexity.value
+                result.metadata["skip_correction"] = True
+                return result
+
             from quantumrag.core.pipeline.postprocess import (
                 CorrectionContext,
                 CorrectionPipeline,
