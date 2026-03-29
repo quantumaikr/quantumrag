@@ -508,6 +508,96 @@ def cost(
     console.print(table)
 
 
+_DEMO_TEXT = """\
+# QuantumRAG Demo Document
+
+## What is QuantumRAG?
+QuantumRAG is an Index-Heavy, Query-Light RAG engine. It deeply indexes documents \
+at ingest time using Triple Index (Original Embedding + HyPE + BM25), so every query \
+is fast, accurate, and cited.
+
+## Key Features
+- **Triple Index Fusion**: Combines semantic, hypothetical-question, and keyword search \
+via Reciprocal Rank Fusion (RRF).
+- **Fact Extraction & Verification**: Rule-based (zero LLM cost) fact extraction at ingest, \
+cross-checked against answers to prevent hallucination.
+- **Adaptive Query Routing**: Simple queries use lightweight models; complex queries use \
+more capable models — automatically.
+- **Korean-First Design**: Native HWP/HWPX parsing, Kiwi morphology for BM25, \
+EUC-KR encoding detection.
+- **Post-Correction Pipeline**: Retrieval retry, self-correction, fact verification, \
+and completeness checking — all modular and composable.
+
+## Architecture
+The pipeline has three phases:
+1. **Ingest (Index-Heavy)**: Parse → Chunk → Multi-Resolution Summary → Fact Extract → \
+Triple Index Build (Original + HyPE + BM25).
+2. **Query (Query-Light)**: Rewrite → Classify → Triple Fusion Search → Rerank → \
+Context Compress → Generate with Citations.
+3. **Post-Process**: Retrieval Retry → Self-Correct → Fact Verify → Completeness Check.
+
+## Supported Formats
+PDF, DOCX, PPTX, XLSX, HWP/HWPX, HTML, Markdown, CSV, and plain text.
+
+## LLM Providers
+OpenAI, Google Gemini, Anthropic, and Ollama (local, offline).
+
+## Cost Optimization
+- Three-tier model routing (simple/medium/complex)
+- Free reranking (FlashRank, CPU-based)
+- Semantic caching (planned)
+- Temperature fixed at 0.0 for deterministic output
+"""
+
+
+@app.command()
+def demo(
+    host: str = typer.Option("0.0.0.0", "--host", "-h", help="Bind host."),
+    port: int = typer.Option(8000, "--port", "-p", help="Bind port."),
+) -> None:
+    """Launch a demo with built-in sample content — try QuantumRAG instantly."""
+    import asyncio
+    import tempfile
+
+    try:
+        import uvicorn
+    except ImportError:
+        console.print("[red]Install the api extra: pip install quantumrag[api][/red]")
+        raise typer.Exit(code=1)
+
+    from quantumrag.core.config import QuantumRAGConfig
+    from quantumrag.core.engine import Engine
+
+    console.print("[bold green]QuantumRAG Demo[/bold green]")
+    console.print("Ingesting sample document...")
+
+    # Use temp dir for demo data
+    demo_dir = Path(tempfile.mkdtemp(prefix="quantumrag_demo_"))
+    cfg = QuantumRAGConfig.auto(storage={"data_dir": str(demo_dir)})
+    engine = Engine(config=cfg)
+
+    # Ingest built-in demo text
+    try:
+        result = asyncio.get_event_loop().run_until_complete(
+            engine.aingest_text(_DEMO_TEXT, title="QuantumRAG Overview", mode="fast")
+        )
+    except RuntimeError:
+        result = asyncio.run(
+            engine.aingest_text(_DEMO_TEXT, title="QuantumRAG Overview", mode="fast")
+        )
+
+    console.print(f"  [green]Done:[/green] {result.get('chunks', 0)} chunks indexed")
+    console.print(f"  Open [bold cyan]http://localhost:{port}[/bold cyan] to try it!")
+    console.print("  [dim]Try: 'What is QuantumRAG?' or 'What formats are supported?'[/dim]")
+
+    from quantumrag.api.server import create_app
+
+    fastapi_app = create_app()
+    # Inject the pre-loaded engine
+    fastapi_app.state.engine = engine
+    uvicorn.run(fastapi_app, host=host, port=port)
+
+
 @app.command()
 def serve(
     host: str = typer.Option("0.0.0.0", "--host", "-h", help="Bind host."),
@@ -536,6 +626,20 @@ def serve(
     console.print(f"[bold green]Starting QuantumRAG API server on {host}:{port}[/bold green]")
     if config_path:
         console.print(f"Using config: {config_path}")
+
+    # Show provider/model info so users can verify their setup
+    try:
+        from quantumrag.core.config import QuantumRAGConfig
+
+        _cfg = QuantumRAGConfig.from_yaml(config_path) if config_path else QuantumRAGConfig.auto()
+        _emb = f"{_cfg.models.embedding.provider}/{_cfg.models.embedding.model}"
+        _gen = f"{_cfg.models.generation.simple.provider}/{_cfg.models.generation.simple.model}"
+        _hype = f"{_cfg.models.hype.provider}/{_cfg.models.hype.model}"
+        console.print(f"  Embedding: [cyan]{_emb}[/cyan]")
+        console.print(f"  Generation: [cyan]{_gen}[/cyan]")
+        console.print(f"  HyPE: [cyan]{_hype}[/cyan]")
+    except Exception:
+        pass
 
     if reload:
         # When using reload uvicorn needs an import string

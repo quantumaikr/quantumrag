@@ -1001,20 +1001,20 @@ async function doSyncQuery(query, qid, msgDiv, answerEl, messages) {
   if (pathLabel) headerHtml += ` <span class="latency-badge">${pathLabel}</span>`;
   msgDiv.querySelector('.message-header').innerHTML = headerHtml;
 
-  // Sources
+  // Sources — show document title prominently, excerpt visible by default
   if (data.sources?.length > 0) {
     const srcDiv = document.createElement('div');
     srcDiv.className = 'sources-section';
     let srcHtml = `<div class="sources-toggle" onclick="toggleSources(this)"><span class="arrow open">&#9654;</span> Sources (${data.sources.length})</div>`;
     srcHtml += '<div class="sources-body">';
     srcHtml += data.sources.map((s, idx) => {
-      const title = escHtml(s.document_title || s.chunk_id.substring(0, 12));
+      const title = escHtml(s.document_title || 'Untitled');
       const section = s.section ? ' &mdash; ' + escHtml(s.section) : '';
       const page = s.page ? ' (p.' + s.page + ')' : '';
       const score = s.relevance_score || 0;
       const scoreCls = score > 0.7 ? 'high' : score > 0.4 ? 'mid' : 'low';
-      const excerpt = escHtml((s.excerpt || '').substring(0, 500));
-      return `<div class="source-card" onclick="this.classList.toggle('expanded')">
+      const excerpt = escHtml((s.excerpt || '').substring(0, 300));
+      return `<div class="source-card expanded">
         <div class="source-header">
           <span class="source-title">[${idx + 1}] ${title}${section}${page}</span>
           <span class="source-score ${scoreCls}">${score.toFixed(3)}</span>
@@ -1027,7 +1027,7 @@ async function doSyncQuery(query, qid, msgDiv, answerEl, messages) {
     msgDiv.querySelector('.message-body').appendChild(srcDiv);
   }
 
-  // Pipeline trace
+  // Pipeline trace — show quick summary bar always, full trace collapsible
   if (settings.showTrace && data.trace?.length > 0) {
     const traceDiv = document.createElement('div');
     traceDiv.className = 'trace-section';
@@ -1092,10 +1092,32 @@ function renderTrace(trace, metadata) {
     post_correction: 'Post-Correction',
   };
 
-  let html = `<div class="trace-toggle" onclick="toggleTraceBody(this)"><span class="arrow">&#9654;</span> Pipeline Trace (${trace.length} steps, ${(totalMs/1000).toFixed(2)}s)</div>`;
+  // Quick summary — always visible (Retrieve → Rerank → Generate breakdown)
+  const retrieveMs = trace.filter(t => ['retrieve','entity_injection','fact_first_injection'].includes(t.step)).reduce((s,t) => s + t.latency_ms, 0);
+  const generateMs = trace.filter(t => ['generate','map_reduce'].includes(t.step)).reduce((s,t) => s + t.latency_ms, 0);
+  const otherMs = Math.max(0, totalMs - retrieveMs - generateMs);
+  const pctR = totalMs > 0 ? Math.round(retrieveMs / totalMs * 100) : 0;
+  const pctG = totalMs > 0 ? Math.round(generateMs / totalMs * 100) : 0;
+  const pctO = Math.max(0, 100 - pctR - pctG);
+
+  let html = '<div class="trace-summary">';
+  html += `<div class="trace-summary-item"><span class="label">Retrieve</span><span class="value">${(retrieveMs/1000).toFixed(2)}s</span></div>`;
+  html += `<div class="trace-summary-item"><span class="label">Generate</span><span class="value">${(generateMs/1000).toFixed(2)}s</span></div>`;
+  html += `<div class="trace-summary-item"><span class="label">Other</span><span class="value">${(otherMs/1000).toFixed(2)}s</span></div>`;
+  html += '</div>';
+
+  // Latency bar
+  html += `<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:10px;background:var(--border)">`;
+  html += `<div style="width:${pctR}%;background:var(--blue)" title="Retrieve ${pctR}%"></div>`;
+  html += `<div style="width:${pctG}%;background:var(--primary)" title="Generate ${pctG}%"></div>`;
+  html += `<div style="width:${pctO}%;background:var(--muted)" title="Other ${pctO}%"></div>`;
+  html += '</div>';
+
+  // Collapsible full trace
+  html += `<div class="trace-toggle" onclick="toggleTraceBody(this)"><span class="arrow">&#9654;</span> Full Trace (${trace.length} steps)</div>`;
   html += '<div class="trace-body">';
 
-  // Summary bar
+  // Detail summary
   html += '<div class="trace-summary">';
   html += `<div class="trace-summary-item"><span class="label">Total</span><span class="value">${(totalMs/1000).toFixed(2)}s</span></div>`;
   if (metadata?.path) html += `<div class="trace-summary-item"><span class="label">Path</span><span class="value">${escHtml(metadata.path)}</span></div>`;
