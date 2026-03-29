@@ -137,10 +137,10 @@ def create_app(config_path: str | None = None) -> FastAPI:
 
     # Load configuration — auto-detect quantumrag.yaml in current directory
     if not config_path:
-        from pathlib import Path
+        import pathlib as _pl
 
         for candidate in ["quantumrag.yaml", "quantumrag-local.yaml"]:
-            if Path(candidate).exists():
+            if _pl.Path(candidate).exists():
                 config_path = candidate
                 break
 
