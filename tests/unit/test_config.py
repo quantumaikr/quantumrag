@@ -17,7 +17,7 @@ class TestQuantumRAGConfigDefaults:
     def test_default_creation(self) -> None:
         config = QuantumRAGConfig.default()
         assert config.project_name == "my-knowledge-base"
-        assert config.language == "ko"
+        assert config.language == "auto"
         assert config.domain == "general"
 
     def test_default_models(self) -> None:
@@ -154,7 +154,7 @@ class TestGenerateDefaultYaml:
 
         config = QuantumRAGConfig.from_yaml(yaml_file)
         assert config.project_name == "my-knowledge-base"
-        assert config.language == "ko"
+        assert config.language == "auto"
 
     def test_contains_all_sections(self) -> None:
         content = generate_default_yaml()

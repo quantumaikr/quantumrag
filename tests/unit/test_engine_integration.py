@@ -211,7 +211,7 @@ class TestEngineQueryEdgeCases:
         engine._initialized = True  # Skip real init
         result = engine.query("")
         assert result.confidence == Confidence.INSUFFICIENT_EVIDENCE
-        assert "질문을 입력" in result.answer
+        assert "질문을 입력" in result.answer or "enter a question" in result.answer.lower()
 
     def test_whitespace_query_returns_early(self):
         engine = Engine(config=self.config)
@@ -224,7 +224,7 @@ class TestEngineQueryEdgeCases:
         engine._initialized = True
         result = engine.query("SELECT * FROM users WHERE 1=1")
         assert result.confidence == Confidence.INSUFFICIENT_EVIDENCE
-        assert "유효하지 않은" in result.answer
+        assert "유효하지 않은" in result.answer or "invalid" in result.answer.lower()
         assert result.trace[0].step == "input_sanitization"
 
     def test_malicious_xss_returns_early(self):

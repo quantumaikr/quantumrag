@@ -164,7 +164,7 @@ class QuantumRAGConfig(BaseSettings):
     )
 
     project_name: str = "my-knowledge-base"
-    language: str = "ko"
+    language: str = "auto"  # auto: detect from query language, ko, en
     domain: str = "general"  # general, legal, medical, financial, technical, support
 
     models: ModelsConfig = Field(default_factory=ModelsConfig)
@@ -310,7 +310,7 @@ def generate_default_yaml() -> str:
 
 # Basic settings
 project_name: "my-knowledge-base"
-language: "ko"                          # Primary language (ko, en, auto)
+language: "auto"                        # auto (detect from query), ko, en
 domain: "general"                       # general, legal, medical, financial, technical, support
 
 # Model settings
