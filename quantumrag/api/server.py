@@ -135,7 +135,15 @@ def create_app(config_path: str | None = None) -> FastAPI:
     from quantumrag.core.config import QuantumRAGConfig
     from quantumrag.core.engine import Engine
 
-    # Load configuration
+    # Load configuration — auto-detect quantumrag.yaml in current directory
+    if not config_path:
+        from pathlib import Path
+
+        for candidate in ["quantumrag.yaml", "quantumrag-local.yaml"]:
+            if Path(candidate).exists():
+                config_path = candidate
+                break
+
     if config_path:
         cfg = QuantumRAGConfig.from_yaml(config_path)
     else:
