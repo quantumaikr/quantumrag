@@ -91,6 +91,18 @@ engine.ingest("./docs")
 result = engine.query("문서를 요약해주세요")
 ```
 
+## 웹 플레이그라운드
+
+API 서버를 시작하면 내장 웹 플레이그라운드를 사용할 수 있습니다:
+
+```bash
+quantumrag serve --port 8000
+```
+
+http://localhost:8000/playground 에서 문서를 인제스트하고 질문할 수 있습니다.
+
+![QuantumRAG 웹 플레이그라운드](assets/demo.png)
+
 ## 한국어 지원
 
 QuantumRAG는 한국어를 번역이 아닌 모국어로 대합니다.

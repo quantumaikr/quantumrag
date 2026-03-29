@@ -105,6 +105,18 @@ engine.ingest("./docs")
 result = engine.query("Summarize the documents")
 ```
 
+## Web Playground
+
+Start the API server and use the built-in web playground:
+
+```bash
+quantumrag serve --port 8000
+```
+
+Open http://localhost:8000/playground to ingest documents and ask questions interactively.
+
+![QuantumRAG Web Playground](assets/demo.png)
+
 ## Korean Support
 
 QuantumRAG treats Korean as a first language, not a translation.

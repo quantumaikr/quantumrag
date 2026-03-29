@@ -12,7 +12,7 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: ['--maxkb=500']
-        exclude: '(test_docs/|assets/hero_)'
+        exclude: '(test_docs/|assets/)'
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
       - id: end-of-file-fixer
