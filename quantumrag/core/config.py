@@ -158,6 +158,8 @@ class QuantumRAGConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="QUANTUMRAG_",
         env_nested_delimiter="__",
+        env_file=".env",
+        env_file_encoding="utf-8",
         extra="ignore",
     )
 
@@ -200,8 +202,8 @@ class QuantumRAGConfig(BaseSettings):
     def auto(cls, **overrides: Any) -> QuantumRAGConfig:
         """Auto-detect provider from environment and configure accordingly.
 
-        Checks for API keys in order: OpenAI → Gemini → Anthropic → Ollama.
-        Selects the most cost-effective models for each detected provider.
+        Checks for API keys in order: Gemini → Anthropic → OpenAI → Ollama.
+        Gemini is preferred for its free tier and cost-effectiveness.
         This is the recommended way to create a config for quick-start usage.
 
         Usage::
@@ -211,6 +213,9 @@ class QuantumRAGConfig(BaseSettings):
             config = QuantumRAGConfig.auto(language="en", storage={"data_dir": "/data"})
         """
         import os
+
+        # Load .env file if present (for API keys like GOOGLE_API_KEY)
+        _load_dotenv()
 
         provider, gen_models, emb_model, emb_dims = _detect_provider(os.environ)
 
@@ -236,6 +241,20 @@ class QuantumRAGConfig(BaseSettings):
         data = self.model_dump(mode="json")
         with open(path, "w") as f:
             yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+
+def _load_dotenv() -> None:
+    """Load .env file into os.environ if present."""
+    import os
+
+    env_path = Path(".env")
+    if not env_path.exists():
+        return
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            key, _, value = line.partition("=")
+            os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
 def _detect_provider(

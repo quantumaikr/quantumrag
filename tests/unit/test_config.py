@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -32,15 +33,29 @@ class TestQuantumRAGConfigDefaults:
         assert config.models.generation.simple.model  # non-empty
         assert config.models.reranker.provider == "flashrank"
 
-    def test_auto_openai(self) -> None:
-        with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}, clear=False):
+    @patch("quantumrag.core.config._load_dotenv")
+    def test_auto_openai(self, _mock_dotenv: Any) -> None:
+        """OpenAI selected only when no Gemini key is present."""
+        env = {"OPENAI_API_KEY": "sk-test"}
+        with patch.dict(os.environ, env, clear=True):
             config = QuantumRAGConfig.auto()
-        assert config.models.embedding.provider in ("openai", "gemini")
-        assert config.models.embedding.model == "text-embedding-3-small"
+        assert config.models.embedding.provider == "openai"
         assert config.models.generation.simple.model == "gpt-5.4-nano"
 
-    def test_auto_gemini(self) -> None:
-        with patch.dict(os.environ, {"GOOGLE_API_KEY": "AIza-test"}, clear=False):
+    @patch("quantumrag.core.config._load_dotenv")
+    def test_auto_gemini(self, _mock_dotenv: Any) -> None:
+        """Gemini is preferred when GOOGLE_API_KEY is present."""
+        env = {"GOOGLE_API_KEY": "AIza-test"}
+        with patch.dict(os.environ, env, clear=True):
+            config = QuantumRAGConfig.auto()
+        assert config.models.embedding.provider == "gemini"
+        assert config.models.generation.simple.model == "gemini-3.1-flash-lite-preview"
+
+    @patch("quantumrag.core.config._load_dotenv")
+    def test_gemini_over_openai(self, _mock_dotenv: Any) -> None:
+        """Gemini takes priority even when both keys are present."""
+        env = {"GOOGLE_API_KEY": "AIza-test", "OPENAI_API_KEY": "sk-test"}
+        with patch.dict(os.environ, env, clear=True):
             config = QuantumRAGConfig.auto()
         assert config.models.embedding.provider == "gemini"
 
