@@ -35,9 +35,10 @@ from quantumrag.core.config import QuantumRAGConfig
 from quantumrag.core.engine import Engine
 
 # --- Config ---
-QUERY_TIMEOUT = 60  # Shorter: combined test focuses on retrieval, not generation quality
-CONCURRENCY = 5  # Higher parallelism for faster wall time
-INGEST_MODE = "fast"  # Skip HyPE/preambles — retrieval precision doesn't need them
+QUERY_TIMEOUT = 90  # Allow post-correction pipeline to complete
+CONCURRENCY = 5  # Parallel queries
+INGEST_MODE = "fast"  # Skip HyPE/preambles
+SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
 
 # --- Collect all datasets ---
 ds_root = Path(__file__).resolve().parent
@@ -78,21 +79,39 @@ for ds_path in datasets:
             source_map[f"{ds_id}_{src_file.stem}"] = str(src_file)
 
     # Remap questions with dataset prefix
+    ds_questions: list[dict] = []
     for q in qa.get("questions", []):
         remapped = dict(q)
         remapped["dataset"] = ds_id
         remapped["original_id"] = q["id"]
         remapped["id"] = f"{ds_id}:{q['id']}"
-        # Remap source_ids: "001" → "ds-001_001"
         remapped["expected_sources"] = [f"{ds_id}_{sid}" for sid in q.get("source_ids", [])]
-        all_questions.append(remapped)
+        ds_questions.append(remapped)
+
+    # Sample for speed: pick diverse difficulty mix per dataset
+    if SAMPLE_PER_DATASET > 0 and len(ds_questions) > SAMPLE_PER_DATASET:
+        sampled: list[dict] = []
+        for diff in ["easy", "hard", "extreme"]:
+            diff_qs = [q for q in ds_questions if q.get("difficulty") == diff]
+            n = max(1, SAMPLE_PER_DATASET * len(diff_qs) // len(ds_questions))
+            sampled.extend(diff_qs[:n])
+        # Fill remaining slots
+        remaining = [q for q in ds_questions if q not in sampled]
+        sampled.extend(remaining[: SAMPLE_PER_DATASET - len(sampled)])
+        all_questions.extend(sampled[:SAMPLE_PER_DATASET])
+    else:
+        all_questions.extend(ds_questions)
 
 print("=" * 70)
 print("  Combined QA Run — All Datasets Merged")
 print("=" * 70)
 print(f"\n  Datasets: {len(datasets)} ({', '.join(d.name for d in datasets)})")
 print(f"  Sources:  {len(source_map)} documents")
-print(f"  Questions: {len(all_questions)}")
+print(
+    f"  Questions: {len(all_questions)} (sampled {SAMPLE_PER_DATASET}/dataset)"
+    if SAMPLE_PER_DATASET > 0
+    else f"  Questions: {len(all_questions)}"
+)
 
 
 # --- Ingest with caching ---

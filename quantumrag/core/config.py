@@ -79,9 +79,9 @@ class IngestConfig(BaseModel):
 
 
 class FusionWeightsConfig(BaseModel):
-    original: float = 0.4
-    hype: float = 0.35
-    bm25: float = 0.25
+    original: float = 0.35
+    hype: float = 0.15
+    bm25: float = 0.50
 
 
 class RetrievalConfig(BaseModel):
@@ -351,9 +351,9 @@ ingest:
 retrieval:
   top_k: 10
   fusion_weights:                       # Triple Index weights
-    original: 0.4
-    hype: 0.35
-    bm25: 0.25
+    original: 0.35
+    hype: 0.15
+    bm25: 0.50
   fusion_candidate_multiplier: 4        # Candidates = top_k * multiplier
   rerank: true
   compression: true                     # Context compression

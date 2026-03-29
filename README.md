@@ -399,6 +399,11 @@ Full documentation in [English](docs/en/index.md) and [Korean](docs/ko/index.md)
 - [Evaluation](docs/en/evaluation.md) / [평가 시스템](docs/ko/evaluation.md)
 - [Troubleshooting](docs/en/troubleshooting.md) / [트러블슈팅](docs/ko/troubleshooting.md)
 
+## Contact
+
+- **Developer**: QuantumAI Inc.
+- **Email**: [hi@quantumai.kr](mailto:hi@quantumai.kr)
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

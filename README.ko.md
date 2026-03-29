@@ -383,6 +383,11 @@ make help            # 전체 명령어
 - [평가 시스템](docs/ko/evaluation.md) — 메트릭, QA 데이터셋, 시나리오 테스트
 - [트러블슈팅](docs/ko/troubleshooting.md) — 자주 발생하는 문제, 성능 튜닝
 
+## 연락처
+
+- **개발사**: QuantumAI Inc.
+- **이메일**: [hi@quantumai.kr](mailto:hi@quantumai.kr)
+
 ## 라이선스
 
 Apache License 2.0 - 자세한 내용은 [LICENSE](LICENSE) 파일을 참조하세요.

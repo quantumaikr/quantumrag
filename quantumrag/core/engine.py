@@ -932,6 +932,14 @@ class Engine:
                     query, classification, top_k, filters, rerank, pipeline_ctx
                 )
             trace.extend(retrieval_result.trace)
+
+            # Document coherence boost: if multiple chunks from the same
+            # document appear, boost their scores (the document is likely relevant)
+            try:
+                retrieval_result.chunks = _apply_doc_coherence_boost(retrieval_result.chunks)
+            except Exception:
+                pass  # Non-critical optimization
+
         except Exception as e:
             logger.error("retrieval_failed", error=str(e))
             return QueryResult(
@@ -1444,6 +1452,32 @@ class _EngineRetrieverAdapter:
         return await self._engine._do_retrieval_retry(
             query, classification, top_k, filters, rerank, pipeline_ctx
         )
+
+
+def _apply_doc_coherence_boost(
+    chunks: list[Any],
+) -> list[Any]:
+    """Boost scores of chunks from documents with multiple hits.
+
+    When several chunks from the same document appear in retrieval results,
+    that document is likely more relevant. Give each chunk a small boost
+    proportional to how many sibling chunks were also retrieved.
+    """
+    from collections import Counter
+
+    doc_counts = Counter(sc.chunk.document_id for sc in chunks)
+    if not doc_counts or max(doc_counts.values()) <= 1:
+        return chunks  # No multi-hit documents, skip
+
+    for sc in chunks:
+        count = doc_counts[sc.chunk.document_id]
+        if count > 1:
+            # Boost: 5% per additional sibling chunk, capped at 20%
+            boost = min((count - 1) * 0.05, 0.20)
+            sc.score = sc.score * (1.0 + boost)
+
+    chunks.sort(key=lambda sc: sc.score, reverse=True)
+    return chunks
 
 
 class IngestResult:

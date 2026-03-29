@@ -47,9 +47,9 @@ class TestQuantumRAGConfigDefaults:
     def test_default_retrieval(self) -> None:
         config = QuantumRAGConfig.default()
         assert config.retrieval.top_k == 10
-        assert config.retrieval.fusion_weights.original == 0.4
-        assert config.retrieval.fusion_weights.hype == 0.35
-        assert config.retrieval.fusion_weights.bm25 == 0.25
+        assert config.retrieval.fusion_weights.original == 0.35
+        assert config.retrieval.fusion_weights.hype == 0.15
+        assert config.retrieval.fusion_weights.bm25 == 0.50
         assert config.retrieval.rerank is True
 
     def test_default_storage(self) -> None:
