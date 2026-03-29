@@ -17,13 +17,13 @@ from quantumrag.core.errors import ConfigError
 
 
 class TestIngestConfigDefaults:
-    def test_mode_default_is_full(self) -> None:
+    def test_mode_default_is_fast(self) -> None:
         cfg = IngestConfig()
-        assert cfg.mode == "full"
+        assert cfg.mode == "fast"
 
     def test_max_concurrency_default(self) -> None:
         cfg = IngestConfig()
-        assert cfg.max_concurrency == 5
+        assert cfg.max_concurrency == 3
 
     def test_parse_concurrency_default(self) -> None:
         cfg = IngestConfig()
@@ -38,8 +38,9 @@ class TestIngestConfigDefaults:
         assert cfg.contextual_preamble is True
 
     def test_full_config_ingest_mode_default(self) -> None:
+        """Default ingest mode is 'fast' (safe for free-tier APIs)."""
         cfg = QuantumRAGConfig.default()
-        assert cfg.ingest.mode == "full"
+        assert cfg.ingest.mode == "fast"
 
 
 # ---------------------------------------------------------------------------

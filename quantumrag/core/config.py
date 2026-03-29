@@ -76,11 +76,11 @@ class ChunkingConfig(BaseModel):
 
 
 class IngestConfig(BaseModel):
-    mode: str = "full"  # full, fast, minimal
+    mode: str = "fast"  # full, fast, minimal (fast recommended for Gemini free tier)
     chunking: ChunkingConfig = Field(default_factory=ChunkingConfig)
     quality_check: bool = True
     contextual_preamble: bool = True  # LLM-generated context for each chunk (Anthropic-style)
-    max_concurrency: int = 5  # Max concurrent LLM calls (HyPE, preambles)
+    max_concurrency: int = 3  # Max concurrent LLM calls (HyPE, preambles)
     parse_concurrency: int = 4  # Max concurrent document parsing threads
 
 
