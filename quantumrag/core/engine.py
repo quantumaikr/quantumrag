@@ -1312,7 +1312,7 @@ class Engine:
             reranker=reranker,
             enable_rerank=not skip_rerank,
             enable_compression=not skip_compression,
-            compression_ratio=0.7,  # Keep 70% of content (was 50%)
+            compression_ratio=0.75,  # Keep 75% of content
             fusion_candidate_multiplier=self._config.retrieval.fusion_candidate_multiplier,
             document_store=self._get_document_store(),
             enable_sibling_expansion=self._chunk_graph is None,  # Only if no graph

@@ -57,7 +57,7 @@ class RerankerConfig(BaseModel):
 class HypeConfig(BaseModel):
     provider: str = "gemini"
     model: str = "gemini-3.1-flash-lite-preview"
-    questions_per_chunk: int = 3
+    questions_per_chunk: int = 4
     api_key: str | None = None
     base_url: str | None = None
 
@@ -91,8 +91,8 @@ class FusionWeightsConfig(BaseModel):
 
 
 class RetrievalConfig(BaseModel):
-    top_k: int = 10
-    fusion_candidate_multiplier: int = 4
+    top_k: int = 12
+    fusion_candidate_multiplier: int = 5
     fusion_weights: FusionWeightsConfig = Field(default_factory=FusionWeightsConfig)
     rerank: bool = True
     compression: bool = True

@@ -48,11 +48,11 @@ def _make_fusion_mock(chunks: list[ScoredChunk] | None = None) -> MagicMock:
 class TestFusionCandidateMultiplier:
     def test_retrieval_config_default(self) -> None:
         cfg = RetrievalConfig()
-        assert cfg.fusion_candidate_multiplier == 4
+        assert cfg.fusion_candidate_multiplier == 5
 
     def test_full_config_default(self) -> None:
         cfg = QuantumRAGConfig.default()
-        assert cfg.retrieval.fusion_candidate_multiplier == 4
+        assert cfg.retrieval.fusion_candidate_multiplier == 5
 
     @pytest.mark.asyncio
     async def test_retriever_uses_multiplier(self) -> None:
