@@ -25,6 +25,7 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 - **기능 단위 완료 시**: `make smoke` — lint + 핵심 테스트 (2초)
 - **변경 영역별**: `make test-gen`, `make test-ret`, `make test-ingest`, `make test-api` — 수정한 영역만
 - **커밋/PR 전**: `make check` — lint + 전체 유닛 테스트 (7초)
+- **푸시 전 (필수)**: `make check` 통과 확인. lint 에러 또는 테스트 실패가 있으면 푸시 금지
 - **파이프라인 변경 후**: `make scenario-test` — 시나리오 통과율 80% 이상 유지 (현재 80~84%)
 - `make help`로 전체 명령어 확인
 
