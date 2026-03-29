@@ -107,8 +107,8 @@ _CODE_LIKE_RE = re.compile(
 
 WEIGHT_PRESETS: dict[str, dict[str, float]] = {
     "term_specific": {"original": 0.20, "hype": 0.15, "bm25": 0.65},
-    "comparative": {"original": 0.30, "hype": 0.45, "bm25": 0.25},
-    "conceptual": {"original": 0.35, "hype": 0.25, "bm25": 0.40},
+    "comparative": {"original": 0.30, "hype": 0.50, "bm25": 0.20},
+    "conceptual": {"original": 0.40, "hype": 0.35, "bm25": 0.25},
 }
 
 
