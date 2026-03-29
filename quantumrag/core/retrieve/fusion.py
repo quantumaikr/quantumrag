@@ -77,9 +77,16 @@ class FusionRetriever:
         # Large corpus (500+ chunks): need 5x to find signal in noise
         corpus_scale = 1.0
         try:
-            bm25_count = getattr(self._bm25_store, "count", lambda: 0)()
-            if bm25_count > 200:
-                corpus_scale = min(bm25_count / 200, 2.0)  # Up to 2x boost
+            count_fn = getattr(self._bm25_store, "count", None)
+            if count_fn:
+                result = count_fn()
+                # Handle both sync and async count()
+                if asyncio.iscoroutine(result):
+                    bm25_count = await result
+                else:
+                    bm25_count = result
+                if bm25_count and bm25_count > 200:
+                    corpus_scale = min(bm25_count / 200, 2.0)
         except Exception:
             pass
         fetch_k = int(top_k * 3 * corpus_scale)

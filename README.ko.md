@@ -101,7 +101,7 @@ quantumrag serve --port 8000
 
 http://localhost:8000/playground 에서 문서를 인제스트하고 질문할 수 있습니다.
 
-![QuantumRAG 웹 플레이그라운드](assets/demo.png)
+![QuantumRAG 웹 플레이그라운드](assets/demo.ko.png)
 
 ## 한국어 지원
 
