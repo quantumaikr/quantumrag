@@ -43,9 +43,10 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 
 ### 현재 성능 현황
 - **개별 QA** (4 datasets, 105 questions): 77~100% pass rate → 전체 graduated
-- **Combined QA** (73 sources + 50 noise, 436 chunks): **80% pass rate**, 0 timeout, 2.1분
-- **개선 이력**: 29% → 35% → 45% → 65% → 75% → **80%** (6회 반복 개선)
-- **남은 실패**: 4건 — timeout 2건, keyword 정밀도 2건 (retrieval 실패 0건)
+- **Combined QA** (73 sources + 50 noise, 436 chunks): **75% pass rate** (full mode), timeout 2건, 30초 avg
+- **개선 이력**: 29% → 65% → **75%** (BM25 정규화 + coherence boost + reranker 블렌딩 + HyPE)
+- **남은 실패**: 26건 — retrieval FAIL 23건, timeout 2건, generation FAIL 1건
+- **Ceiling 분석**: fusion 가중치 튜닝은 소진됨. 다음 돌파구는 embedding 모델 교체 또는 노이즈 축소
 - **기본 LLM**: gemini-3.1-flash-lite-preview (무료 티어, 비용 효율적)
 
 ## 주요 파일 위치
