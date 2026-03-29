@@ -1155,6 +1155,12 @@ class Engine:
                 CorrectionPipeline,
             )
 
+            # Adaptive time budget: if retrieval+generation already took
+            # a long time, reduce post-correction budget to avoid timeouts.
+            elapsed_so_far = time.perf_counter() - t0
+            remaining_budget = max(5.0, 60.0 - elapsed_so_far)
+            correction_time_budget = min(20.0, remaining_budget)
+
             correction_ctx = CorrectionContext(
                 query=query,
                 result=result,
@@ -1170,6 +1176,7 @@ class Engine:
                 trace=trace,
                 use_map_reduce=use_map_reduce,
                 config=self._config,
+                time_budget_s=correction_time_budget,
             )
 
             correction_ctx = await CorrectionPipeline().run(correction_ctx)

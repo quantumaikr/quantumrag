@@ -110,9 +110,18 @@ _FALLBACK_EXPANSIONS: dict[str, str] = {
     "괜찮": "상태 수준 평가 결과",
     "해킹": "보안 취약점 침해 공격",
     "사람": "인원 직원 인력 담당자",
-    "매출": "수익 실적 매출액 영업이익",
-    "계약": "계약 체결 수주 규모 금액",
+    "매출": "수익 실적 매출액 영업이익 revenue",
+    "계약": "계약 체결 수주 규모 금액 contract",
     "문제": "이슈 장애 결함 리스크",
+    # Cross-language: Korean terms → English equivalents for BM25
+    "벤치마크": "benchmark score ranking performance",
+    "종합 점수": "overall average score total",
+    "비용효율": "cost efficiency value ratio",
+    "점유율": "market share percentage",
+    "규제": "regulation act law policy",
+    "금지": "prohibit ban forbidden restrict",
+    "1위": "rank 1 first top leader",
+    "모델": "model LLM GPT Gemini Claude",
 }
 
 
@@ -135,49 +144,58 @@ class QueryExpander:
 
         Returns the original query combined with expanded terms.
         If the query is already formal, returns it unchanged.
+        Always applies cross-language dictionary expansion for BM25.
         """
-        if not is_colloquial(query):
-            return query
+        result = query
 
-        try:
-            prompt = _EXPANSION_PROMPT_KO if detect_korean(query) else _EXPANSION_PROMPT_EN
-            response = await self._llm.generate(
-                prompt.format(query=query),
-                temperature=0.0,
-                max_tokens=80,
-            )
-            expanded = response.text.strip()
-            # Remove any explanation text, keep only keywords
-            expanded = re.sub(r"^(확장|키워드|검색어)[:：]\s*", "", expanded)
-            expanded = expanded.split("\n")[0].strip()
-
-            if expanded and expanded != query:
-                combined = f"{query} {expanded}"
-                logger.info(
-                    "query_expanded",
-                    original=query,
-                    expanded_terms=expanded,
-                    combined=combined,
+        if is_colloquial(query):
+            try:
+                prompt = _EXPANSION_PROMPT_KO if detect_korean(query) else _EXPANSION_PROMPT_EN
+                response = await self._llm.generate(
+                    prompt.format(query=query),
+                    temperature=0.0,
+                    max_tokens=80,
                 )
-                return combined
-        except Exception:
-            logger.warning("query_expansion_failed", exc_info=True)
-            # Fallback: use dictionary expansion when LLM is unavailable
-            return _fallback_expand(query)
+                expanded = response.text.strip()
+                expanded = re.sub(r"^(확장|키워드|검색어)[:：]\s*", "", expanded)
+                expanded = expanded.split("\n")[0].strip()
 
-        return query
+                if expanded and expanded != query:
+                    result = f"{query} {expanded}"
+                    logger.info(
+                        "query_expanded",
+                        original=query,
+                        expanded_terms=expanded,
+                        combined=result,
+                    )
+            except Exception:
+                logger.warning("query_expansion_failed", exc_info=True)
+                result = _fallback_expand(query)
+
+        # Always apply cross-language dictionary expansion for BM25 recall
+        # This adds English equivalents for Korean terms (and vice versa)
+        result = _dictionary_expand(result, tag="cross_lang")
+        return result
 
 
 def _fallback_expand(query: str) -> str:
     """Expand query using a static dictionary when LLM is unavailable."""
+    return _dictionary_expand(query, tag="fallback")
+
+
+def _dictionary_expand(query: str, tag: str = "dict") -> str:
+    """Add cross-language and synonym terms from the static dictionary."""
     extra_terms: list[str] = []
     for keyword, expansions in _FALLBACK_EXPANSIONS.items():
         if keyword in query:
-            extra_terms.append(expansions)
+            # Only add terms not already in query
+            new_terms = [t for t in expansions.split() if t.lower() not in query.lower()]
+            if new_terms:
+                extra_terms.append(" ".join(new_terms))
     if extra_terms:
         combined = f"{query} {' '.join(extra_terms)}"
         logger.info(
-            "query_expanded_fallback",
+            f"query_expanded_{tag}",
             original=query,
             combined=combined,
         )
