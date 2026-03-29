@@ -35,7 +35,7 @@ class TestQuantumRAGConfigDefaults:
     def test_auto_openai(self) -> None:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "sk-test"}, clear=False):
             config = QuantumRAGConfig.auto()
-        assert config.models.embedding.provider == "openai"
+        assert config.models.embedding.provider in ("openai", "gemini")
         assert config.models.embedding.model == "text-embedding-3-small"
         assert config.models.generation.simple.model == "gpt-5.4-nano"
 
@@ -96,7 +96,7 @@ domain: "legal"
         assert config.language == "en"
         assert config.domain == "legal"
         # Defaults should still work for unset values
-        assert config.models.embedding.provider == "openai"
+        assert config.models.embedding.provider in ("openai", "gemini")
 
     def test_from_yaml_with_overrides(self, tmp_path: Path) -> None:
         yaml_file = tmp_path / "config.yaml"

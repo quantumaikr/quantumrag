@@ -20,6 +20,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# Fix: project's datasets/ directory shadows the 'datasets' pip package
+_project_root = str(Path(__file__).resolve().parent.parent)
+sys.path = [p for p in sys.path if p not in ("", ".", _project_root)] + [_project_root]
+
 import yaml
 
 # --- Args ---

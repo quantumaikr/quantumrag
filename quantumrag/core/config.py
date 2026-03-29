@@ -17,29 +17,35 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EmbeddingModelConfig(BaseModel):
-    provider: str = "openai"  # openai, gemini, ollama, local
-    model: str = "text-embedding-3-small"
-    dimensions: int = 1536
+    provider: str = "gemini"  # openai, gemini, ollama, local
+    model: str = "gemini-embedding-001"
+    dimensions: int = 768
     api_key: str | None = None  # None → SDK 기본 환경 변수 사용
     base_url: str | None = None  # 커스텀 엔드포인트 (Azure 등)
 
 
 class GenerationTierConfig(BaseModel):
-    provider: str = "openai"
-    model: str = "gpt-5.4-nano"
+    provider: str = "gemini"
+    model: str = "gemini-3.1-flash-lite-preview"
     api_key: str | None = None  # None → SDK 기본 환경 변수 사용
     base_url: str | None = None  # 커스텀 엔드포인트 (Azure, Ollama 원격 등)
 
 
 class GenerationConfig(BaseModel):
     simple: GenerationTierConfig = Field(
-        default_factory=lambda: GenerationTierConfig(provider="openai", model="gpt-5.4-nano")
+        default_factory=lambda: GenerationTierConfig(
+            provider="gemini", model="gemini-3.1-flash-lite-preview"
+        )
     )
     medium: GenerationTierConfig = Field(
-        default_factory=lambda: GenerationTierConfig(provider="openai", model="gpt-5.4-mini")
+        default_factory=lambda: GenerationTierConfig(
+            provider="gemini", model="gemini-3.1-flash-lite-preview"
+        )
     )
     complex: GenerationTierConfig = Field(
-        default_factory=lambda: GenerationTierConfig(provider="openai", model="gpt-5.4-mini")
+        default_factory=lambda: GenerationTierConfig(
+            provider="gemini", model="gemini-3.1-flash-lite-preview"
+        )
     )
 
 
@@ -49,8 +55,8 @@ class RerankerConfig(BaseModel):
 
 
 class HypeConfig(BaseModel):
-    provider: str = "openai"
-    model: str = "gpt-5.4-nano"
+    provider: str = "gemini"
+    model: str = "gemini-3.1-flash-lite-preview"
     questions_per_chunk: int = 3
     api_key: str | None = None
     base_url: str | None = None
@@ -251,11 +257,11 @@ def _detect_provider(
         return (
             "gemini",
             (
-                "gemini-2.5-flash-lite-preview",
-                "gemini-2.5-flash-preview",
-                "gemini-2.5-flash-preview",
+                "gemini-3.1-flash-lite-preview",
+                "gemini-3.1-flash-lite-preview",
+                "gemini-3.1-flash-lite-preview",
             ),
-            "text-embedding-004",
+            "gemini-embedding-001",
             768,
         )
     if env.get("ANTHROPIC_API_KEY"):
@@ -289,11 +295,9 @@ domain: "general"                       # general, legal, medical, financial, te
 # Model settings
 models:
   embedding:
-    provider: "openai"
-    model: "text-embedding-3-small"
-    dimensions: 1536
-    # api_key: "sk-..."               # null → OPENAI_API_KEY 환경 변수 사용
-    # base_url: "https://..."         # Azure OpenAI 등 커스텀 엔드포인트
+    provider: "gemini"
+    model: "gemini-embedding-001"
+    dimensions: 768
     # 로컬 임베딩 (API 키 불필요, 한국어 최적):
     # provider: "local"
     # model: "BAAI/bge-m3"
@@ -301,39 +305,22 @@ models:
 
   generation:
     simple:
-      provider: "openai"
-      model: "gpt-5.4-nano"
-      # api_key: "sk-..."
-      # base_url: null
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"
     medium:
-      provider: "openai"
-      model: "gpt-5.4-mini"
-      # api_key: "sk-..."
-      # base_url: null
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"
     complex:
-      provider: "openai"
-      model: "gpt-5.4-mini"
-      # api_key: "sk-..."
-      # base_url: null
-      # Anthropic 사용 예시:
-      # provider: "anthropic"
-      # model: "claude-sonnet-4-20250514"
-      # api_key: "sk-ant-..."         # null → ANTHROPIC_API_KEY 환경 변수 사용
-    # Gemini 사용 예시:
-    # complex:
-    #   provider: "gemini"
-    #   model: "gemini-3.1-flash-lite-preview"
-    #   api_key: "AIza..."            # null → GOOGLE_API_KEY 환경 변수 사용
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"
 
   reranker:
     provider: "noop"                    # noop (disabled), flashrank (free/CPU), bge (free/multilingual), cohere, jina
 
   hype:                                 # HyPE question generation model
-    provider: "openai"
-    model: "gpt-5.4-nano"
+    provider: "gemini"
+    model: "gemini-3.1-flash-lite-preview"
     questions_per_chunk: 3
-    # api_key: "sk-..."
-    # base_url: null
 
 # Ingest settings
 ingest:

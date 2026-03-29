@@ -20,6 +20,19 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# Fix: project's datasets/ directory shadows the HuggingFace 'datasets' package
+# that LanceDB depends on. Pre-import the real package before any lancedb import.
+_project_root = str(Path(__file__).resolve().parent.parent)
+_script_dir = str(Path(__file__).resolve().parent)
+# Temporarily remove script dir from path, import real 'datasets', restore
+if _script_dir in sys.path:
+    sys.path.remove(_script_dir)
+try:
+    import datasets as _hf_datasets  # noqa: F401 — cache the real package
+except ImportError:
+    pass
+sys.path.insert(0, _script_dir)
+
 import yaml
 
 # --- Load .env ---
@@ -39,7 +52,7 @@ QUERY_TIMEOUT = 90  # Allow post-correction pipeline to complete
 CONCURRENCY = 5  # Parallel queries
 INGEST_MODE = "fast"  # Skip HyPE/preambles
 SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
-NOISE_DOCS = 0  # Noise docs for scale testing. Requires sufficient embedding API quota.
+NOISE_DOCS = 50  # Noise docs for scale testing. Uses local embeddings, no API cost.
 
 # --- Collect all datasets ---
 ds_root = Path(__file__).resolve().parent
@@ -105,7 +118,15 @@ for ds_path in datasets:
 
 # Add noise documents for scale testing
 if NOISE_DOCS > 0:
-    from datasets.noise_generator import generate_noise_docs
+    # Import noise generator from same directory (not HuggingFace datasets package)
+    import importlib.util
+
+    _ng_spec = importlib.util.spec_from_file_location(
+        "noise_generator", str(ds_root / "noise_generator.py")
+    )
+    _ng_mod = importlib.util.module_from_spec(_ng_spec)  # type: ignore[arg-type]
+    _ng_spec.loader.exec_module(_ng_mod)  # type: ignore[union-attr]
+    generate_noise_docs = _ng_mod.generate_noise_docs
 
     noise_dir = combined_dir / "noise"
     n_generated = generate_noise_docs(noise_dir, NOISE_DOCS)
@@ -143,7 +164,11 @@ def compute_sources_hash() -> str:
 current_hash = compute_sources_hash()
 cached_hash = hash_file.read_text().strip() if hash_file.exists() else ""
 
+# Use local embeddings for scale testing (no API cost, no rate limits)
 config = QuantumRAGConfig.default(storage={"data_dir": str(data_dir)})
+config.models.embedding.provider = "local"
+config.models.embedding.model = "BAAI/bge-m3"
+config.models.embedding.dimensions = 1024
 engine = Engine(config=config)
 
 if current_hash == cached_hash and data_dir.exists():
