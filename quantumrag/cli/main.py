@@ -525,7 +525,13 @@ def serve(
         )
         raise typer.Exit(code=1)
 
-    config_path = str(config) if config and config.exists() else None
+    # Auto-detect quantumrag.yaml in current directory if no --config given
+    if config and config.exists():
+        config_path: str | None = str(config)
+    elif Path("quantumrag.yaml").exists():
+        config_path = str(Path("quantumrag.yaml"))
+    else:
+        config_path = None
 
     console.print(f"[bold green]Starting QuantumRAG API server on {host}:{port}[/bold green]")
     if config_path:

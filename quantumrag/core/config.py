@@ -179,6 +179,7 @@ class QuantumRAGConfig(BaseSettings):
     @classmethod
     def from_yaml(cls, path: str | Path, **overrides: Any) -> QuantumRAGConfig:
         """Load config from YAML file with optional overrides."""
+        _load_dotenv()
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Config file not found: {path}")
