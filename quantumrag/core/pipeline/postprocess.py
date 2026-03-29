@@ -94,11 +94,24 @@ class CorrectionContext:
     # Track which processors fired (for diagnostics)
     applied_processors: list[str] = field(default_factory=list)
 
+    # Time budget: max seconds for entire correction pipeline
+    # Processors should check remaining time before expensive operations
+    time_budget_s: float = 30.0
+    pipeline_start: float = field(default_factory=time.perf_counter)
+
     # Token usage accumulator across all generation calls
     total_tokens_in: int = 0
     total_tokens_out: int = 0
     total_estimated_cost: float = 0.0
     generation_count: int = 0
+
+    @property
+    def elapsed_s(self) -> float:
+        return time.perf_counter() - self.pipeline_start
+
+    @property
+    def time_remaining_s(self) -> float:
+        return max(0, self.time_budget_s - self.elapsed_s)
 
 
 # ---------------------------------------------------------------------------
@@ -157,11 +170,13 @@ class RetrievalRetryProcessor(PostProcessor):
             return False
         if not ctx.config or not ctx.config.retrieval.retrieval_retry:
             return False
+        if ctx.time_remaining_s < 10:  # Need at least 10s for retry + re-gen
+            return False
         return ctx.result.confidence == Confidence.INSUFFICIENT_EVIDENCE and bool(ctx.chunks)
 
     async def process(self, ctx: CorrectionContext) -> CorrectionContext:
         t0 = time.perf_counter()
-        retry_top_k = max(ctx.top_k * 3, 15)
+        retry_top_k = max(ctx.top_k, 10)  # Same as original, not 3x
 
         retry_result = await ctx.retriever.retrieve_bm25_dominant(
             ctx.query,
@@ -224,6 +239,8 @@ class SelfCorrectProcessor(PostProcessor):
         if ctx.use_map_reduce:
             return False
         if "retrieval_retry" in ctx.applied_processors:
+            return False
+        if ctx.time_remaining_s < 10:
             return False
 
         from quantumrag.core.generate.self_correct import answer_is_insufficient
