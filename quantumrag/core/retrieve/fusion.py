@@ -41,6 +41,8 @@ class FusionRetriever:
         # LRU embedding cache — avoids redundant embedding calls for similar queries
         self._embed_cache: dict[str, list[float]] = {}
         self._cache_max = 32
+        # Chunk→document mapping built during search for coherence boost
+        self._chunk_doc_map: dict[str, str] = {}
 
     async def search(
         self,
@@ -88,6 +90,17 @@ class FusionRetriever:
         original_results, hype_results, bm25_results = await asyncio.gather(
             original_task, hype_task, bm25_task
         )
+
+        # Build chunk→document map from search results for coherence boost
+        self._chunk_doc_map.clear()
+        for result in original_results:
+            doc_id = (result.metadata or {}).get("document_id", "")
+            if doc_id:
+                self._chunk_doc_map[result.id] = doc_id
+        for result in bm25_results:  # type: ignore[union-attr]
+            doc_id = (getattr(result, "metadata", None) or {}).get("document_id", "")
+            if doc_id:
+                self._chunk_doc_map[result.id] = doc_id
 
         # Map HyPE results back to chunk IDs
         hype_chunk_results = self._map_hype_to_chunks(hype_results)
@@ -197,10 +210,25 @@ class FusionRetriever:
             raw_score = max(result.score, 0.0)
             scores[result.id] = scores.get(result.id, 0.0) + w_hype * raw_score / (k + rank + 1)
 
+        # Normalize BM25 scores to [0,1] using min-max within this result set
+        # instead of capping at 1.0 (which loses signal discrimination)
+        bm25_scores = [
+            max(getattr(r, "score", 1.0), 0.0)
+            for r in bm25  # type: ignore[union-attr]
+        ]
+        bm25_max = max(bm25_scores) if bm25_scores else 1.0
+        bm25_min = min(bm25_scores) if bm25_scores else 0.0
+        bm25_range = bm25_max - bm25_min if bm25_max > bm25_min else 1.0
+
         for rank, result in enumerate(bm25):  # type: ignore[assignment]
-            # BM25 scores are not normalized to [0,1], so cap at 1.0
-            raw_score = min(max(result.score, 0.0), 1.0) if hasattr(result, "score") else 1.0
-            scores[result.id] = scores.get(result.id, 0.0) + w_bm25 * raw_score / (k + rank + 1)
+            raw = max(getattr(result, "score", 1.0), 0.0)
+            # Min-max normalization preserves relative differences
+            # When all scores are identical (or single result), use raw/max
+            if bm25_max > bm25_min:
+                normalized = (raw - bm25_min) / bm25_range
+            else:
+                normalized = min(raw / bm25_max, 1.0) if bm25_max > 0 else 1.0
+            scores[result.id] = scores.get(result.id, 0.0) + w_bm25 * normalized / (k + rank + 1)
 
         # Normalize to [0, 1]
         max_score = max(scores.values()) if scores else 1.0
@@ -217,29 +245,52 @@ class FusionRetriever:
     ) -> list[tuple[str, float]]:
         """Boost scores when multiple chunks from the same document appear in results.
 
-        If a document has N chunks in the top candidates, each gets a boost
-        proportional to N. This helps when the correct answer is spread across
-        multiple chunks of the same source document.
+        If a document has N chunks in the top candidates, each gets a small
+        boost proportional to N. This helps when the correct answer is spread
+        across multiple chunks of the same source document.
+
+        Uses chunk metadata from BM25 results (which carry document_id) and
+        the vector store's stored metadata to map chunk_id → document_id.
+        Falls back to a prefix heuristic when metadata is unavailable.
         """
-        # Count chunks per document in the top candidates (look at 3x top_k)
-        candidate_pool = fused[: top_k * 3]
-        doc_counts: dict[str, int] = {}
+        if len(fused) < 2:
+            return fused
+
+        candidate_pool = fused[: top_k * 4]
         chunk_to_doc: dict[str, str] = {}
 
+        # Try to resolve document_id via document_store metadata
         for chunk_id, _ in candidate_pool:
-            # chunk_id contains document info — extract via document_store
-            # Use a simple heuristic: chunk IDs from same ingest share a doc prefix
-            # The actual document_id is stored in chunk metadata, but we don't have
-            # it here. Instead, use the score pattern: if multiple chunks score well,
-            # they likely share a document.
-            doc_counts[chunk_id] = doc_counts.get(chunk_id, 0)
+            # Use stored _chunk_doc_map if available (populated during search)
+            doc_id = self._chunk_doc_map.get(chunk_id, "")
+            if not doc_id:
+                # Heuristic fallback: first 12 chars of chunk_id often share
+                # a common prefix for chunks from the same document, but this
+                # is unreliable.  Skip boost for unknown chunks.
+                continue
+            chunk_to_doc[chunk_id] = doc_id
 
-        # Without document_id in the fusion result, we can't do document-level
-        # grouping here. Instead, apply a simpler heuristic: if a chunk_id
-        # appears in multiple indexes (original + hype + bm25), it gets a
-        # natural boost from RRF already. The score-weighting above handles
-        # the precision issue. Return unchanged.
-        return fused
+        if not chunk_to_doc:
+            return fused
+
+        # Count chunks per document in candidate pool
+        doc_counts: dict[str, int] = {}
+        for doc_id in chunk_to_doc.values():
+            doc_counts[doc_id] = doc_counts.get(doc_id, 0) + 1
+
+        # Apply boost: +5% per additional chunk from same document (max +20%)
+        boosted: list[tuple[str, float]] = []
+        for chunk_id, score in fused:
+            doc_id = chunk_to_doc.get(chunk_id, "")
+            if doc_id and doc_counts.get(doc_id, 1) > 1:
+                n_extra = min(doc_counts[doc_id] - 1, 4)  # Cap at 4 extras
+                boost = 1.0 + n_extra * 0.05
+                boosted.append((chunk_id, score * boost))
+            else:
+                boosted.append((chunk_id, score))
+
+        boosted.sort(key=lambda x: x[1], reverse=True)
+        return boosted
 
 
 class ScoredChunk:

@@ -232,7 +232,9 @@ class Generator:
             if parts and total_chars + len(part) > budget:
                 remaining = budget - total_chars - len(header) - 10
                 if remaining > 100:
-                    part = f"{header}\n{content[:remaining]}..."
+                    # Truncate at sentence boundary instead of mid-word
+                    truncated = _truncate_at_sentence(content, remaining)
+                    part = f"{header}\n{truncated}"
                     parts.append(part)
                 break
             parts.append(part)
@@ -279,13 +281,24 @@ class Generator:
         return text.strip()
 
     def _map_citations(self, answer: str, sources: list[Source]) -> list[Source]:
-        """Map [1], [2] citations in answer to sources."""
-        cited_numbers = set(int(m) for m in re.findall(r"\[(\d+)\]", answer))
-        cited_sources = []
-        for i, src in enumerate(sources, 1):
-            if i in cited_numbers:
-                cited_sources.append(src)
-        # If no citations found, include all sources
+        """Map [1], [2] or [Source 1] citations in answer to sources."""
+        # Match both [1] and [Source 1] formats
+        cited_numbers = set(int(m) for m in re.findall(r"\[(?:Source\s+)?(\d+)\]", answer))
+        if not cited_numbers:
+            return sources  # No citations found → return all
+
+        # Filter out-of-range citations
+        max_valid = len(sources)
+        cited_sources = [
+            src for i, src in enumerate(sources, 1) if i in cited_numbers and i <= max_valid
+        ]
+        out_of_range = cited_numbers - set(range(1, max_valid + 1))
+        if out_of_range:
+            logger.warning(
+                "citation_out_of_range",
+                cited=sorted(out_of_range),
+                max_sources=max_valid,
+            )
         return cited_sources if cited_sources else sources
 
     def _insufficient_evidence(
@@ -306,6 +319,30 @@ class Generator:
         if self._language == "ko" or (self._language == "auto" and detect_korean(query)):
             return _INSUFFICIENT_TEMPLATE_KO.format(n_docs=n_docs)
         return _INSUFFICIENT_TEMPLATE_EN.format(n_docs=n_docs)
+
+
+def _truncate_at_sentence(text: str, max_chars: int) -> str:
+    """Truncate text at the last sentence boundary within max_chars.
+
+    Avoids cutting mid-word or mid-sentence, which can confuse the LLM.
+    Handles Korean (다/요/음/임 endings) and English (./!/?).
+    """
+    if len(text) <= max_chars:
+        return text
+    # Cut to max_chars, then find last sentence boundary
+    cut = text[:max_chars]
+    # Look for sentence-ending patterns (Korean & English)
+    # Search backwards from the cut point
+    last_boundary = -1
+    for m in re.finditer(r"[.!?。]\s|[다요음임니까]\.\s|[다요음임니까]\s", cut):
+        last_boundary = m.end()
+    if last_boundary > max_chars * 0.3:  # At least 30% of content preserved
+        return cut[:last_boundary].rstrip() + "..."
+    # Fallback: cut at last whitespace
+    last_space = cut.rfind(" ")
+    if last_space > max_chars * 0.3:
+        return cut[:last_space].rstrip() + "..."
+    return cut.rstrip() + "..."
 
 
 def _format_fact_block(facts: list[dict[str, Any]] | None) -> str:

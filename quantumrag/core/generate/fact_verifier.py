@@ -169,16 +169,38 @@ def verify_against_facts(
             if metric and value:
                 fact_values[metric] = value
 
+        # Cross-check: if answer mentions a metric with a different value
+        for metric, fact_value in fact_values.items():
+            if metric in answer:
+                # Extract numbers near the metric mention in the answer
+                metric_idx = answer.find(metric)
+                window = answer[max(0, metric_idx - 50) : metric_idx + len(metric) + 100]
+                answer_amounts = _AMOUNT_RE.findall(window)
+                fact_amounts = _AMOUNT_RE.findall(fact_value)
+                if answer_amounts and fact_amounts:
+                    # Normalize: strip commas for comparison
+                    answer_num = answer_amounts[0].replace(",", "")
+                    fact_num = fact_amounts[0].replace(",", "")
+                    if answer_num != fact_num:
+                        warnings.append(
+                            f"'{metric}' 수치 불일치: 답변 '{answer_amounts[0]}' vs "
+                            f"팩트 '{fact_amounts[0]}'"
+                        )
+                        hallucinated.append(metric)
+
     if warnings:
-        logger.info(
-            "fact_verification_failed",
+        log_level = "warning" if len(hallucinated) >= 2 else "info"
+        getattr(logger, log_level)(
+            "fact_verification_issues",
             warnings=warnings,
             hallucinated=hallucinated,
+            count=len(hallucinated),
         )
 
-    # Conservative threshold: only flag as invalid when multiple
-    # hallucinations detected.  A single unknown entity is more likely
-    # a Fact-Index gap than a real hallucination.
+    # Graduated threshold:
+    # - 0 hallucinations: valid, no warnings
+    # - 1 hallucination: valid but with warnings (logged for monitoring)
+    # - 2+ hallucinations: invalid, triggers re-generation
     return VerificationResult(
         is_valid=len(hallucinated) < 2,
         warnings=warnings,

@@ -64,7 +64,9 @@ class TestCohereReranker:
 
         assert len(result) == 2
         assert result[0].chunk.id == "chunk-3"
-        assert result[0].score == pytest.approx(0.95)
+        # Score is blended: 0.7 * reranker_score + 0.3 * original_score
+        # chunk-3 original=0.7, reranker=0.95 → 0.7*0.95 + 0.3*0.7 = 0.875
+        assert result[0].score == pytest.approx(0.875)
         assert result[1].chunk.id == "chunk-1"
 
         mock_client.rerank.assert_called_once()
@@ -134,7 +136,8 @@ class TestJinaReranker:
 
         assert len(result) == 2
         assert result[0].chunk.id == "chunk-2"
-        assert result[0].score == pytest.approx(0.99)
+        # Blended: 0.7 * 0.99 + 0.3 * 0.8 = 0.933
+        assert result[0].score == pytest.approx(0.933)
         assert result[1].chunk.id == "chunk-0"
 
     @pytest.mark.asyncio

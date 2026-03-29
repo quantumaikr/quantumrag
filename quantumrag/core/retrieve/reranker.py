@@ -60,12 +60,14 @@ class FlashRankReranker:
             request = RerankRequest(query=query, passages=passages)
             results = ranker.rerank(request)
 
-            # Map back to ScoredChunks with new scores
+            # Blend reranker scores with original fusion scores (0.7/0.3)
+            # to preserve signal from triple-index agreement
             reranked = []
             for result in results[:top_k]:
                 idx = int(result["id"])
                 original = chunks[idx]
-                reranked.append(ScoredChunk(chunk=original.chunk, score=result["score"]))
+                blended = 0.7 * result["score"] + 0.3 * original.score
+                reranked.append(ScoredChunk(chunk=original.chunk, score=blended))
 
             logger.debug("reranked", query_len=len(query), input=len(chunks), output=len(reranked))
             return reranked
@@ -122,7 +124,8 @@ class CohereReranker:
             reranked: list[ScoredChunk] = []
             for result in response.results:
                 idx = result.index
-                reranked.append(ScoredChunk(chunk=chunks[idx].chunk, score=result.relevance_score))
+                blended = 0.7 * result.relevance_score + 0.3 * chunks[idx].score
+                reranked.append(ScoredChunk(chunk=chunks[idx].chunk, score=blended))
 
             logger.debug(
                 "cohere_reranked", query_len=len(query), input=len(chunks), output=len(reranked)
@@ -184,10 +187,11 @@ class JinaReranker:
             reranked: list[ScoredChunk] = []
             for result in data["results"]:
                 idx = result["index"]
+                blended = 0.7 * result["relevance_score"] + 0.3 * chunks[idx].score
                 reranked.append(
                     ScoredChunk(
                         chunk=chunks[idx].chunk,
-                        score=result["relevance_score"],
+                        score=blended,
                     )
                 )
 
@@ -247,7 +251,10 @@ class BGEReranker:
 
             indexed = sorted(enumerate(scores), key=lambda x: x[1], reverse=True)
             reranked = [
-                ScoredChunk(chunk=chunks[idx].chunk, score=float(score))
+                ScoredChunk(
+                    chunk=chunks[idx].chunk,
+                    score=0.7 * float(score) + 0.3 * chunks[idx].score,
+                )
                 for idx, score in indexed[:top_k]
             ]
 
