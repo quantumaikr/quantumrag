@@ -246,13 +246,7 @@ def _detect_provider(
     Returns:
         (provider, (simple_model, medium_model, complex_model), embedding_model, embedding_dims)
     """
-    if env.get("OPENAI_API_KEY"):
-        return (
-            "openai",
-            ("gpt-5.4-nano", "gpt-5.4-mini", "gpt-5.4-mini"),
-            "text-embedding-3-small",
-            1536,
-        )
+    # Gemini first: free tier available, cost-effective for most use cases
     if env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY"):
         return (
             "gemini",
@@ -271,6 +265,13 @@ def _detect_provider(
             ("claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-sonnet-4-6"),
             "local:BAAI/bge-m3",
             1024,
+        )
+    if env.get("OPENAI_API_KEY"):
+        return (
+            "openai",
+            ("gpt-5.4-nano", "gpt-5.4-mini", "gpt-5.4-mini"),
+            "text-embedding-3-small",
+            1536,
         )
     # Fallback: Ollama (local, no API key needed)
     return (
