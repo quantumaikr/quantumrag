@@ -41,10 +41,10 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 - **Combined QA**: `.venv/bin/python datasets/run_qa_combined.py` — 전체 소스 합산 후 retrieval 정밀도 검증
 
 ### 현재 성능 현황
-- **개별 QA** (4 datasets, 105 questions): 77~90% pass rate → 전체 graduated
-- **Combined QA** (23 sources 합산): 29% pass rate, retrieval recall 9%
-- **핵심 병목**: retrieval 정밀도 — 노이즈 corpus에서 정답 소스를 찾지 못함 (68/75 실패가 retrieval 원인)
-- **다음 개선 방향**: 대규모 corpus에서의 retrieval 정밀도 향상
+- **개별 QA** (4 datasets, 105 questions): 77~100% pass rate → 전체 graduated
+- **Combined QA** (23 sources 합산, 20 sampled): 75% pass rate, 0 timeout, 78초
+- **개선 이력**: 29% → 35% → 45% → 65% → 75% (4회 반복 개선)
+- **남은 실패**: 5건 — cross-doc 비교 2건, 테이블 수치 정밀도 2건, keyword 불일치 1건
 
 ## 주요 파일 위치
 - 엔진 진입점: `quantumrag/core/engine.py`
