@@ -48,10 +48,10 @@ from quantumrag.core.config import QuantumRAGConfig
 from quantumrag.core.engine import Engine
 
 # --- Config ---
-QUERY_TIMEOUT = 120  # Extended to capture borderline timeouts
-CONCURRENCY = 3  # Reduce to avoid Gemini rate limits
+QUERY_TIMEOUT = 90  # Allow post-correction pipeline to complete
+CONCURRENCY = 5  # Parallel queries
 INGEST_MODE = "fast"  # Skip HyPE/preambles
-SAMPLE_PER_DATASET = 0  # Full 105q baseline
+SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
 NOISE_DOCS = 50  # Noise docs for scale testing. Uses local embeddings, no API cost.
 
 # --- Collect all datasets ---

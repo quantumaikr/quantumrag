@@ -25,6 +25,7 @@ from quantumrag.core.generate.router import QueryClassification, QueryRouter
 from quantumrag.core.logging import get_logger, setup_logging
 from quantumrag.core.models import Confidence, EvalResult, QueryComplexity, QueryResult, TraceStep
 from quantumrag.core.pipeline.context import DocumentProfile, PipelineContext
+from quantumrag.core.utils.text import detect_korean
 
 _T = TypeVar("_T")
 
@@ -208,7 +209,7 @@ class Engine:
             from quantumrag.korean.morphology import KoreanTokenizer
 
             data_dir = Path(self._config.storage.data_dir)
-            tokenizer = KoreanTokenizer() if self._config.language == "ko" else None
+            tokenizer = KoreanTokenizer() if self._config.language in ("ko", "auto") else None
             self._components["bm25_store"] = StorageFactory.create_bm25_store(
                 backend="tantivy", index_path=data_dir / "bm25_index", tokenizer=tokenizer
             )
@@ -694,11 +695,12 @@ class Engine:
         trace: list[TraceStep] = []
 
         # Early return for empty queries
+        _use_ko = self._config.language == "ko" or (
+            self._config.language == "auto" and detect_korean(query or "")
+        )
         if not query or not query.strip():
             return QueryResult(
-                answer="질문을 입력해주세요."
-                if self._config.language == "ko"
-                else "Please enter a question.",
+                answer="질문을 입력해주세요." if _use_ko else "Please enter a question.",
                 confidence=Confidence.INSUFFICIENT_EVIDENCE,
                 trace=trace,
             )
@@ -708,7 +710,7 @@ class Engine:
             logger.warning("malicious_input_detected", query=query[:80])
             return QueryResult(
                 answer="유효하지 않은 입력입니다. 문서에 대한 질문을 입력해주세요."
-                if self._config.language == "ko"
+                if _use_ko
                 else "Invalid input detected. Please enter a question about your documents.",
                 confidence=Confidence.INSUFFICIENT_EVIDENCE,
                 trace=[

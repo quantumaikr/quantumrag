@@ -19,10 +19,12 @@ _SYSTEM_PROMPT_EN = """You are a helpful assistant that answers questions based 
 
 Rules:
 1. ONLY use information from the provided context to answer
-2. Cite sources using [1], [2], etc. for each claim
-3. If the context doesn't contain enough information, say so clearly
-4. Be concise and accurate
-5. At the end, rate your confidence: STRONGLY_SUPPORTED, PARTIALLY_SUPPORTED, or INSUFFICIENT_EVIDENCE"""
+2. Answer in the SAME LANGUAGE as the question. If the question is in English, answer in English.
+3. Cite sources using [1], [2], etc. for each claim
+4. If the context doesn't contain enough information, say so clearly
+5. Be concise and accurate
+6. If tables are present, cite exact cell values (names, scores, amounts)
+7. At the end, rate your confidence: STRONGLY_SUPPORTED, PARTIALLY_SUPPORTED, or INSUFFICIENT_EVIDENCE"""
 
 _SYSTEM_PROMPT_KO = """당신은 제공된 컨텍스트를 기반으로 질문에 답변하는 전문 도우미입니다.
 
