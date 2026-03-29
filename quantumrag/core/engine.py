@@ -906,16 +906,20 @@ class Engine:
             if has_deep_docs:
                 top_k = max(top_k, 15)
 
+        # Query deadline: skip expensive steps if running out of time
+        query_deadline_s = 70.0  # Leave headroom for post-correction
+
         # Step 2: Retrieve (with sub-query fusion if decomposed)
         try:
             if len(sub_queries) > 1:
                 # Parallel retrieval for each sub-query, then merge & deduplicate
+                # Limit sub-queries to 2 to reduce latency
                 import asyncio as _aio
 
                 sub_results = await _aio.gather(
                     *(
                         self._do_retrieval(sq, classification, top_k, filters, rerank, pipeline_ctx)
-                        for sq in sub_queries
+                        for sq in sub_queries[:2]
                     )
                 )
                 # Merge: use the first result as base, add unique chunks from others
@@ -1019,7 +1023,8 @@ class Engine:
         # Step 2.5b: Map-Reduce for aggregation queries
         from quantumrag.core.generate.map_reduce import MapReduceRAG
 
-        if use_map_reduce and retrieval_result.chunks:
+        elapsed_step2 = time.perf_counter() - t0
+        if use_map_reduce and retrieval_result.chunks and elapsed_step2 < query_deadline_s:
             try:
                 mr_llm = self._get_llm_provider(QueryComplexity.MEDIUM)
                 mr_rag = MapReduceRAG(mr_llm)
@@ -1053,7 +1058,13 @@ class Engine:
         # Step 2.7: Fact-First Injection — query the fact index directly
         # For structured queries (filtering, enumeration), inject verified facts
         # into a synthetic high-priority chunk so the LLM sees authoritative data.
-        if self._fact_index and self._fact_index.total_facts > 0 and retrieval_result.chunks:
+        elapsed_step27 = time.perf_counter() - t0
+        if (
+            self._fact_index
+            and self._fact_index.total_facts > 0
+            and retrieval_result.chunks
+            and elapsed_step27 < query_deadline_s
+        ):
             try:
                 from quantumrag.core.ingest.indexer.fact_extractor import detect_domains
 
@@ -1157,9 +1168,10 @@ class Engine:
 
             # Adaptive time budget: if retrieval+generation already took
             # a long time, reduce post-correction budget to avoid timeouts.
+            # Total query target: 80s (QA runner timeout is 90s)
             elapsed_so_far = time.perf_counter() - t0
-            remaining_budget = max(5.0, 60.0 - elapsed_so_far)
-            correction_time_budget = min(20.0, remaining_budget)
+            remaining_budget = max(3.0, 80.0 - elapsed_so_far)
+            correction_time_budget = min(15.0, remaining_budget)
 
             correction_ctx = CorrectionContext(
                 query=query,
