@@ -39,6 +39,7 @@ QUERY_TIMEOUT = 90  # Allow post-correction pipeline to complete
 CONCURRENCY = 5  # Parallel queries
 INGEST_MODE = "fast"  # Skip HyPE/preambles
 SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
+NOISE_DOCS = 0  # Add N noise documents for scale testing (0 = no noise)
 
 # --- Collect all datasets ---
 ds_root = Path(__file__).resolve().parent
@@ -102,11 +103,26 @@ for ds_path in datasets:
     else:
         all_questions.extend(ds_questions)
 
+# Add noise documents for scale testing
+if NOISE_DOCS > 0:
+    from datasets.noise_generator import generate_noise_docs
+
+    noise_dir = combined_dir / "noise"
+    n_generated = generate_noise_docs(noise_dir, NOISE_DOCS)
+    for noise_file in sorted(noise_dir.glob("*.md")):
+        dest = sources_dir / noise_file.name
+        shutil.copy2(noise_file, dest)
+    noise_count = len(list(noise_dir.glob("*.md")))
+else:
+    noise_count = 0
+
+total_sources = len(source_map) + noise_count
+
 print("=" * 70)
-print("  Combined QA Run — All Datasets Merged")
+print("  Combined QA Run — All Datasets Merged + Noise")
 print("=" * 70)
 print(f"\n  Datasets: {len(datasets)} ({', '.join(d.name for d in datasets)})")
-print(f"  Sources:  {len(source_map)} documents")
+print(f"  Sources:  {len(source_map)} real + {noise_count} noise = {total_sources} total")
 print(
     f"  Questions: {len(all_questions)} (sampled {SAMPLE_PER_DATASET}/dataset)"
     if SAMPLE_PER_DATASET > 0
