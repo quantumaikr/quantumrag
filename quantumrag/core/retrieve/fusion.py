@@ -70,9 +70,17 @@ class FusionRetriever:
                 del self._embed_cache[oldest]
             self._embed_cache[query] = query_vector
 
-        # Run all three searches in parallel
-        # Fetch 3x candidates per index to ensure coverage in larger corpora
-        fetch_k = top_k * 3
+        # Adaptive fetch: scale with corpus size for better recall in larger corpora
+        # Small corpus (< 100 chunks): 3x is enough
+        # Large corpus (500+ chunks): need 5x to find signal in noise
+        corpus_scale = 1.0
+        try:
+            bm25_count = getattr(self._bm25_store, "count", lambda: 0)()
+            if bm25_count > 200:
+                corpus_scale = min(bm25_count / 200, 2.0)  # Up to 2x boost
+        except Exception:
+            pass
+        fetch_k = int(top_k * 3 * corpus_scale)
         original_task = self._vector_store.search(query_vector, top_k=fetch_k, filters=filters)
         hype_task = self._hype_vector_store.search(query_vector, top_k=fetch_k, filters=filters)
         bm25_task = self._bm25_store.search(query, top_k=fetch_k, filters=filters)
