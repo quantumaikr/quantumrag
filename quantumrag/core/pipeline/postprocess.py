@@ -96,7 +96,7 @@ class CorrectionContext:
 
     # Time budget: max seconds for entire correction pipeline
     # Processors should check remaining time before expensive operations
-    time_budget_s: float = 30.0
+    time_budget_s: float = 20.0
     pipeline_start: float = field(default_factory=time.perf_counter)
 
     # Token usage accumulator across all generation calls

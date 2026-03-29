@@ -152,7 +152,7 @@ async def run_query(q: dict) -> dict:
     t0 = time.perf_counter()
     try:
         qr = await asyncio.wait_for(
-            engine.aquery(q["query"], skip_correction=True),
+            engine.aquery(q["query"]),
             timeout=QUERY_TIMEOUT,
         )
         elapsed = time.perf_counter() - t0

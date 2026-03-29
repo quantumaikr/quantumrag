@@ -189,7 +189,7 @@ class FusionRetriever:
             raw_score = max(result.score, 0.0)
             scores[result.id] = scores.get(result.id, 0.0) + w_hype * raw_score / (k + rank + 1)
 
-        for rank, result in enumerate(bm25):
+        for rank, result in enumerate(bm25):  # type: ignore[assignment]
             # BM25 scores are not normalized to [0,1], so cap at 1.0
             raw_score = min(max(result.score, 0.0), 1.0) if hasattr(result, "score") else 1.0
             scores[result.id] = scores.get(result.id, 0.0) + w_bm25 * raw_score / (k + rank + 1)

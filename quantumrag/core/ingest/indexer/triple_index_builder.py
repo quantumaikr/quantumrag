@@ -328,7 +328,7 @@ class TripleIndexBuilder:
         prompt = _HYPE_USER_TEMPLATE.format(n=n, text=text, context=context)
 
         try:
-            result = await self._llm_provider.generate_structured(
+            result = await self._llm_provider.generate_structured(  # type: ignore[union-attr]
                 prompt,
                 system=_HYPE_SYSTEM_PROMPT,
             )
@@ -345,7 +345,7 @@ class TripleIndexBuilder:
             # Fallback: try plain text generation and parse JSON
             logger.debug("hype_structured_failed", chunk_id=chunk.id, error=str(e))
             try:
-                response = await self._llm_provider.generate(prompt, system=_HYPE_SYSTEM_PROMPT)
+                response = await self._llm_provider.generate(prompt, system=_HYPE_SYSTEM_PROMPT)  # type: ignore[union-attr]
                 questions = json.loads(response.text)
                 if isinstance(questions, list):
                     return [str(q) for q in questions[:n]]

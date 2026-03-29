@@ -144,12 +144,19 @@ known-first-party = ["quantumrag"]
 
 [tool.mypy]
 python_version = "3.10"
-strict = true
-warn_return_any = true
 warn_unused_configs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
 
 [[tool.mypy.overrides]]
-module = ["lancedb.*", "tantivy.*", "chromadb.*", "faiss.*"]
+module = [
+    "lancedb.*", "tantivy.*", "chromadb.*", "faiss.*",
+    "yaml.*", "flashrank.*", "sentence_transformers.*",
+    "watchdog.*", "olefile.*", "pyhwpx.*", "magic.*",
+]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

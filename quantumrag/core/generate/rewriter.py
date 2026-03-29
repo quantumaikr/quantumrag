@@ -168,6 +168,7 @@ class QueryRewriter:
         history_text = "\n".join(f"{turn.role}: {turn.content}" for turn in history)
         user_prompt = _REWRITE_USER_TEMPLATE.format(history=history_text, query=query)
 
+        assert self.llm_provider is not None
         response = await self.llm_provider.generate(
             user_prompt,
             system=_REWRITE_SYSTEM_PROMPT,

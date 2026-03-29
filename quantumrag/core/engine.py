@@ -809,6 +809,9 @@ class Engine:
             # Re-decompose with expanded query
             sub_queries = decompose_query(query)
 
+        # Cap sub-queries to limit parallel retrieval cost
+        sub_queries = sub_queries[:3]
+
         if len(sub_queries) > 1:
             trace.append(
                 TraceStep(
@@ -1021,8 +1024,8 @@ class Engine:
                 mr_llm = self._get_llm_provider(QueryComplexity.MEDIUM)
                 mr_rag = MapReduceRAG(mr_llm)
 
-                # For aggregation, use ALL retrieved chunks (broader is better)
-                mr_chunks = retrieval_result.chunks
+                # For aggregation, use top chunks (cap at 10 for latency)
+                mr_chunks = retrieval_result.chunks[:10]
 
                 t_mr = time.perf_counter()
                 mr_answer = await mr_rag.execute(query, mr_chunks)

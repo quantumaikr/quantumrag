@@ -78,6 +78,7 @@ class SemanticCache:
         """Initialize SQLite-based persistent cache."""
         import sqlite3
 
+        assert self._storage_path is not None
         self._storage_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(self._storage_path))
         conn.execute(

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from typing import Any
+
 from quantumrag.core.errors import ParseError
 from quantumrag.core.logging import get_logger
 from quantumrag.core.models import Document, DocumentMetadata, SourceType
@@ -12,7 +14,7 @@ from quantumrag.core.utils.text import normalize_extracted_text
 logger = get_logger(__name__)
 
 
-def _table_to_markdown(table) -> str:
+def _table_to_markdown(table: Any) -> str:
     """Convert a pymupdf table object to Markdown table syntax.
 
     Args:
@@ -44,12 +46,12 @@ def _table_to_markdown(table) -> str:
     return "\n".join(lines)
 
 
-def _has_find_tables(page) -> bool:
+def _has_find_tables(page: Any) -> bool:
     """Check whether the pymupdf page object supports ``find_tables()``."""
     return callable(getattr(page, "find_tables", None))
 
 
-def _detect_heading_thresholds(doc) -> tuple[float, float]:
+def _detect_heading_thresholds(doc: Any) -> tuple[float, float]:
     """Analyze font sizes across the PDF to detect heading thresholds.
 
     Returns (h1_threshold, h2_threshold) where text at or above h1 is
@@ -97,7 +99,7 @@ def _detect_heading_thresholds(doc) -> tuple[float, float]:
 
 
 def _extract_page_text(
-    page,
+    page: Any,
     page_num: int,
     h1_threshold: float = 999.0,
     h2_threshold: float = 999.0,

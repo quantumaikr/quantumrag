@@ -83,12 +83,15 @@ class HookSpec:
 
     def on_chunk_created(self, chunk: Any) -> Any:
         """Called when a chunk is created. Can modify the chunk."""
+        return chunk
 
     def post_retrieve(self, query: str, results: list[Any]) -> list[Any]:
         """Called after retrieval. Can filter/modify results."""
+        return results
 
     def post_generate(self, query: str, result: Any) -> Any:
         """Called after generation. Can modify the result."""
+        return result
 
 
 def hookimpl(func: Any) -> Any:
@@ -259,7 +262,7 @@ class PluginRegistry:
             from importlib.metadata import entry_points
 
             all_eps = entry_points()
-            eps = all_eps.get(group, [])
+            eps: Any = all_eps.get(group, [])
 
         for ep in eps:
             try:

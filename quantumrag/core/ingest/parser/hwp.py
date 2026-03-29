@@ -206,12 +206,12 @@ class HWPParser:
         # Try to read body text sections
         try:
             # ole is an OleFileIO instance
-            streams = ole.listdir()  # type: ignore[union-attr]
+            streams = ole.listdir()  # type: ignore[attr-defined]
             section_streams = sorted(s for s in streams if len(s) >= 2 and s[0] == "BodyText")
 
             for stream_path in section_streams:
                 try:
-                    data = ole.openstream(stream_path).read()  # type: ignore[union-attr]
+                    data = ole.openstream(stream_path).read()  # type: ignore[attr-defined]
                     text = self._decode_hwp_stream(data)
                     if text.strip():
                         texts.append(text.strip())

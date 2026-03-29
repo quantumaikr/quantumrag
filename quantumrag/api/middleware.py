@@ -8,6 +8,8 @@ import time
 import uuid
 from collections import defaultdict
 
+from typing import Any
+
 import structlog
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,7 +33,7 @@ def setup_api_key_auth(app: FastAPI, api_key: str | None = None) -> None:
     resolved_key = api_key or os.environ.get("QUANTUMRAG_API_KEY")
 
     @app.middleware("http")
-    async def _api_key_middleware(request: Request, call_next):
+    async def _api_key_middleware(request: Request, call_next: Any) -> Response:
         if resolved_key:
             # Skip auth for docs / openapi / health-like endpoints
             if request.url.path in ("/docs", "/redoc", "/openapi.json", "/health"):
@@ -97,7 +99,7 @@ def setup_request_logging(app: FastAPI) -> None:
     """Log every request with method, path, status and latency."""
 
     @app.middleware("http")
-    async def _logging_middleware(request: Request, call_next):
+    async def _logging_middleware(request: Request, call_next: Any) -> Response:
         start = time.perf_counter()
         response: Response = await call_next(request)
         elapsed_ms = (time.perf_counter() - start) * 1000
@@ -125,7 +127,7 @@ def setup_request_id(app: FastAPI) -> None:
     """
 
     @app.middleware("http")
-    async def _request_id_middleware(request: Request, call_next):
+    async def _request_id_middleware(request: Request, call_next: Any) -> Response:
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
         # Store on request state for downstream access
         request.state.request_id = request_id
@@ -226,7 +228,7 @@ def setup_rate_limiting(
     bucket = _TokenBucket(rate=rate, capacity=capacity, max_buckets=max_buckets)
 
     @app.middleware("http")
-    async def _rate_limit_middleware(request: Request, call_next):
+    async def _rate_limit_middleware(request: Request, call_next: Any) -> Response:
         # Exempt health / docs endpoints from rate limiting
         if request.url.path in _RATE_LIMIT_EXEMPT_PATHS:
             return await call_next(request)
