@@ -66,12 +66,22 @@ class SourceResponse(BaseModel):
     relevance_score: float = 0.0
 
 
+class TraceStepResponse(BaseModel):
+    """A step in the RAG pipeline trace."""
+
+    step: str
+    result: str = ""
+    latency_ms: float = 0.0
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
 class QueryResponse(BaseModel):
     """Response for POST /v1/query."""
 
     answer: str
     sources: list[SourceResponse] = Field(default_factory=list)
     confidence: str = "insufficient_evidence"
+    trace: list[TraceStepResponse] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 

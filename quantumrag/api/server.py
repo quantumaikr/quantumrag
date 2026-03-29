@@ -33,6 +33,7 @@ from quantumrag.api.models import (
     QueryResponse,
     SourceResponse,
     StatusResponse,
+    TraceStepResponse,
 )
 from quantumrag.api.sse import sse_stream
 
@@ -252,10 +253,20 @@ def create_app(config_path: str | None = None) -> FastAPI:
                 )
                 for s in result.sources
             ]
+            trace_steps = [
+                TraceStepResponse(
+                    step=t.step,
+                    result=t.result,
+                    latency_ms=t.latency_ms,
+                    details=t.details,
+                )
+                for t in result.trace
+            ]
             return QueryResponse(
                 answer=result.answer,
                 sources=sources,
                 confidence=result.confidence.value,
+                trace=trace_steps,
                 metadata=result.metadata,
             )
         except Exception as e:
