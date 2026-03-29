@@ -62,20 +62,21 @@ pip install quantumrag[all]
 pip install quantumrag[korean]
 ```
 
+### 즉시 체험
+
+```bash
+quantumrag demo    # 내장 샘플 문서 + 서버 — 30초 안에 체험
+```
+
 ### CLI
 
 ```bash
-# 프로젝트 초기화
-quantumrag init
-
-# 문서 인제스트
-quantumrag ingest ./docs --recursive
-
-# 질문하기
-quantumrag query "지원되는 청킹 전략은 무엇인가요?"
-
-# 웹 플레이그라운드와 함께 API 서버 시작
-quantumrag serve --port 8000
+quantumrag init                          # 프로젝트 초기화
+quantumrag ingest ./docs --recursive     # 문서 인제스트
+quantumrag query "주요 발견사항은?"         # 질문하기
+quantumrag chat                          # 대화형 멀티턴 채팅
+quantumrag serve --port 8000             # HTTP API + 웹 플레이그라운드
+quantumrag demo                          # 샘플 콘텐츠로 원커맨드 데모
 ```
 
 ### 로컬 모델 (API 키 불필요)
@@ -93,13 +94,20 @@ result = engine.query("문서를 요약해주세요")
 
 ## 웹 플레이그라운드
 
-API 서버를 시작하면 내장 웹 플레이그라운드를 사용할 수 있습니다:
-
 ```bash
 quantumrag serve --port 8000
+# 또는 내장 샘플 콘텐츠로 즉시 체험:
+quantumrag demo
 ```
 
-http://localhost:8000/playground 에서 문서를 인제스트하고 질문할 수 있습니다.
+http://localhost:8000 에서 인터랙티브 플레이그라운드를 사용할 수 있습니다:
+
+- 문서 업로드 (드래그 & 드롭) 또는 텍스트 붙여넣기
+- 실시간 스트리밍 또는 상세 모드로 질문
+- **파이프라인 트레이스** 조회 — 모든 단계(검색/생성/기타)의 latency 분해
+- **소스 인용** 관련도 점수 및 발췌문 확인
+- **쿼리 옵션** 조정 (top_k, rerank 토글, trace/stream 모드)
+- 문서 관리 (목록, 삭제)
 
 ![QuantumRAG 웹 플레이그라운드](assets/demo.ko.png)
 
@@ -148,11 +156,17 @@ pip install kiwipiepy  # 한국어 형태소 분석 필수
   ├─ 쿼리 리라이트 / 확장
   ├─ 엔티티 감지 & 속성 필터링
   ├─ 적응형 라우팅 (simple → nano, medium → mini, complex → full)
-  ├─ Triple Index Fusion 검색 (RRF: 0.4 / 0.35 / 0.25)
-  ├─ 리랭킹 (FlashRank / BGE / Cohere / Jina)
-  ├─ 컨텍스트 압축
+  ├─ Triple Index Fusion 검색 (Score-Weighted RRF: 0.4 / 0.35 / 0.25)
+  │     ├─ BM25 Min-Max 정규화 (스코어 변별력 보존)
+  │     └─ Document Coherence Boost (동일 문서 chunk +5% 부스트)
+  ├─ 리랭킹 + 스코어 블렌딩 (0.7 reranker + 0.3 fusion 신호 보존)
+  ├─ 컨텍스트 압축 (75%, 문장 경계 인식)
   ├─ 출처 기반 답변 생성 → 답변 [1][2] + 신뢰도
-  └─ 후처리 교정 (Retrieval Retry → Self-Correct → Fact Verify → Completeness)
+  └─ 적응형 후처리 교정 (시간 예산 기반, 단순 쿼리 자동 스킵)
+       ├─ Retrieval Retry (BM25 우선 재검색)
+       ├─ Self-Correction (패턴 기반 불충분 답변 감지)
+       ├─ Fact Verification (엔티티 + 수치 교차 검증, LLM 비용 0)
+       └─ Completeness Check (다중 파트 답변 검증)
 ```
 
 ### Triple Index Fusion
@@ -271,9 +285,9 @@ print(result.summary)
 | ds-002 | 타입시스템 + 교차 주제 혼동 | 25 | 88% |
 | ds-003 | 밀집 기술문서 + 교차 문서 | 30 | 83-87% |
 | ds-004 | 테이블 추출 + 모순 검출 | 30 | 77-90% |
-| **Combined** | **전체 소스 합산 (retrieval 스트레스 테스트)** | **105** | **29%** |
+| **Combined** | **전체 소스 + 50개 노이즈 문서 (retrieval 스트레스 테스트)** | **105** | **75%** |
 
-Combined QA 결과: retrieval 정밀도가 핵심 병목 (75건 실패 중 68건이 retrieval 원인).
+Combined QA: 29%에서 **75%**로 6회 측정-개선 루프를 통해 개선. BM25 min-max 정규화, Document Coherence Boost, Reranker Score Blending, Full Triple Index(HyPE) 활성화.
 
 ```bash
 # 개별 데이터셋
@@ -346,7 +360,7 @@ datasets/                      # QA 데이터셋 (4개, 105 질문)
 ├── run_qa_combined.py         # 합산 retrieval 스트레스 테스트
 └── STATUS.md                  # 자동 생성 대시보드
 tests/
-├── unit/                      # 782 유닛 테스트
+├── unit/                      # 850 유닛 테스트
 ├── scenarios/                 # 176 시나리오 테스트 (v1-v4)
 ├── security/                  # SSRF, 경로 탐색, 인젝션 테스트
 └── scale/                     # 스케일 테스트 프레임워크

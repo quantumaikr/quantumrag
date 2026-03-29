@@ -62,23 +62,21 @@ pip install quantumrag[all]
 pip install quantumrag[korean]
 ```
 
+### Try Instantly
+
+```bash
+quantumrag demo    # Built-in sample doc + server — try it in 30 seconds
+```
+
 ### CLI
 
 ```bash
-# Initialize a project
-quantumrag init
-
-# Ingest documents
-quantumrag ingest ./docs --recursive
-
-# Ask a question
-quantumrag query "What chunking strategies are available?"
-
-# Interactive multi-turn chat
-quantumrag chat
-
-# Start HTTP API server with web playground
-quantumrag serve --port 8000
+quantumrag init                          # Initialize a project
+quantumrag ingest ./docs --recursive     # Ingest documents
+quantumrag query "What are the findings?" # Ask a question
+quantumrag chat                          # Interactive multi-turn chat
+quantumrag serve --port 8000             # HTTP API + web playground
+quantumrag demo                          # One-command demo with sample content
 ```
 
 ### Zero Configuration
@@ -87,8 +85,8 @@ quantumrag serve --port 8000
 
 | Detected Key | Provider | Embedding | Generation |
 |-------------|----------|-----------|------------|
-| `OPENAI_API_KEY` | OpenAI | text-embedding-3-small | gpt-4.1-nano / gpt-4.1-mini |
-| `GOOGLE_API_KEY` | Gemini | text-embedding-004 | gemini-2.5-flash-lite / flash |
+| `GOOGLE_API_KEY` | Gemini | gemini-embedding-001 | gemini-3.1-flash-lite-preview |
+| `OPENAI_API_KEY` | OpenAI | text-embedding-3-small | gpt-5.4-nano / gpt-5.4-mini |
 | `ANTHROPIC_API_KEY` | Anthropic | local (bge-m3) | claude-haiku / claude-sonnet |
 | *(none)* | Ollama | local (bge-m3) | llama3.2:3b |
 
@@ -107,13 +105,20 @@ result = engine.query("Summarize the documents")
 
 ## Web Playground
 
-Start the API server and use the built-in web playground:
-
 ```bash
 quantumrag serve --port 8000
+# or try instantly with built-in sample content:
+quantumrag demo
 ```
 
-Open http://localhost:8000/playground to ingest documents and ask questions interactively.
+Open http://localhost:8000 to use the interactive playground:
+
+- Upload documents (drag & drop) or paste text
+- Ask questions with real-time streaming or detailed mode
+- Inspect **pipeline trace** — see every step (Retrieve/Generate/Other) with latency breakdown
+- View **source citations** with relevance scores and expandable excerpts
+- Adjust **query options** (top_k, rerank toggle, trace/stream mode)
+- Manage documents (list, delete)
 
 ![QuantumRAG Web Playground](assets/demo.png)
 
@@ -162,11 +167,17 @@ User Query
   ├─ Query Rewrite / Expansion
   ├─ Entity Detection & Attribute Filtering
   ├─ Adaptive Routing (simple → nano, medium → mini, complex → full)
-  ├─ Triple Index Fusion Search (RRF: 0.4 / 0.35 / 0.25)
-  ├─ Reranking (FlashRank / BGE / Cohere / Jina)
-  ├─ Context Compression
+  ├─ Triple Index Fusion Search (Score-Weighted RRF: 0.4 / 0.35 / 0.25)
+  │     ├─ BM25 Min-Max Normalization (preserves score discrimination)
+  │     └─ Document Coherence Boost (+5% per co-occurring chunk)
+  ├─ Reranking with Score Blending (0.7 reranker + 0.3 fusion signal)
+  ├─ Context Compression (75%, sentence-boundary aware)
   ├─ Source-Grounded Generation → Answer [1][2] + Confidence
-  └─ Post-Correction (Retrieval Retry → Self-Correct → Fact Verify → Completeness)
+  └─ Adaptive Post-Correction (time-budgeted, auto-skip for simple queries)
+       ├─ Retrieval Retry (BM25-dominant re-search)
+       ├─ Self-Correction (pattern-based insufficiency detection)
+       ├─ Fact Verification (entity + numeric cross-check, zero LLM cost)
+       └─ Completeness Check (multi-part answer verification)
 ```
 
 ### Triple Index Fusion
@@ -216,29 +227,29 @@ Interactive API docs: `http://localhost:8000/docs`
 ```yaml
 # quantumrag.yaml
 project_name: "my-knowledge-base"
-language: "ko"                          # ko, en, auto
+language: "auto"                        # auto (detect from query), ko, en
 domain: "general"                       # general, legal, medical, financial, technical
 
 models:
   embedding:
-    provider: "openai"                  # openai, gemini, ollama, local
-    model: "text-embedding-3-small"
+    provider: "gemini"                  # gemini, openai, ollama, local
+    model: "gemini-embedding-001"
   generation:
     simple:
-      provider: "openai"
-      model: "gpt-5.4-nano"            # Low-cost for simple queries (~70%)
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"   # Low-cost for simple queries (~70%)
     medium:
-      provider: "openai"
-      model: "gpt-5.4-mini"            # Mid-tier for moderate queries (~20%)
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"   # Mid-tier for moderate queries (~20%)
     complex:
-      provider: "anthropic"
-      model: "claude-sonnet-4-20250514" # Full model for complex queries (~10%)
+      provider: "gemini"
+      model: "gemini-3.1-flash-lite-preview"   # Full model for complex queries (~10%)
   reranker:
     provider: "flashrank"               # flashrank (free/CPU), bge, cohere, jina
   hype:
-    provider: "openai"
-    model: "gpt-5.4-nano"
-    questions_per_chunk: 3
+    provider: "gemini"
+    model: "gemini-3.1-flash-lite-preview"
+    questions_per_chunk: 4
 
 retrieval:
   top_k: 7
@@ -246,6 +257,7 @@ retrieval:
     original: 0.4
     hype: 0.35
     bm25: 0.25
+  fusion_candidate_multiplier: 5        # Candidates = top_k * multiplier
   rerank: true
   compression: true
 
@@ -287,9 +299,9 @@ Real-world web content used for systematic RAG validation:
 | ds-002 | Type system + cross-topic confusion | 25 | 88% |
 | ds-003 | Dense technical + cross-document | 30 | 83-87% |
 | ds-004 | Table extraction + contradiction detection | 30 | 77-90% |
-| **Combined** | **All sources merged (retrieval stress test)** | **105** | **29%** |
+| **Combined** | **All sources merged + 50 noise docs (retrieval stress test)** | **105** | **75%** |
 
-The Combined QA test reveals that retrieval precision is the key bottleneck at scale: 68 of 75 failures are retrieval-caused. This is the primary area for improvement.
+Combined QA improved from 29% to **75%** through 6 measurement-driven iterations: BM25 min-max normalization, document coherence boost, reranker score blending, and full Triple Index with HyPE.
 
 ```bash
 # Individual dataset
@@ -362,7 +374,7 @@ datasets/                      # QA datasets (4 datasets, 105 questions)
 ├── run_qa_combined.py         # Combined retrieval stress test
 └── STATUS.md                  # Auto-generated dashboard
 tests/
-├── unit/                      # 782 unit tests
+├── unit/                      # 850 unit tests
 ├── scenarios/                 # 176 scenario test cases (v1-v4)
 ├── security/                  # SSRF, path traversal, injection tests
 └── scale/                     # Scale testing framework
