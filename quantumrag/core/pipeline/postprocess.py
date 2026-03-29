@@ -170,8 +170,15 @@ class RetrievalRetryProcessor(PostProcessor):
             return False
         if not ctx.config or not ctx.config.retrieval.retrieval_retry:
             return False
-        if ctx.time_remaining_s < 10:  # Need at least 10s for retry + re-gen
+        if ctx.time_remaining_s < 10:
             return False
+        # Skip retry for COMPLEX queries — they already have sub-query fusion
+        # and retry would double the LLM calls with diminishing returns
+        from quantumrag.core.models import QueryComplexity
+
+        if hasattr(ctx.classification, "complexity"):
+            if ctx.classification.complexity == QueryComplexity.COMPLEX:
+                return False
         return ctx.result.confidence == Confidence.INSUFFICIENT_EVIDENCE and bool(ctx.chunks)
 
     async def process(self, ctx: CorrectionContext) -> CorrectionContext:

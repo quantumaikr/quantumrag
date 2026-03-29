@@ -487,7 +487,57 @@ def split_preserving_blocks(text: str) -> list[tuple[str, str]]:
                 else:
                     result.append((tseg, "text"))
 
-    return result
+    # Post-process: split large tables into sub-tables with header preserved
+    final: list[tuple[str, str]] = []
+    for segment, block_type in result:
+        if block_type == "table":
+            sub_tables = _split_large_table(segment, max_rows=15)
+            for st in sub_tables:
+                final.append((st, "table"))
+        else:
+            final.append((segment, block_type))
+
+    return final
+
+
+def _split_large_table(table_text: str, max_rows: int = 15) -> list[str]:
+    """Split a large markdown table into sub-tables, preserving headers.
+
+    Each sub-table keeps the original header row and separator,
+    so retrieval can match column names in every chunk.
+    """
+    lines = table_text.strip().split("\n")
+    table_lines = [line for line in lines if line.strip().startswith("|")]
+
+    if len(table_lines) <= max_rows + 2:  # header + separator + max_rows
+        return [table_text]
+
+    # Extract header (row 0) and separator (row 1)
+    header = table_lines[0]
+    separator = table_lines[1] if len(table_lines) > 1 else ""
+    data_rows = table_lines[2:]
+
+    # Extract non-table text before the table (title, etc.)
+    pre_text_lines = []
+    for line in lines:
+        if line.strip().startswith("|"):
+            break
+        pre_text_lines.append(line)
+    pre_text = "\n".join(pre_text_lines).strip()
+
+    sub_tables: list[str] = []
+    for i in range(0, len(data_rows), max_rows):
+        batch = data_rows[i : i + max_rows]
+        parts = []
+        if pre_text:
+            parts.append(pre_text)
+        parts.append(header)
+        if separator:
+            parts.append(separator)
+        parts.extend(batch)
+        sub_tables.append("\n".join(parts))
+
+    return sub_tables
 
 
 # ---------------------------------------------------------------------------
