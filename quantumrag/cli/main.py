@@ -576,17 +576,17 @@ def demo(
     cfg = QuantumRAGConfig.auto(storage={"data_dir": str(demo_dir)})
     engine = Engine(config=cfg)
 
-    # Ingest built-in demo text
-    try:
-        result = asyncio.get_event_loop().run_until_complete(
-            engine.aingest_text(_DEMO_TEXT, title="QuantumRAG Overview", mode="fast")
-        )
-    except RuntimeError:
-        result = asyncio.run(
-            engine.aingest_text(_DEMO_TEXT, title="QuantumRAG Overview", mode="fast")
-        )
+    # Ingest built-in demo text via temp file
+    import tempfile
 
-    console.print(f"  [green]Done:[/green] {result.get('chunks', 0)} chunks indexed")
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False, encoding="utf-8") as f:
+        f.write(_DEMO_TEXT)
+        demo_path = f.name
+    try:
+        result = engine.ingest(demo_path, mode="fast")
+        console.print(f"  [green]Done:[/green] {result.chunks} chunks indexed")
+    finally:
+        Path(demo_path).unlink(missing_ok=True)
     console.print(f"  Open [bold cyan]http://localhost:{port}[/bold cyan] to try it!")
     console.print("  [dim]Try: 'What is QuantumRAG?' or 'What formats are supported?'[/dim]")
 
