@@ -23,8 +23,9 @@ jobs:
         run: ruff check quantumrag/ tests/ --select E9,F63,F7,F82
       - name: Ruff format check
         run: ruff format --check quantumrag/ tests/
-      - name: Type check (critical errors only)
-        run: mypy quantumrag/ --ignore-missing-imports --no-error-summary --no-strict || true
+      - name: Type check (informational)
+        run: mypy quantumrag/ --ignore-missing-imports --no-error-summary
+        continue-on-error: true
 
   test:
     runs-on: ubuntu-latest
