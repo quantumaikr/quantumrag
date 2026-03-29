@@ -86,8 +86,7 @@ _QUOTED_RE = re.compile(r"""["'\u201c\u201d\u2018\u2019].+?["'\u201c\u201d\u2018
 _VALUE_ASKING_RE = re.compile(
     r"(?:얼마|몇\s*[%개건명억만천원달러]|전망[은이가]?\s*(?:어떻|얼마)|"
     r"모금액|성장률|증가율|비율|규모[는은이가]?\s*(?:어떻|얼마)|"
-    r"발급자\s*수|수치|금액|"
-    r"\d+위|1위|순위|점수|벤치마크|점유율|최대|최소)"
+    r"발급자\s*수|수치|금액)"
 )
 
 # Comparison keywords (Korean and English)
@@ -133,20 +132,12 @@ def detect_query_type(query: str) -> tuple[str, dict[str, float]]:
     if acronym_match:
         has_specific_acronym = any(a not in _GENERIC_ACRONYMS for a in acronym_match)
 
-    # English technical terms in Korean context (e.g., "Singleton 패턴",
-    # "Decorator 패턴", "Protocol과", "deque의") — signals precise term lookup
-    # Matches both capitalized (Singleton) and lowercase (deque, asyncio) terms
-    has_en_term_in_ko = bool(
-        re.search(r"[A-Za-z]{3,}", query) and re.search(r"[\uac00-\ud7a3]", query)
-    )
-
     if (
         _KOREAN_UNIT_RE.search(query)
         or has_specific_acronym
         or _MIXED_CASE_TERM_RE.search(query)
         or _QUOTED_RE.search(query)
         or _VALUE_ASKING_RE.search(query)
-        or has_en_term_in_ko
     ):
         return "term_specific", WEIGHT_PRESETS["term_specific"]
 
