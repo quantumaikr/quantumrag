@@ -138,6 +138,8 @@ class FAISSVectorStore:
         if positions_to_remove:
             self._rebuild_without(positions_to_remove)
 
+        # Re-fetch index reference after rebuild (rebuild replaces self._index)
+        index = self._index
         index.add(arr)
         self._ids.extend(ids)
         self._metadata.extend(metadata)
