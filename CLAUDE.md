@@ -44,10 +44,14 @@ Index-Heavy, Query-Light RAG 엔진. Python 3.10+, Apache 2.0.
 ### 현재 성능 현황
 - **개별 QA** (4 datasets, 105 questions): 77~100% pass rate → 전체 graduated
 - **Combined QA** (73 sources + 50 noise, 436 chunks): **75% pass rate** (full mode), timeout 2건, 30초 avg
-- **개선 이력**: 29% → 65% → **75%** (BM25 정규화 + coherence boost + reranker 블렌딩 + HyPE)
+- **개선 이력**: 29% → 65% → **75%** (6회 측정-개선 루프)
 - **남은 실패**: 26건 — retrieval FAIL 23건, timeout 2건, generation FAIL 1건
-- **Ceiling 분석**: fusion 가중치 튜닝은 소진됨. 다음 돌파구는 embedding 모델 교체 또는 노이즈 축소
 - **기본 LLM**: gemini-3.1-flash-lite-preview (무료 티어, 비용 효율적)
+
+### 성능 최적화 교훈 (검증 완료)
+- **효과 있음**: BM25 min-max 정규화(+36.7%p), Document Coherence Boost, Reranker 블렌딩(0.7/0.3), Full ingest HyPE(+9.5%p)
+- **효과 없음 (재시도 금지)**: fusion 가중치 튜닝(4회 모두 악화), dictionary expansion(-5%p), timeout 최적화(0%p), query classifier 변경(-2%p)
+- **Ceiling 분석**: 현재 가중치(40/35/25)가 최적점. 다음 돌파구는 embedding 모델 교체 또는 노이즈 축소
 
 ## 주요 파일 위치
 - 엔진 진입점: `quantumrag/core/engine.py`

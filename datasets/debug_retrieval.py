@@ -33,7 +33,11 @@ from quantumrag.core.engine import Engine
 
 
 async def debug_query(query: str, data_dir: str) -> None:
-    cfg = QuantumRAGConfig.auto(storage={"data_dir": data_dir})
+    cfg = QuantumRAGConfig.default(storage={"data_dir": data_dir})
+    # Match Combined QA runner: use local embeddings (1024d)
+    cfg.models.embedding.provider = "local"
+    cfg.models.embedding.model = "BAAI/bge-m3"
+    cfg.models.embedding.dimensions = 1024
     engine = Engine(config=cfg)
     engine._ensure_initialized()
 
