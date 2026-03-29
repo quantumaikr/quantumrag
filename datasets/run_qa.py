@@ -139,7 +139,7 @@ async def run_query(q: dict) -> dict:
         matched = [kw for kw in keywords if kw.lower() in answer.lower()]
         status = "\033[92mPASS\033[0m" if passed else "\033[91mFAIL\033[0m"
         print(
-            f"  {status} {q['id']} [{q.get('difficulty','?'):7s}] {elapsed:5.1f}s | {q['query'][:50]}"
+            f"  {status} {q['id']} [{q.get('difficulty', '?'):7s}] {elapsed:5.1f}s | {q['query'][:50]}"
         )
         if not passed:
             print(f"         expected: {keywords}")
@@ -162,7 +162,7 @@ async def run_query(q: dict) -> dict:
     except asyncio.TimeoutError:
         elapsed = time.perf_counter() - t0
         print(
-            f"  \033[93mTIMEOUT\033[0m {q['id']} [{q.get('difficulty','?'):7s}] {elapsed:5.1f}s | {q['query'][:50]}"
+            f"  \033[93mTIMEOUT\033[0m {q['id']} [{q.get('difficulty', '?'):7s}] {elapsed:5.1f}s | {q['query'][:50]}"
         )
         return {
             "qid": q["id"],
@@ -297,7 +297,7 @@ with open(run_file, "w") as f:
 
 # Print summary
 print(f"\n{'=' * 60}")
-print(f"  RESULTS: {passed_count}/{total} ({pass_rate*100:.1f}%)")
+print(f"  RESULTS: {passed_count}/{total} ({pass_rate * 100:.1f}%)")
 if timeout_count:
     print(f"  TIMEOUT: {timeout_count} queries exceeded {QUERY_TIMEOUT}s")
 print(f"{'=' * 60}")
@@ -305,7 +305,7 @@ print(f"{'=' * 60}")
 for diff in ["easy", "hard", "extreme"]:
     bd = run_data["summary"]["by_difficulty"].get(diff)
     if bd:
-        print(f"  {diff:8s}: {bd['passed']}/{bd['total']} ({bd['pass_rate']*100:.0f}%)")
+        print(f"  {diff:8s}: {bd['passed']}/{bd['total']} ({bd['pass_rate'] * 100:.0f}%)")
 
 sum_latency = sum(r["latency_s"] for r in results)
 print(f"\n  Wall time:   {wall_time:.1f}s (parallelism saved {sum_latency - wall_time:.0f}s)")
@@ -338,7 +338,7 @@ def check_graduation():
         if rd.get("summary", {}).get("pass_rate", 0) >= min_rate:
             qualifying += 1
 
-    print(f"\n  Graduation: {qualifying}/{min_runs} qualifying runs (>= {min_rate*100:.0f}%)")
+    print(f"\n  Graduation: {qualifying}/{min_runs} qualifying runs (>= {min_rate * 100:.0f}%)")
 
     if qualifying >= min_runs:
         manifest["status"] = "graduated"
@@ -406,11 +406,11 @@ def update_status():
             latest_rate = rate
 
         status_icon = {"graduated": "graduated", "active": "active"}.get(status, status)
-        best_str = f"{best_rate*100:.0f}%" if n_runs > 0 else "-"
-        latest_str = f"{latest_rate*100:.0f}%" if n_runs > 0 else "-"
+        best_str = f"{best_rate * 100:.0f}%" if n_runs > 0 else "-"
+        latest_str = f"{latest_rate * 100:.0f}%" if n_runs > 0 else "-"
 
         status_lines.append(
-            f"| {ds_path.name} | {ds_name} | {status_icon} | {n_runs}/{min_runs} | {best_str} | {latest_str} | {threshold*100:.0f}% | {q_count} |"
+            f"| {ds_path.name} | {ds_name} | {status_icon} | {n_runs}/{min_runs} | {best_str} | {latest_str} | {threshold * 100:.0f}% | {q_count} |"
         )
 
     # Failure patterns across datasets
@@ -424,11 +424,11 @@ def update_status():
         failures = [r for r in rd.get("results", []) if not r.get("passed")]
         if not failures:
             continue
-        status_lines.append(f"**{ds_path.name}** (latest: {rd['summary']['pass_rate']*100:.0f}%)")
+        status_lines.append(f"**{ds_path.name}** (latest: {rd['summary']['pass_rate'] * 100:.0f}%)")
         for fail in failures:
             err = fail.get("error", "keyword mismatch")
             status_lines.append(
-                f"- {fail['qid']} [{fail.get('difficulty','')}] {fail['query'][:50]}... → {err}"
+                f"- {fail['qid']} [{fail.get('difficulty', '')}] {fail['query'][:50]}... → {err}"
             )
         status_lines.append("")
 

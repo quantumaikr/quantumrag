@@ -39,7 +39,7 @@ QUERY_TIMEOUT = 90  # Allow post-correction pipeline to complete
 CONCURRENCY = 5  # Parallel queries
 INGEST_MODE = "fast"  # Skip HyPE/preambles
 SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
-NOISE_DOCS = 0  # Add N noise documents for scale testing (0 = no noise)
+NOISE_DOCS = 0  # Noise docs for scale testing. Requires sufficient embedding API quota.
 
 # --- Collect all datasets ---
 ds_root = Path(__file__).resolve().parent
@@ -224,7 +224,7 @@ async def run_query(q: dict) -> dict:
         status = "\033[92mPASS\033[0m" if passed else "\033[91mFAIL\033[0m"
         recall_str = f"R={retrieval_recall:.0%}" if expected_sources else "R=n/a"
         print(
-            f"  {status} {q['id']:12s} [{q.get('difficulty','?'):7s}] {elapsed:5.1f}s {recall_str} | {q['query'][:45]}"
+            f"  {status} {q['id']:12s} [{q.get('difficulty', '?'):7s}] {elapsed:5.1f}s {recall_str} | {q['query'][:45]}"
         )
 
         return {
@@ -247,7 +247,7 @@ async def run_query(q: dict) -> dict:
     except asyncio.TimeoutError:
         elapsed = time.perf_counter() - t0
         print(
-            f"  \033[93mTIMEOUT\033[0m {q['id']:12s} [{q.get('difficulty','?'):7s}] {elapsed:5.1f}s        | {q['query'][:45]}"
+            f"  \033[93mTIMEOUT\033[0m {q['id']:12s} [{q.get('difficulty', '?'):7s}] {elapsed:5.1f}s        | {q['query'][:45]}"
         )
         return {
             "qid": q["id"],
@@ -419,21 +419,21 @@ with open(run_file, "w") as f:
 
 # --- Print report ---
 print(f"\n{'=' * 70}")
-print(f"  COMBINED RESULTS: {passed_count}/{total} ({pass_rate*100:.1f}%)")
+print(f"  COMBINED RESULTS: {passed_count}/{total} ({pass_rate * 100:.1f}%)")
 if timeout_count:
     print(f"  TIMEOUT: {timeout_count} queries exceeded {QUERY_TIMEOUT}s")
-print(f"  Retrieval Recall: {avg_recall*100:.1f}%  |  Noise Ratio: {avg_noise*100:.1f}%")
+print(f"  Retrieval Recall: {avg_recall * 100:.1f}%  |  Noise Ratio: {avg_noise * 100:.1f}%")
 print(f"{'=' * 70}")
 
 # Degradation analysis
 print(f"\n  {'Dataset':<10} {'Individual':>10} {'Combined':>10} {'Δ Degrade':>10} {'Recall':>10}")
-print(f"  {'-'*50}")
+print(f"  {'-' * 50}")
 for ds_id, info in ds_breakdown.items():
-    ind_str = f"{info['individual_rate']*100:.0f}%"
-    com_str = f"{info['pass_rate']*100:.0f}%"
+    ind_str = f"{info['individual_rate'] * 100:.0f}%"
+    com_str = f"{info['pass_rate'] * 100:.0f}%"
     deg = info["degradation"]
-    deg_str = f"{deg*100:+.0f}%" if deg != 0 else "0%"
-    rec_str = f"{info['avg_retrieval_recall']*100:.0f}%"
+    deg_str = f"{deg * 100:+.0f}%" if deg != 0 else "0%"
+    rec_str = f"{info['avg_retrieval_recall'] * 100:.0f}%"
     print(f"  {ds_id:<10} {ind_str:>10} {com_str:>10} {deg_str:>10} {rec_str:>10}")
 
 print(f"\n  By difficulty:")
@@ -441,7 +441,7 @@ for diff in ["easy", "hard", "extreme"]:
     bd = run_data["summary"]["by_difficulty"].get(diff)
     if bd:
         print(
-            f"  {diff:8s}: {bd['passed']}/{bd['total']} ({bd['pass_rate']*100:.0f}%)  recall={bd['avg_retrieval_recall']*100:.0f}%"
+            f"  {diff:8s}: {bd['passed']}/{bd['total']} ({bd['pass_rate'] * 100:.0f}%)  recall={bd['avg_retrieval_recall'] * 100:.0f}%"
         )
 
 # Identify retrieval-caused failures
@@ -465,7 +465,7 @@ if retrieval_failures:
     print(f"\n  Top retrieval failures:")
     for r in sorted(retrieval_failures, key=lambda x: x["retrieval_recall"])[:5]:
         print(
-            f"    {r['qid']:12s} recall={r['retrieval_recall']*100:.0f}% noise={r['noise_ratio']*100:.0f}% | {r['query'][:50]}"
+            f"    {r['qid']:12s} recall={r['retrieval_recall'] * 100:.0f}% noise={r['noise_ratio'] * 100:.0f}% | {r['query'][:50]}"
         )
 
 sum_latency = sum(r["latency_s"] for r in results)

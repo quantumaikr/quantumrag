@@ -6,7 +6,6 @@ without making real LLM or database calls.
 
 from __future__ import annotations
 
-import asyncio
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -31,7 +30,6 @@ from quantumrag.core.models import (
 )
 from quantumrag.core.retrieve.fusion import ScoredChunk
 from quantumrag.core.retrieve.retriever import RetrievalResult
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -374,7 +372,6 @@ class TestEngineIngestMocked:
     def test_ingest_single_file(self, mock_embed):
         """Ingest a single text file and verify document/chunk counts."""
         import tempfile
-        import os
 
         # Create a temp file with content
         tmpdir = tempfile.mkdtemp()

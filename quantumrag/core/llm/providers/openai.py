@@ -286,21 +286,33 @@ class OpenAIEmbeddingProvider:
         return self._dimensions
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Embed a list of texts, automatically batching if needed."""
+        """Embed a list of texts, automatically batching with retry."""
         if not texts:
             return []
+
+        import asyncio as _aio
 
         all_embeddings: list[list[float]] = []
         for batch_start in range(0, len(texts), _EMBEDDING_BATCH_SIZE):
             batch = texts[batch_start : batch_start + _EMBEDDING_BATCH_SIZE]
-            resp = await self._client.embeddings.create(
-                model=self._model,
-                input=batch,
-                dimensions=self._dimensions,
-            )
-            # API returns embeddings sorted by index
-            sorted_data = sorted(resp.data, key=lambda d: d.index)
-            all_embeddings.extend([d.embedding for d in sorted_data])
+            # Retry with exponential backoff for rate limits
+            for attempt in range(5):
+                try:
+                    resp = await self._client.embeddings.create(
+                        model=self._model,
+                        input=batch,
+                        dimensions=self._dimensions,
+                    )
+                    sorted_data = sorted(resp.data, key=lambda d: d.index)
+                    all_embeddings.extend([d.embedding for d in sorted_data])
+                    break
+                except Exception as e:
+                    if "rate" in str(e).lower() or "429" in str(e):
+                        delay = 2**attempt
+                        logger.warning("embedding_rate_limited", attempt=attempt, delay=delay)
+                        await _aio.sleep(delay)
+                    else:
+                        raise
 
         return all_embeddings
 

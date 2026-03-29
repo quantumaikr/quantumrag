@@ -7,7 +7,6 @@ import os
 import time
 import uuid
 from collections import defaultdict
-
 from typing import Any
 
 import structlog

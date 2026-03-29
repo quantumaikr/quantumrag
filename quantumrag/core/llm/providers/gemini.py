@@ -288,9 +288,11 @@ class GeminiEmbeddingProvider:
         return self._dimensions
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Embed a list of texts, automatically batching if needed."""
+        """Embed a list of texts, automatically batching with retry."""
         if not texts:
             return []
+
+        import asyncio as _aio
 
         genai = _get_genai()
         all_embeddings: list[list[float]] = []
@@ -300,12 +302,22 @@ class GeminiEmbeddingProvider:
             config = genai.types.EmbedContentConfig(
                 output_dimensionality=self._dimensions,
             )
-            resp = await self._client.aio.models.embed_content(
-                model=self._model,
-                contents=batch,
-                config=config,
-            )
-            all_embeddings.extend([e.values for e in resp.embeddings])
+            for attempt in range(5):
+                try:
+                    resp = await self._client.aio.models.embed_content(
+                        model=self._model,
+                        contents=batch,
+                        config=config,
+                    )
+                    all_embeddings.extend([e.values for e in resp.embeddings])
+                    break
+                except Exception as e:
+                    if "rate" in str(e).lower() or "429" in str(e) or "quota" in str(e).lower():
+                        delay = 2**attempt
+                        logger.warning("embedding_rate_limited", attempt=attempt, delay=delay)
+                        await _aio.sleep(delay)
+                    else:
+                        raise
 
         return all_embeddings
 

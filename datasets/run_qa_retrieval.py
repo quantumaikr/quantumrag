@@ -213,20 +213,20 @@ for diff in ["easy", "hard", "extreme"]:
 # --- Print ---
 print(f"{'=' * 60}")
 print(
-    f"  RETRIEVAL RESULTS: {recall_hits}/{total} queries found correct source ({avg_recall*100:.1f}% avg recall)"
+    f"  RETRIEVAL RESULTS: {recall_hits}/{total} queries found correct source ({avg_recall * 100:.1f}% avg recall)"
 )
 print(f"  Avg top score: {avg_top_score:.4f} | Wall time: {wall_time:.1f}s")
 print(f"{'=' * 60}")
 
 print(f"\n  {'Dataset':<10} {'Hit/Total':>10} {'Recall':>10}")
-print(f"  {'-'*30}")
+print(f"  {'-' * 30}")
 for ds_id, info in ds_stats.items():
-    print(f"  {ds_id:<10} {info['hit']}/{info['total']:>7} {info['recall']*100:>9.0f}%")
+    print(f"  {ds_id:<10} {info['hit']}/{info['total']:>7} {info['recall'] * 100:>9.0f}%")
 
 print(f"\n  {'Difficulty':<10} {'Hit/Total':>10} {'Recall':>10}")
-print(f"  {'-'*30}")
+print(f"  {'-' * 30}")
 for diff, info in diff_stats.items():
-    print(f"  {diff:<10} {info['hit']}/{info['total']:>7} {info['recall']*100:>9.0f}%")
+    print(f"  {diff:<10} {info['hit']}/{info['total']:>7} {info['recall'] * 100:>9.0f}%")
 
 # Zero-recall questions (retrieval completely failed)
 zero_recall = [r for r in tested if r.get("recall", 0) == 0]
@@ -234,7 +234,7 @@ if zero_recall:
     print(f"\n  Zero-recall queries ({len(zero_recall)}):")
     for r in zero_recall[:10]:
         q = next((q for q in all_questions if q["id"] == r["qid"]), {})
-        print(f"    {r['qid']:12s} score={r.get('top_score',0):.3f} | {q.get('query','')[:50]}")
+        print(f"    {r['qid']:12s} score={r.get('top_score', 0):.3f} | {q.get('query', '')[:50]}")
     if len(zero_recall) > 10:
         print(f"    ... and {len(zero_recall) - 10} more")
 
