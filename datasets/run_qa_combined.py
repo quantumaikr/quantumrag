@@ -51,7 +51,7 @@ from quantumrag.core.engine import Engine
 QUERY_TIMEOUT = 120  # Allow post-correction pipeline to complete
 CONCURRENCY = 3  # Parallel queries (Gemini rate limit friendly)
 INGEST_MODE = "full"  # Full Triple Index (Original + HyPE + BM25)
-SAMPLE_PER_DATASET = 5  # Sample N questions per dataset for speed (0 = all)
+SAMPLE_PER_DATASET = 0  # Full 105q
 NOISE_DOCS = 50  # Noise docs for scale testing. Uses local embeddings, no API cost.
 
 # --- Collect all datasets ---
@@ -167,7 +167,7 @@ cached_hash = hash_file.read_text().strip() if hash_file.exists() else ""
 # Use local embeddings for scale testing (no API cost, no rate limits)
 config = QuantumRAGConfig.default(storage={"data_dir": str(data_dir)})
 config.models.embedding.provider = "local"
-config.models.embedding.model = "BAAI/bge-m3"
+config.models.embedding.model = "microsoft/harrier-oss-v1-0.6b"
 config.models.embedding.dimensions = 1024
 engine = Engine(config=config)
 

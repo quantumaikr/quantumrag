@@ -28,6 +28,7 @@ class TestQuantumRAGConfigDefaults:
             "gemini",
             "anthropic",
             "ollama",
+            "local",
         )
         assert config.models.embedding.model  # non-empty
         assert config.models.generation.simple.model  # non-empty
@@ -48,7 +49,8 @@ class TestQuantumRAGConfigDefaults:
         env = {"GOOGLE_API_KEY": "AIza-test"}
         with patch.dict(os.environ, env, clear=True):
             config = QuantumRAGConfig.auto()
-        assert config.models.embedding.provider == "gemini"
+        assert config.models.embedding.provider == "local"  # Harrier local embedding
+        assert config.models.embedding.model == "microsoft/harrier-oss-v1-0.6b"
         assert config.models.generation.simple.model == "gemini-3.1-flash-lite-preview"
 
     @patch("quantumrag.core.config._load_dotenv")
@@ -57,7 +59,7 @@ class TestQuantumRAGConfigDefaults:
         env = {"GOOGLE_API_KEY": "AIza-test", "OPENAI_API_KEY": "sk-test"}
         with patch.dict(os.environ, env, clear=True):
             config = QuantumRAGConfig.auto()
-        assert config.models.embedding.provider == "gemini"
+        assert config.models.embedding.provider == "local"
 
     def test_default_retrieval(self) -> None:
         config = QuantumRAGConfig.default()
@@ -110,8 +112,8 @@ domain: "legal"
         assert config.project_name == "yaml-project"
         assert config.language == "en"
         assert config.domain == "legal"
-        # Defaults should still work for unset values
-        assert config.models.embedding.provider in ("openai", "gemini")
+        # Default embedding is local Harrier
+        assert config.models.embedding.provider in ("openai", "gemini", "local")
 
     def test_from_yaml_with_overrides(self, tmp_path: Path) -> None:
         yaml_file = tmp_path / "config.yaml"

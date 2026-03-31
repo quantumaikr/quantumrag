@@ -17,9 +17,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EmbeddingModelConfig(BaseModel):
-    provider: str = "gemini"  # openai, gemini, ollama, local
-    model: str = "gemini-embedding-001"
-    dimensions: int = 768
+    provider: str = "local"  # local, gemini, openai, ollama
+    model: str = "microsoft/harrier-oss-v1-0.6b"  # or BAAI/bge-m3, gemini-embedding-001, text-embedding-3-small
+    dimensions: int = 1024
     api_key: str | None = None  # None → SDK 기본 환경 변수 사용
     base_url: str | None = None  # 커스텀 엔드포인트 (Azure 등)
 
@@ -220,8 +220,20 @@ class QuantumRAGConfig(BaseSettings):
 
         provider, gen_models, emb_model, emb_dims = _detect_provider(os.environ)
 
+        # Parse embedding model — may be "local:model_name" format
+        if emb_model.startswith("local:"):
+            emb_provider = "local"
+            emb_model_name = emb_model[6:]  # strip "local:" prefix
+        else:
+            emb_provider = provider
+            emb_model_name = emb_model
+
         models_cfg = {
-            "embedding": {"provider": provider, "model": emb_model, "dimensions": emb_dims},
+            "embedding": {
+                "provider": emb_provider,
+                "model": emb_model_name,
+                "dimensions": emb_dims,
+            },
             "generation": {
                 "simple": {"provider": provider, "model": gen_models[0]},
                 "medium": {"provider": provider, "model": gen_models[1]},
@@ -267,6 +279,7 @@ def _detect_provider(
         (provider, (simple_model, medium_model, complex_model), embedding_model, embedding_dims)
     """
     # Gemini first: free tier available, cost-effective for most use cases
+    # Embedding always uses local Harrier (no API cost, no rate limits, MTEB 69.0)
     if env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY"):
         return (
             "gemini",
@@ -275,15 +288,15 @@ def _detect_provider(
                 "gemini-3.1-flash-lite-preview",
                 "gemini-3.1-flash-lite-preview",
             ),
-            "gemini-embedding-001",
-            768,
+            "local:microsoft/harrier-oss-v1-0.6b",
+            1024,
         )
     if env.get("ANTHROPIC_API_KEY"):
         # Anthropic has no embedding model; pair with local embedding
         return (
             "anthropic",
             ("claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-sonnet-4-6"),
-            "local:BAAI/bge-m3",
+            "local:microsoft/harrier-oss-v1-0.6b",
             1024,
         )
     if env.get("OPENAI_API_KEY"):
@@ -297,7 +310,7 @@ def _detect_provider(
     return (
         "ollama",
         ("llama3.2:3b", "llama3.2:3b", "llama3.2:3b"),
-        "local:BAAI/bge-m3",
+        "local:microsoft/harrier-oss-v1-0.6b",
         1024,
     )
 
@@ -321,7 +334,7 @@ models:
     dimensions: 768
     # 로컬 임베딩 (API 키 불필요, 한국어 최적):
     # provider: "local"
-    # model: "BAAI/bge-m3"
+    # model: "microsoft/harrier-oss-v1-0.6b"
     # dimensions: 1024
 
   generation:
