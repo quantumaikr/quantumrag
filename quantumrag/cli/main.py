@@ -574,6 +574,15 @@ def demo(
     # Use temp dir for demo data
     demo_dir = Path(tempfile.mkdtemp(prefix="quantumrag_demo_"))
     cfg = QuantumRAGConfig.auto(storage={"data_dir": str(demo_dir)})
+
+    # Demo uses Gemini API embedding for fast startup (no 270M model download)
+    import os
+
+    if os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"):
+        cfg.models.embedding.provider = "gemini"
+        cfg.models.embedding.model = "gemini-embedding-001"
+        cfg.models.embedding.dimensions = 768
+
     engine = Engine(config=cfg)
 
     # Ingest built-in demo text via temp file

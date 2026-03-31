@@ -18,8 +18,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class EmbeddingModelConfig(BaseModel):
     provider: str = "local"  # local, gemini, openai, ollama
-    model: str = "microsoft/harrier-oss-v1-0.6b"  # or BAAI/bge-m3, gemini-embedding-001, text-embedding-3-small
-    dimensions: int = 1024
+    model: str = (
+        "microsoft/harrier-oss-v1-270m"  # or harrier-0.6b, BAAI/bge-m3, gemini-embedding-001
+    )
+    dimensions: int = 640
     api_key: str | None = None  # None → SDK 기본 환경 변수 사용
     base_url: str | None = None  # 커스텀 엔드포인트 (Azure 등)
 
@@ -288,16 +290,16 @@ def _detect_provider(
                 "gemini-3.1-flash-lite-preview",
                 "gemini-3.1-flash-lite-preview",
             ),
-            "local:microsoft/harrier-oss-v1-0.6b",
-            1024,
+            "local:microsoft/harrier-oss-v1-270m",
+            640,
         )
     if env.get("ANTHROPIC_API_KEY"):
         # Anthropic has no embedding model; pair with local embedding
         return (
             "anthropic",
             ("claude-haiku-4-5-20251001", "claude-sonnet-4-6", "claude-sonnet-4-6"),
-            "local:microsoft/harrier-oss-v1-0.6b",
-            1024,
+            "local:microsoft/harrier-oss-v1-270m",
+            640,
         )
     if env.get("OPENAI_API_KEY"):
         return (
@@ -310,8 +312,8 @@ def _detect_provider(
     return (
         "ollama",
         ("llama3.2:3b", "llama3.2:3b", "llama3.2:3b"),
-        "local:microsoft/harrier-oss-v1-0.6b",
-        1024,
+        "local:microsoft/harrier-oss-v1-270m",
+        640,
     )
 
 

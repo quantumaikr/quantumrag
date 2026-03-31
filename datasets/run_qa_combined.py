@@ -167,8 +167,8 @@ cached_hash = hash_file.read_text().strip() if hash_file.exists() else ""
 # Use local embeddings for scale testing (no API cost, no rate limits)
 config = QuantumRAGConfig.default(storage={"data_dir": str(data_dir)})
 config.models.embedding.provider = "local"
-config.models.embedding.model = "microsoft/harrier-oss-v1-0.6b"
-config.models.embedding.dimensions = 1024
+config.models.embedding.model = "microsoft/harrier-oss-v1-270m"
+config.models.embedding.dimensions = 640
 engine = Engine(config=config)
 
 if current_hash == cached_hash and data_dir.exists():

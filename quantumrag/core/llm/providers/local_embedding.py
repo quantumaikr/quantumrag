@@ -40,8 +40,8 @@ class LocalEmbeddingProvider:
 
     def __init__(
         self,
-        model: str = "microsoft/harrier-oss-v1-0.6b",
-        dimensions: int = 1024,
+        model: str = "microsoft/harrier-oss-v1-270m",
+        dimensions: int = 640,
         device: str = "cpu",
         batch_size: int = 32,
     ) -> None:

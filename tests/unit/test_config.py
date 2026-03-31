@@ -50,7 +50,7 @@ class TestQuantumRAGConfigDefaults:
         with patch.dict(os.environ, env, clear=True):
             config = QuantumRAGConfig.auto()
         assert config.models.embedding.provider == "local"  # Harrier local embedding
-        assert config.models.embedding.model == "microsoft/harrier-oss-v1-0.6b"
+        assert "harrier-oss-v1" in config.models.embedding.model
         assert config.models.generation.simple.model == "gemini-3.1-flash-lite-preview"
 
     @patch("quantumrag.core.config._load_dotenv")

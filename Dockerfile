@@ -28,5 +28,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import httpx; httpx.get('http://localhost:8000/v1/status').raise_for_status()" || exit 1
 
-# Run the API server
-CMD ["quantumrag", "serve", "--host", "0.0.0.0", "--port", "8000"]
+# Run demo by default (serve for production)
+# docker run -e GOOGLE_API_KEY=... -p 8000:8000 quantumrag
+CMD ["quantumrag", "demo", "--host", "0.0.0.0", "--port", "8000"]
